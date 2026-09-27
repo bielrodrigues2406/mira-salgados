@@ -1,0 +1,171 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.colunas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* No celular as duas colunas se desfazem numa só, na ordem do design:
+   identificação e ações, resumo financeiro, itens, pagamentos e cliente. */
+.principal,
+.lateral {
+  display: contents;
+}
+
+ms-resumo-financeiro {
+  order: 1;
+}
+
+ms-itens-pedido {
+  order: 2;
+}
+
+ms-pagamentos-pedido {
+  order: 3;
+}
+
+.cliente-secao {
+  order: 4;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cliente {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.chips,
+.metadados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cor-texto-secundario);
+}
+
+.observacao {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-controle);
+  background: var(--cor-cartao);
+  color: var(--cor-texto-secundario);
+}
+
+.observacao-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--cor-texto);
+}
+
+.acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.acoes-secundarias {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.confirmacao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.botoes {
+  display: flex;
+  gap: 10px;
+}
+
+.cliente-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cliente-nome {
+  font-weight: 600;
+}
+
+.telefone {
+  align-self: flex-start;
+  min-height: var(--alvo-toque);
+  color: var(--cor-acao);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.outra-encomenda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--tint-negativo-borda);
+  border-radius: var(--raio-controle);
+  background: var(--tint-negativo);
+  color: var(--cor-negativo);
+  text-decoration: none;
+}
+
+.outra-textos {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--cor-texto);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+@media (min-width: 1024px) {
+  .colunas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+
+  .principal,
+  .lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .acoes {
+    flex-direction: row;
+  }
+
+  .acoes-secundarias {
+    display: flex;
+  }
+}

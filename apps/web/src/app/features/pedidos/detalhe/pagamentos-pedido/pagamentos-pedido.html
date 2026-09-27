@@ -1,0 +1,132 @@
+<section class="cartao pagamentos" aria-labelledby="titulo-pagamentos">
+  <h2 id="titulo-pagamentos" class="texto-titulo">Pagamentos</h2>
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  @if (pedido().pagamentos.length === 0) {
+    <p class="vazio">Nenhum pagamento registrado.</p>
+  } @else {
+    <ul class="lista">
+      @for (pagamento of pedido().pagamentos; track pagamento.id) {
+        <li class="pagamento" [class.estornado]="pagamento.estornadoEm !== null">
+          @if (estornando() === pagamento.id) {
+            <div class="confirmacao" role="group" [attr.aria-label]="rotuloDoEstorno(pagamento)">
+              <span class="numerico">
+                Estornar {{ aparencia[pagamento.forma].rotulo }} de
+                {{ pagamento.valorCentavos | moeda }}? O lançamento fica no histórico.
+              </span>
+              <div class="acoes">
+                <button type="button" class="botao botao-negativo" (click)="estornar(pagamento)">
+                  Estornar
+                </button>
+                <button type="button" class="botao botao-secundario" (click)="estornando.set(null)">
+                  Manter
+                </button>
+              </div>
+            </div>
+          } @else {
+            <span class="forma-icone" aria-hidden="true">
+              <ms-icone [nome]="aparencia[pagamento.forma].icone" [tamanho]="20" />
+            </span>
+            <span class="textos">
+              <span class="forma">{{ aparencia[pagamento.forma].rotulo }}</span>
+              <span class="texto-legenda numerico">
+                {{ momento(pagamento.criadoEm) }} · por {{ pagamento.registradoPor.nome }}
+              </span>
+              @if (pagamento.estornadoEm; as estornadoEm) {
+                <span class="texto-legenda numerico estorno">
+                  Estornado em {{ momento(estornadoEm) }} por {{ pagamento.estornadoPor?.nome }}
+                </span>
+              }
+            </span>
+            <span class="valor numerico">{{ pagamento.valorCentavos | moeda }}</span>
+            @if (pagamento.estornadoEm === null) {
+              <button
+                type="button"
+                class="botao botao-terciario botao-icone estornar"
+                [attr.aria-label]="rotuloDoEstorno(pagamento)"
+                (click)="estornando.set(pagamento.id)"
+              >
+                <ms-icone nome="estornar" />
+              </button>
+            }
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (registrando()) {
+    <form class="formulario" aria-labelledby="titulo-novo-pagamento" [formRoot]="formulario">
+      <h3 id="titulo-novo-pagamento" class="texto-titulo">Registrar pagamento</h3>
+      <fieldset class="grupo">
+        <legend class="texto-rotulo">Forma</legend>
+        <div class="formas">
+          @for (opcao of formas; track opcao.forma) {
+            <label class="opcao-forma">
+              <input
+                type="radio"
+                class="somente-leitor-de-tela"
+                [value]="opcao.forma"
+                [formField]="formulario.forma"
+              />
+              <ms-icone [nome]="opcao.icone" />
+              <span>{{ opcao.rotulo }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+      <div class="campo">
+        <label class="texto-rotulo" for="novo-pagamento-valor">Valor</label>
+        <div class="campo-controle">
+          <span class="campo-prefixo" aria-hidden="true">R$</span>
+          <input
+            id="novo-pagamento-valor"
+            class="campo-entrada campo-entrada-com-prefixo numerico valor"
+            inputmode="decimal"
+            autocomplete="off"
+            [formField]="formulario.valor"
+            [attr.aria-invalid]="formulario.valor().touched() && formulario.valor().invalid()"
+            aria-describedby="novo-pagamento-ajuda novo-pagamento-erro"
+          />
+        </div>
+        <span id="novo-pagamento-ajuda" class="campo-ajuda numerico">
+          @if (ehFiado()) {
+            Fiado não quita: o valor continua no saldo devedor do cliente.
+          } @else {
+            Saldo em aberto: {{ pedido().resumo.saldoDevedorCentavos | moeda }}.
+          }
+        </span>
+        <ms-erros-do-campo id="novo-pagamento-erro" [estado]="formulario.valor()" />
+      </div>
+      @if (erroDoFormulario(); as mensagem) {
+        <div class="alerta alerta-negativo" role="alert">
+          <ms-icone nome="alerta" [tamanho]="20" />
+          <span>{{ mensagem }}</span>
+        </div>
+      }
+      <div class="acoes">
+        <button
+          type="submit"
+          class="botao botao-primario salvar"
+          [disabled]="formulario().submitting()"
+        >
+          {{ formulario().submitting() ? 'Registrando…' : 'Registrar' }}
+        </button>
+        <button type="button" class="botao botao-secundario" (click)="registrando.set(false)">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  } @else if (podeRegistrar()) {
+    <button type="button" class="botao botao-secundario registrar" (click)="abrir()">
+      <ms-icone nome="mais" />
+      <span>Registrar pagamento</span>
+    </button>
+  }
+</section>

@@ -1,0 +1,153 @@
+.pagamentos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vazio {
+  color: var(--cor-texto-secundario);
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pagamento {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.pagamento + .pagamento {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.forma-icone {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--raio-pilula);
+  background: var(--tint-positivo);
+  color: var(--cor-positivo);
+}
+
+.textos {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.forma {
+  font-weight: 600;
+}
+
+.valor {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.estornar {
+  flex-shrink: 0;
+  margin-right: -10px;
+  color: var(--cor-texto-secundario);
+}
+
+.estornado .forma-icone {
+  background: var(--tint-neutro);
+  color: var(--cor-texto-secundario);
+}
+
+.estornado .forma,
+.estornado .valor {
+  color: var(--cor-texto-secundario);
+}
+
+.estornado .valor {
+  text-decoration: line-through;
+}
+
+.confirmacao {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-controle);
+  background: var(--cor-fundo);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.grupo legend {
+  padding: 0 0 6px;
+}
+
+.formas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.opcao-forma {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--alvo-toque);
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-controle);
+  background: var(--cor-cartao);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opcao-forma:has(:checked) {
+  border-color: var(--cor-acao);
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+}
+
+.opcao-forma:has(:focus-visible) {
+  outline: 2px solid var(--cor-acao);
+  outline-offset: 2px;
+}
+
+.formulario .valor {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+}
+
+.salvar {
+  flex-grow: 1;
+}
+
+.registrar {
+  width: 100%;
+}

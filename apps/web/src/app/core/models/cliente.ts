@@ -5,8 +5,21 @@ export interface Cliente {
   telefone: string | null;
   endereco: string | null;
   ativo: boolean;
+  /** Pedidos confirmados e concluídos, menos o pago em dinheiro e PIX. */
+  saldoDevedorCentavos: number;
+  temFiado: boolean;
   criadoEm: string;
   atualizadoEm: string;
+}
+
+export interface ClienteDetalhe extends Cliente {
+  quantidadePedidosComSaldo: number;
+  pedidosComSaldo: {
+    id: string;
+    numero: number;
+    dataEntrega: string;
+    saldoDevedorCentavos: number;
+  }[];
 }
 
 export interface NovoCliente {

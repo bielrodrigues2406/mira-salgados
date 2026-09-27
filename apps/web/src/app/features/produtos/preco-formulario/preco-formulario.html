@@ -39,10 +39,10 @@
   <div class="campo">
     <label class="texto-rotulo" [for]="id + '-valor'">Preço</label>
     <div class="campo-controle">
-      <span class="prefixo" aria-hidden="true">R$</span>
+      <span class="campo-prefixo" aria-hidden="true">R$</span>
       <input
         #campoPreco
-        class="campo-entrada numerico valor"
+        class="campo-entrada campo-entrada-com-prefixo numerico valor"
         inputmode="decimal"
         autocomplete="off"
         placeholder="0,00"

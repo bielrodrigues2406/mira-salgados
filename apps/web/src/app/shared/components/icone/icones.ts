@@ -8,6 +8,7 @@ export type Forma =
   | { tipo: 'rect'; x: number; y: number; width: number; height: number; rx: number };
 
 const p = (d: string): Forma => ({ tipo: 'path', d });
+const cheio = (d: string): Forma => ({ tipo: 'path', d, preenchido: true });
 const c = (cx: number, cy: number, r: number): Forma => ({ tipo: 'circle', cx, cy, r });
 const r = (x: number, y: number, width: number, height: number, rx: number): Forma => ({
   tipo: 'rect',
@@ -92,6 +93,46 @@ export const ICONES = {
   congelado: [p('M2 12h20M12 2v20m8-6-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4')],
   historico: [p('M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'), p('M3 3v5h5M12 7v5l4 2')],
   informacao: [c(12, 12, 9), p('M12 16v-4M12 8h.01')],
+  relogio: [c(12, 12, 9), p('M12 7v5l3 2')],
+  calendario: [r(3, 4, 18, 18, 2), p('M16 2v4M8 2v4M3 10h18')],
+  filtro: [p('M3 6h18M7 12h10M10 18h4')],
+  rascunho: [
+    p('M12 20h9'),
+    p(
+      'M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.85.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.85z',
+    ),
+  ],
+  concluido: [p('M18 6 7 17l-5-5M22 10l-7.5 7.5L13 16')],
+  cancelado: [c(12, 12, 9), p('m15 9-6 6M9 9l6 6')],
+  entrega: [
+    p('M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2'),
+    p('M15 18H9'),
+    p('M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14'),
+    c(17, 18, 2),
+    c(7, 18, 2),
+  ],
+  retirada: [p('M4 10v10h16V10'), p('M3 10l1.8-6h14.4L21 10z'), p('M10 20v-5h4v5')],
+  desconto: [
+    p(
+      'M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z',
+    ),
+    c(7.5, 7.5, 1),
+  ],
+  fiado: [p('M5 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5z'), p('M9 3v18M13 8h3M13 12h3')],
+  pagamentoPendente: [c(12, 12, 9)],
+  pagamentoParcial: [c(12, 12, 9), cheio('M12 3a9 9 0 0 1 0 18z')],
+  pagamentoPago: [c(12, 12, 9), p('m9 12 2 2 4-4')],
+  observacao: [
+    p('M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'),
+    p('M8 8h8M8 12h5'),
+  ],
+  atencao: [
+    p('m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'),
+    p('M12 9v4M12 17h.01'),
+  ],
+  pix: [p('M13 2 3 14h9l-1 8 10-12h-9l1-8z')],
+  dinheiro: [r(2, 6, 20, 12, 2), c(12, 12, 2), p('M6 12h.01M18 12h.01')],
+  estornar: [p('M9 14 4 9l5-5'), p('M4 9h10.5a5.5 5.5 0 0 1 0 11H11')],
   semConexao: [
     p(
       'm2 2 20 20M5.78 5.78A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.31-.19M21.53 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7 7 0 0 0 10 5.07',

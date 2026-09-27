@@ -18,6 +18,8 @@ function cliente(nome: string, dados: Partial<Cliente> = {}): Cliente {
     telefone: null,
     endereco: null,
     ativo: true,
+    saldoDevedorCentavos: 0,
+    temFiado: false,
     criadoEm: '2026-10-01T10:00:00.000Z',
     atualizadoEm: '2026-10-01T10:00:00.000Z',
     ...dados,

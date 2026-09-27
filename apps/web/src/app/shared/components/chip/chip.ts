@@ -3,7 +3,8 @@ import { Component, input } from '@angular/core';
 import { Icone } from '../icone/icone';
 import type { NomeIcone } from '../icone/icones';
 
-export type TomDoChip = 'positivo' | 'neutro' | 'frito' | 'assado' | 'congelado';
+export type TomDoChip =
+  'positivo' | 'neutro' | 'acao' | 'atencao' | 'negativo' | 'frito' | 'assado' | 'congelado';
 
 /**
  * Marcador de estado ou categoria. A cor nunca é o único sinal: o texto e o
