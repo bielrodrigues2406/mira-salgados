@@ -19,7 +19,12 @@ describe('Shell', () => {
         ]),
         {
           provide: AuthService,
-          useValue: { usuario: signal(null), logout: () => of(undefined) },
+          useValue: {
+            usuario: signal(null),
+            ehAdmin: signal(false),
+            precisaTrocarSenha: signal(false),
+            logout: () => of(undefined),
+          },
         },
       ],
     });

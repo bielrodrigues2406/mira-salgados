@@ -354,6 +354,12 @@ p {
   color: var(--cor-negativo);
 }
 
+.alerta-positivo {
+  background: var(--tint-positivo);
+  border-color: var(--tint-positivo-borda);
+  color: var(--cor-positivo);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

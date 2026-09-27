@@ -1,0 +1,318 @@
+<header class="cabecalho">
+  <div class="cabecalho-linha">
+    <h1 class="texto-display">Usuários</h1>
+    <button
+      type="button"
+      class="botao botao-secundario novo"
+      [attr.aria-expanded]="formularioAberto()"
+      aria-controls="formulario-nova-conta"
+      (click)="abrirFormulario()"
+    >
+      <ms-icone nome="mais" />
+      <span>Nova conta</span>
+    </button>
+  </div>
+  <p class="descricao">
+    Quem entra no sistema. Administradores também gerenciam contas e veem o histórico de alterações.
+  </p>
+</header>
+
+<p class="somente-leitor-de-tela" role="status">{{ aviso() }}</p>
+
+@if (acesso(); as dados) {
+  <ms-acesso-provisorio [acesso]="dados" (fechar)="acesso.set(null)" />
+}
+
+@if (formularioAberto()) {
+  <form
+    id="formulario-nova-conta"
+    class="cartao formulario"
+    aria-labelledby="titulo-nova-conta"
+    [formRoot]="formularioNovo"
+  >
+    <div class="formulario-cabecalho">
+      <h2 id="titulo-nova-conta" class="texto-titulo">Nova conta</h2>
+      <button
+        type="button"
+        class="botao botao-terciario botao-icone fechar"
+        aria-label="Fechar formulário"
+        (click)="fecharFormulario()"
+      >
+        <ms-icone nome="fechar" [tamanho]="20" />
+      </button>
+    </div>
+
+    <div class="campo">
+      <label class="texto-rotulo" for="nova-conta-nome">Nome</label>
+      <input
+        #campoNovo
+        id="nova-conta-nome"
+        class="campo-entrada"
+        autocomplete="off"
+        [formField]="formularioNovo.nome"
+        [attr.aria-invalid]="formularioNovo.nome().touched() && formularioNovo.nome().invalid()"
+        aria-describedby="nova-conta-nome-erro"
+      />
+      <ms-erros-do-campo id="nova-conta-nome-erro" [estado]="formularioNovo.nome()" />
+    </div>
+
+    <div class="campo">
+      <label class="texto-rotulo" for="nova-conta-telefone">Celular</label>
+      <input
+        id="nova-conta-telefone"
+        class="campo-entrada numerico"
+        type="tel"
+        inputmode="tel"
+        autocomplete="off"
+        placeholder="(11) 98765-4321"
+        [formField]="formularioNovo.telefone"
+        [attr.aria-invalid]="
+          formularioNovo.telefone().touched() && formularioNovo.telefone().invalid()
+        "
+        aria-describedby="nova-conta-telefone-ajuda nova-conta-telefone-erro"
+      />
+      <span id="nova-conta-telefone-ajuda" class="campo-ajuda">É com ele que a pessoa entra.</span>
+      <ms-erros-do-campo id="nova-conta-telefone-erro" [estado]="formularioNovo.telefone()" />
+    </div>
+
+    <fieldset class="grupo">
+      <legend class="texto-rotulo">Papel</legend>
+      <label class="opcao-papel">
+        <input type="radio" value="MEMBRO" [formField]="formularioNovo.papel" />
+        <span class="opcao-textos">
+          <span class="opcao-rotulo">Membro</span>
+          <span class="campo-ajuda">Pedidos, produção, cadastros e relatórios.</span>
+        </span>
+      </label>
+      <label class="opcao-papel">
+        <input type="radio" value="ADMIN" [formField]="formularioNovo.papel" />
+        <span class="opcao-textos">
+          <span class="opcao-rotulo">Administrador</span>
+          <span class="campo-ajuda">Tudo, mais contas de usuários e histórico de alterações.</span>
+        </span>
+      </label>
+    </fieldset>
+
+    <div class="campo">
+      <span class="texto-rotulo" id="nova-conta-senha-rotulo">Senha provisória</span>
+      <div class="senha-provisoria">
+        <span class="senha numerico" aria-labelledby="nova-conta-senha-rotulo">{{
+          senhaNova()
+        }}</span>
+        <button type="button" class="botao botao-terciario" (click)="gerarOutraSenha()">
+          <ms-icone nome="recarregar" [tamanho]="16" />
+          <span>Gerar outra</span>
+        </button>
+      </div>
+      <span class="campo-ajuda">Depois de salvar, você envia pelo WhatsApp.</span>
+    </div>
+
+    @if (erroNovo(); as mensagem) {
+      <div class="alerta alerta-negativo" role="alert">
+        <ms-icone nome="alerta" [tamanho]="20" />
+        <span>{{ mensagem }}</span>
+      </div>
+    }
+
+    <div class="formulario-acoes">
+      <button
+        type="submit"
+        class="botao botao-primario salvar"
+        [disabled]="formularioNovo().submitting()"
+      >
+        {{ formularioNovo().submitting() ? 'Salvando…' : 'Criar conta' }}
+      </button>
+      <button type="button" class="botao botao-secundario" (click)="fecharFormulario()">
+        Cancelar
+      </button>
+    </div>
+  </form>
+}
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando usuários" [comAvatar]="true" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar os usuários" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar os usuários"
+      [erro]="usuarios.error()"
+      (tentarNovamente)="usuarios.reload()"
+    />
+  }
+  @default {
+    <ul class="lista" aria-label="Usuários">
+      @for (usuario of itens(); track usuario.id) {
+        <li class="item" [class.inativo]="!usuario.ativo">
+          @if (emEdicao()?.id === usuario.id) {
+            <form
+              class="edicao"
+              [attr.aria-label]="'Editar ' + usuario.nome"
+              [formRoot]="formularioEdicao"
+            >
+              <div class="campo">
+                <label class="texto-rotulo" for="edicao-conta-nome">Nome</label>
+                <input
+                  #campoEdicao
+                  id="edicao-conta-nome"
+                  class="campo-entrada"
+                  autocomplete="off"
+                  [formField]="formularioEdicao.nome"
+                  [attr.aria-invalid]="
+                    formularioEdicao.nome().touched() && formularioEdicao.nome().invalid()
+                  "
+                  aria-describedby="edicao-conta-nome-erro"
+                />
+                <ms-erros-do-campo id="edicao-conta-nome-erro" [estado]="formularioEdicao.nome()" />
+              </div>
+
+              <div class="campo">
+                <label class="texto-rotulo" for="edicao-conta-telefone">Celular</label>
+                <input
+                  id="edicao-conta-telefone"
+                  class="campo-entrada numerico"
+                  type="tel"
+                  inputmode="tel"
+                  autocomplete="off"
+                  [formField]="formularioEdicao.telefone"
+                  [attr.aria-invalid]="
+                    formularioEdicao.telefone().touched() && formularioEdicao.telefone().invalid()
+                  "
+                  aria-describedby="edicao-conta-telefone-erro"
+                />
+                <ms-erros-do-campo
+                  id="edicao-conta-telefone-erro"
+                  [estado]="formularioEdicao.telefone()"
+                />
+              </div>
+
+              @if (editandoASiMesmo()) {
+                <p class="campo-ajuda">
+                  Você não pode desativar nem tirar o papel de administrador da sua própria conta.
+                </p>
+              } @else {
+                <fieldset class="grupo">
+                  <legend class="texto-rotulo">Papel</legend>
+                  <label class="opcao-papel">
+                    <input type="radio" value="MEMBRO" [formField]="formularioEdicao.papel" />
+                    <span class="opcao-rotulo">Membro</span>
+                  </label>
+                  <label class="opcao-papel">
+                    <input type="radio" value="ADMIN" [formField]="formularioEdicao.papel" />
+                    <span class="opcao-rotulo">Administrador</span>
+                  </label>
+                </fieldset>
+
+                <label class="opcao-papel">
+                  <input type="checkbox" [formField]="formularioEdicao.ativo" />
+                  <span class="opcao-textos">
+                    <span class="opcao-rotulo">Conta ativa</span>
+                    <span class="campo-ajuda">Desativar encerra o acesso na hora.</span>
+                  </span>
+                </label>
+              }
+
+              @if (erroEdicao(); as mensagem) {
+                <div class="alerta alerta-negativo" role="alert">
+                  <ms-icone nome="alerta" [tamanho]="20" />
+                  <span>{{ mensagem }}</span>
+                </div>
+              }
+
+              <div class="formulario-acoes">
+                <button
+                  type="submit"
+                  class="botao botao-primario salvar"
+                  [disabled]="formularioEdicao().submitting()"
+                >
+                  {{ formularioEdicao().submitting() ? 'Salvando…' : 'Salvar alterações' }}
+                </button>
+                <button type="button" class="botao botao-secundario" (click)="cancelarEdicao()">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          } @else {
+            <span class="avatar" aria-hidden="true">{{ iniciais(usuario.nome) }}</span>
+            <div class="item-textos">
+              <div class="item-linha">
+                <span class="item-nome">{{ usuario.nome }}</span>
+                @if (usuario.id === euId()) {
+                  <span class="texto-legenda">(você)</span>
+                }
+              </div>
+              <span class="texto-legenda numerico">
+                {{ usuario.telefone ? (usuario.telefone | telefone) : 'Sem celular cadastrado' }}
+              </span>
+              <div class="item-linha">
+                <ms-chip
+                  [tom]="usuario.papel === 'ADMIN' ? 'acao' : 'neutro'"
+                  [icone]="usuario.papel === 'ADMIN' ? 'usuarios' : 'produtor'"
+                  [compacto]="true"
+                >
+                  {{ rotuloPapel[usuario.papel] }}
+                </ms-chip>
+                @if (!usuario.ativo) {
+                  <ms-chip tom="neutro" icone="pausado" [compacto]="true">Inativa</ms-chip>
+                } @else if (usuario.trocarSenha) {
+                  <ms-chip tom="atencao" icone="chave" [compacto]="true">Senha provisória</ms-chip>
+                }
+              </div>
+              @if (redefinindo() === usuario.id) {
+                <div class="confirmacao" role="group" aria-label="Confirmar nova senha provisória">
+                  <span>
+                    Gerar uma senha provisória para {{ usuario.nome }}? As sessões abertas dessa
+                    conta são encerradas.
+                  </span>
+                  @if (erroRedefinicao(); as mensagem) {
+                    <span class="campo-erro" role="alert">{{ mensagem }}</span>
+                  }
+                  <div class="formulario-acoes">
+                    <button
+                      type="button"
+                      class="botao botao-primario"
+                      (click)="redefinirSenha(usuario)"
+                    >
+                      Gerar senha
+                    </button>
+                    <button
+                      type="button"
+                      class="botao botao-secundario"
+                      (click)="redefinindo.set(null)"
+                    >
+                      Voltar
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="item-acoes">
+              <button
+                type="button"
+                class="botao botao-terciario botao-icone"
+                [attr.aria-label]="'Nova senha provisória para ' + usuario.nome"
+                (click)="pedirRedefinicao(usuario)"
+              >
+                <ms-icone nome="chave" />
+              </button>
+              <button
+                type="button"
+                class="botao botao-terciario botao-icone"
+                [attr.aria-label]="'Editar ' + usuario.nome"
+                (click)="editar(usuario)"
+              >
+                <ms-icone nome="editar" />
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+    @if (meta(); as meta) {
+      <ms-paginacao [meta]="meta" (paginaMudou)="irParaPagina($event)" />
+    }
+  }
+}

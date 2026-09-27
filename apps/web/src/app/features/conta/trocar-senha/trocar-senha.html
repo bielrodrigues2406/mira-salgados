@@ -1,0 +1,90 @@
+<header class="cabecalho">
+  <h1 class="texto-display">{{ obrigatoria() ? 'Crie sua senha' : 'Trocar senha' }}</h1>
+  @if (obrigatoria()) {
+    <p class="descricao">
+      Você entrou com uma senha provisória. Crie uma senha só sua para continuar; ela vale a partir
+      de agora em todos os aparelhos.
+    </p>
+  } @else {
+    <p class="descricao">As outras sessões abertas com a senha antiga são encerradas.</p>
+  }
+</header>
+
+<p class="somente-leitor-de-tela" role="status">{{ concluida() ? 'Senha trocada.' : '' }}</p>
+
+@if (concluida()) {
+  <div class="alerta alerta-positivo">
+    <ms-icone nome="confirmado" [tamanho]="20" />
+    <span>Senha trocada. Use a nova senha nos próximos acessos.</span>
+  </div>
+}
+
+<form class="cartao formulario" aria-label="Troca de senha" [formRoot]="formulario">
+  <div class="campo">
+    <label class="texto-rotulo" for="senha-atual">
+      {{ obrigatoria() ? 'Senha provisória' : 'Senha atual' }}
+    </label>
+    <input
+      id="senha-atual"
+      class="campo-entrada"
+      autocomplete="current-password"
+      [type]="senhasVisiveis() ? 'text' : 'password'"
+      [formField]="formulario.atual"
+      [attr.aria-invalid]="formulario.atual().touched() && formulario.atual().invalid()"
+      aria-describedby="senha-atual-erro"
+    />
+    <ms-erros-do-campo id="senha-atual-erro" [estado]="formulario.atual()" />
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" for="senha-nova">Nova senha</label>
+    <input
+      id="senha-nova"
+      class="campo-entrada"
+      autocomplete="new-password"
+      [type]="senhasVisiveis() ? 'text' : 'password'"
+      [formField]="formulario.nova"
+      [attr.aria-invalid]="formulario.nova().touched() && formulario.nova().invalid()"
+      aria-describedby="senha-nova-ajuda senha-nova-erro"
+    />
+    <span id="senha-nova-ajuda" class="campo-ajuda">
+      Ao menos 12 caracteres. Uma frase fácil de lembrar funciona bem.
+    </span>
+    <ms-erros-do-campo id="senha-nova-erro" [estado]="formulario.nova()" />
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" for="senha-confirmacao">Repita a nova senha</label>
+    <input
+      id="senha-confirmacao"
+      class="campo-entrada"
+      autocomplete="new-password"
+      [type]="senhasVisiveis() ? 'text' : 'password'"
+      [formField]="formulario.confirmacao"
+      [attr.aria-invalid]="formulario.confirmacao().touched() && formulario.confirmacao().invalid()"
+      aria-describedby="senha-confirmacao-erro"
+    />
+    <ms-erros-do-campo id="senha-confirmacao-erro" [estado]="formulario.confirmacao()" />
+  </div>
+
+  <label class="mostrar">
+    <input type="checkbox" [checked]="senhasVisiveis()" (change)="alternarVisibilidade()" />
+    <span>Mostrar as senhas</span>
+  </label>
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  <div class="acoes">
+    <button type="submit" class="botao botao-primario" [disabled]="formulario().submitting()">
+      {{ formulario().submitting() ? 'Salvando…' : 'Salvar nova senha' }}
+    </button>
+    @if (obrigatoria()) {
+      <button type="button" class="botao botao-secundario" (click)="sair()">Sair</button>
+    }
+  </div>
+</form>

@@ -1,6 +1,11 @@
 import type { Routes } from '@angular/router';
 
-import { autenticadoGuard, visitanteGuard } from './core/guards/auth.guards';
+import {
+  adminGuard,
+  autenticadoGuard,
+  senhaEmDiaGuard,
+  visitanteGuard,
+} from './core/guards/auth.guards';
 
 const TITULO = 'Mira Salgados';
 
@@ -14,9 +19,22 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [autenticadoGuard],
+    canActivateChild: [senhaEmDiaGuard],
     loadComponent: () => import('./core/layout/shell/shell').then((m) => m.Shell),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'pedidos' },
+      {
+        path: 'trocar-senha',
+        title: `Trocar senha · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/conta/trocar-senha/trocar-senha').then((m) => m.TrocarSenha),
+      },
+      {
+        path: 'usuarios',
+        title: `Usuários · ${TITULO}`,
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/usuarios/usuarios').then((m) => m.Usuarios),
+      },
       {
         path: 'pedidos',
         title: `Pedidos · ${TITULO}`,

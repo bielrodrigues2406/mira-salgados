@@ -22,6 +22,11 @@ export const CADASTROS: readonly Destino[] = [
   { rota: '/produtores', rotulo: 'Produtores', icone: 'produtor' },
 ];
 
+/** Só para administradores: contas de acesso e histórico de alterações. */
+export const ADMINISTRACAO: readonly Destino[] = [
+  { rota: '/usuarios', rotulo: 'Usuários', icone: 'usuarios' },
+];
+
 // Segmentação por grafema: "É" digitado como "E" + acento combinante continua
 // sendo uma letra só.
 const GRAFEMAS = new Intl.Segmenter('pt-BR', { granularity: 'grapheme' });

@@ -114,7 +114,7 @@
 }
 
 .conta-botao:focus-visible,
-.botao-sair:focus-visible,
+.lateral-acao:focus-visible,
 .lateral-item:focus-visible,
 .inferior-item:focus-visible {
   outline-color: var(--sobre-comando);
@@ -136,6 +136,23 @@
 
 .conta-nome {
   font-weight: 600;
+}
+
+.conta-links {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.conta-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--alvo-toque);
+  color: var(--cor-texto);
+  text-decoration: none;
 }
 
 .conta-sair {
@@ -261,6 +278,26 @@
     border-top: 1px solid rgb(255 255 255 / 12%);
   }
 
+  .lateral-conta {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: var(--alvo-toque);
+    border-radius: var(--raio-controle);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .lateral-conta:hover .lateral-usuario-nome {
+    text-decoration: underline;
+  }
+
+  .lateral-conta:focus-visible {
+    outline-color: var(--sobre-comando);
+  }
+
   .lateral-usuario-textos {
     display: flex;
     flex-direction: column;
@@ -269,7 +306,7 @@
   }
 
   .lateral-usuario-nome,
-  .lateral-usuario-email {
+  .lateral-usuario-telefone {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -280,12 +317,12 @@
     font-weight: 600;
   }
 
-  .lateral-usuario-email {
+  .lateral-usuario-telefone {
     color: var(--sobre-comando-secundario);
     font-size: 12px;
   }
 
-  .botao-sair {
+  .lateral-acao {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -299,7 +336,7 @@
     cursor: pointer;
   }
 
-  .botao-sair:hover {
+  .lateral-acao:hover {
     color: var(--sobre-comando);
   }
 
