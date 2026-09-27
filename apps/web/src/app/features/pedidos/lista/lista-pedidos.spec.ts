@@ -85,7 +85,7 @@ describe('ListaPedidos', () => {
     }
     // O cartão da produção de hoje faz a sua própria consulta; aqui, dia sem produção.
     for (const producao of backend.match((r) => r.url === '/api/v1/relatorios/producao-do-dia')) {
-      producao.flush({ data: { quantidadePedidos: 0, porProdutor: [] } });
+      producao.flush({ data: { quantidadePedidos: 0, porProdutor: [], consolidado: [] } });
     }
     await fixture.whenStable();
     return pendentes;

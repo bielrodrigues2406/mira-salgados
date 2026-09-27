@@ -42,6 +42,10 @@
   --preparo-congelado-fundo: #e6f1f8;
   --preparo-congelado-borda: #bfd9ea;
   --preparo-congelado-texto: #1d5a80;
+  /* Marcas de preparo sobre a superfície de comando, sempre ao lado do nome. */
+  --preparo-frito-sobre-comando: #e0b84f;
+  --preparo-assado-sobre-comando: #e8845c;
+  --preparo-congelado-sobre-comando: #72b6e2;
 
   --sobre-comando: #ffffff;
   --sobre-comando-secundario: rgb(255 255 255 / 72%);
