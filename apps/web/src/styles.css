@@ -32,6 +32,17 @@
   --tint-neutro: #eef0f3;
   --tint-neutro-borda: #d5dae0;
 
+  /* Preparo: o forno e a fritura têm tom próprio, sempre com ícone e texto. */
+  --preparo-frito-fundo: #faf0d9;
+  --preparo-frito-borda: #ead6a6;
+  --preparo-frito-texto: #7a5a12;
+  --preparo-assado-fundo: #f8e9e3;
+  --preparo-assado-borda: #ebc8ba;
+  --preparo-assado-texto: #9a3b1e;
+  --preparo-congelado-fundo: #e6f1f8;
+  --preparo-congelado-borda: #bfd9ea;
+  --preparo-congelado-texto: #1d5a80;
+
   --sobre-comando: #ffffff;
   --sobre-comando-secundario: rgb(255 255 255 / 72%);
   --sobre-comando-borda: rgb(255 255 255 / 14%);

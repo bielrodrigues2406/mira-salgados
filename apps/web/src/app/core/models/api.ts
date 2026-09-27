@@ -25,3 +25,9 @@ export interface ApiErro {
     requestId?: string;
   };
 }
+
+/** Coleção paginada já desembrulhada do envelope. */
+export interface Pagina<T> {
+  itens: T[];
+  meta: PaginacaoMeta;
+}

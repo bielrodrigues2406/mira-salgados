@@ -1,0 +1,25 @@
+@if (meta().totalPages > 1) {
+  <nav class="paginacao" aria-label="Paginação">
+    <button
+      type="button"
+      class="botao botao-secundario botao-icone"
+      aria-label="Página anterior"
+      [disabled]="meta().page <= 1"
+      (click)="irPara(meta().page - 1)"
+    >
+      <ms-icone nome="chevronEsquerda" />
+    </button>
+    <span class="numerico posicao" aria-live="polite">
+      Página {{ meta().page }} de {{ meta().totalPages }}
+    </span>
+    <button
+      type="button"
+      class="botao botao-secundario botao-icone"
+      aria-label="Próxima página"
+      [disabled]="meta().page >= meta().totalPages"
+      (click)="irPara(meta().page + 1)"
+    >
+      <ms-icone nome="chevronDireita" />
+    </button>
+  </nav>
+}
