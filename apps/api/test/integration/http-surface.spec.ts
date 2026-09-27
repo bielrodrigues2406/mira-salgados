@@ -4,6 +4,7 @@ import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { Public } from '../../src/common/auth/usuario-autenticado.js';
 import { BusinessRuleError } from '../../src/common/errors/domain.errors.js';
 import type { ErrorBody } from '../../src/common/filters/all-exceptions.filter.js';
 import { createTestApp } from './helpers/test-app.js';
@@ -19,6 +20,7 @@ class CriarExemploDto {
 }
 
 @Controller('exemplos')
+@Public()
 class ExemploController {
   @Post()
   criar(@Body() dto: CriarExemploDto): CriarExemploDto {

@@ -22,5 +22,9 @@ export function loadTestEnv(): void {
     DATABASE_URL: testDatabaseUrl,
     CORS_ORIGINS: 'http://localhost:4200',
     LOG_LEVEL: 'silent',
+    JWT_ACCESS_SECRET: 'segredo-exclusivo-dos-testes-de-integracao-0123456789',
+    // Um proxy confiável: cada teste usa um X-Forwarded-For próprio, e os limites
+    // de taxa por IP não interferem entre testes.
+    TRUST_PROXY: '1',
   });
 }
