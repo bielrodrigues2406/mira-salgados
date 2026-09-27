@@ -1,17 +1,53 @@
 @if (produtores().length > 0) {
-  <a class="cartao-producao" routerLink="/producao" [queryParams]="{ modo: 'consolidado' }">
-    <span class="cabecalho">
-      <span class="titulo">Produção de hoje por produtor</span>
-      <span class="ver">Ver produção<ms-icone nome="chevronDireita" [tamanho]="16" /></span>
-    </span>
-    <span class="produtores">
+  <section class="cartao-producao" aria-labelledby="titulo-producao-de-hoje">
+    <div class="cabecalho">
+      <h2 id="titulo-producao-de-hoje" class="titulo">Produção de hoje por produtor</h2>
+      <a class="ver" routerLink="/producao" [queryParams]="{ modo: 'consolidado' }">
+        Ver produção<ms-icone nome="chevronDireita" [tamanho]="16" />
+      </a>
+    </div>
+
+    <div class="produtores">
       @for (carga of produtores(); track carga.produtor.id) {
-        <span class="produtor">
+        <button
+          type="button"
+          class="produtor"
+          [class.aberto]="carga.produtor.id === aberto()"
+          [attr.aria-expanded]="carga.produtor.id === aberto()"
+          [attr.aria-controls]="idDetalhe"
+          (click)="alternar(carga.produtor.id)"
+        >
           <span class="nome">{{ carga.produtor.nome }}</span>
           <span class="quantidade numerico">{{ numero(carga.unidades) }}</span>
           <span class="unidade">{{ carga.unidades === 1 ? 'salgado' : 'salgados' }}</span>
-        </span>
+        </button>
       }
-    </span>
-  </a>
+    </div>
+
+    <div [id]="idDetalhe">
+      @if (produtorAberto(); as carga) {
+        <ul class="salgados" [attr.aria-label]="'Salgados de ' + carga.produtor.nome">
+          @for (salgado of salgadosVisiveis(); track salgado.chave) {
+            <li class="salgado">
+              <span class="salgado-nome">
+                <span
+                  class="marca"
+                  [class]="'preparo-' + salgado.preparo"
+                  aria-hidden="true"
+                ></span>
+                <span class="produto">{{ salgado.produto }}</span>
+                <span class="preparo">{{ preparos[salgado.preparo].rotulo }}</span>
+              </span>
+              <span class="salgado-quantidade numerico">{{ numero(salgado.unidades) }}</span>
+            </li>
+          }
+        </ul>
+        @if (restantes(); as mais) {
+          <a class="mais" routerLink="/producao" [queryParams]="{ modo: 'consolidado' }">
+            {{ mais }} · ver produção
+          </a>
+        }
+      }
+    </div>
+  </section>
 }
