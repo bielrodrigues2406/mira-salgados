@@ -17,7 +17,7 @@ pessoas da família podem mexer no mesmo pedido ao mesmo tempo pelo celular.
 - **Regras puras fora dos services.** A máquina de estados e os cálculos
   (subtotal, total, pago, saldo, estado de pagamento) ficam em
   `pedidos/dominio`, sem banco nem Nest, cobertos por testes unitários. As
-  condições de conteúdo da transição (itens, pagamentos, entregador) também:
+  condições de conteúdo da transição (itens e pagamentos) também:
   o service só coleta os fatos.
 - **Estado de pagamento derivado.** Nunca é gravado. A lista de pedidos soma
   itens e pagamentos da página em duas consultas agrupadas e aplica a mesma
@@ -25,9 +25,9 @@ pessoas da família podem mexer no mesmo pedido ao mesmo tempo pelo celular.
 - **Respostas com o agregado.** Toda alteração de item ou pagamento responde o
   pedido inteiro, com totais recalculados e as transições possíveis, e a tela
   não precisa de uma segunda requisição.
-- **Entregador é um produtor.** A taxa de entrega é paga no acerto a quem
-  entregou (decisão D3), e o acerto é entre produtores. Retirada não tem taxa
-  nem entregador, garantido também por restrição no banco.
+- **Entrega sem efeito financeiro.** Entrega ou retirada é informação
+  logística (decisão D3): o pedido não tem taxa de entrega nem entregador, e
+  trocar uma pela outra não altera valores.
 - **Estorno lógico.** `DELETE /pedidos/:id/pagamentos/:id` marca data e autor
   do estorno; o lançamento continua no detalhe e sai das somas.
 - **Saldo do cliente no banco.** O saldo consolidado soma, em SQL, total menos
