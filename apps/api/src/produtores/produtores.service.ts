@@ -1,17 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, type EntityManager, type Repository } from 'typeorm';
+import { DataSource, type EntityManager, In, type Repository } from 'typeorm';
 
 import { AuditoriaService } from '../auditoria/auditoria.service.js';
-import { ConflictError, NotFoundError } from '../common/errors/domain.errors.js';
+import { BusinessRuleError, ConflictError, NotFoundError } from '../common/errors/domain.errors.js';
 import { ehViolacaoDeUnicidade } from '../common/errors/postgres-errors.js';
 import { Paginated } from '../common/pagination/pagination.js';
+import { Produto } from '../produtos/produto.entity.js';
 import type { AtualizarProdutorDto } from './dto/atualizar-produtor.dto.js';
 import type { CriarProdutorDto } from './dto/criar-produtor.dto.js';
 import type { FiltroProdutoresDto } from './dto/filtro-produtores.dto.js';
 import { Produtor } from './produtor.entity.js';
 
 const UNICIDADE_DO_NOME = 'uq_produtores_nome';
+
+export interface ProdutoPadrao {
+  id: string;
+  nome: string;
+}
+
+export interface ProdutorComProdutos {
+  produtor: Produtor;
+  /** Produtos ativos que sugerem este produtor por padrão, em ordem alfabética. */
+  produtosPadrao: ProdutoPadrao[];
+}
 
 function nomeEmUso(): ConflictError {
   return new ConflictError('PRODUTOR_JA_EXISTE', 'Já existe um produtor com este nome.');
@@ -34,8 +46,29 @@ export class ProdutoresService {
     private readonly dataSource: DataSource,
     @InjectRepository(Produtor)
     private readonly produtores: Repository<Produtor>,
+    @InjectRepository(Produto)
+    private readonly produtos: Repository<Produto>,
     private readonly auditoria: AuditoriaService,
   ) {}
+
+  /** Anexa a cada produtor os produtos ativos que o têm como padrão, numa única consulta. */
+  async comProdutosPadrao(produtores: readonly Produtor[]): Promise<ProdutorComProdutos[]> {
+    const ids = produtores.map((produtor) => produtor.id);
+    const produtos =
+      ids.length === 0
+        ? []
+        : await this.produtos.find({
+            select: { id: true, nome: true, produtorPadraoId: true },
+            where: { produtorPadraoId: In(ids), ativo: true },
+            order: { nome: 'ASC' },
+          });
+    return produtores.map((produtor) => ({
+      produtor,
+      produtosPadrao: produtos
+        .filter((produto) => produto.produtorPadraoId === produtor.id)
+        .map(({ id, nome }) => ({ id, nome })),
+    }));
+  }
 
   async listar(filtro: FiltroProdutoresDto): Promise<Paginated<Produtor>> {
     const consulta = this.produtores
@@ -98,6 +131,7 @@ export class ProdutoresService {
           produtor.nome = dados.nome;
         }
         if (dados.ativo !== undefined) produtor.ativo = dados.ativo;
+        if (antes.ativo && !produtor.ativo) await this.garantirSemProdutosPadrao(manager, produtor);
 
         if (produtor.nome === antes.nome && produtor.ativo === antes.ativo) return produtor;
 
@@ -113,6 +147,25 @@ export class ProdutoresService {
         return salvo;
       }),
     );
+  }
+
+  // A linha do produtor já está bloqueada (FOR UPDATE); quem cadastra produto
+  // com este padrão bloqueia a mesma linha (FOR SHARE) e espera esta transação.
+  private async garantirSemProdutosPadrao(
+    manager: EntityManager,
+    produtor: Produtor,
+  ): Promise<void> {
+    const emUso = await manager
+      .getRepository(Produto)
+      .countBy({ produtorPadraoId: produtor.id, ativo: true });
+    if (emUso > 0) {
+      const produtos = emUso === 1 ? '1 produto ativo' : `${String(emUso)} produtos ativos`;
+      throw new BusinessRuleError(
+        'PRODUTOR_PADRAO_EM_USO',
+        `${produtor.nome} é o produtor padrão de ${produtos}. Troque o padrão antes de desativar.`,
+        { produtosAtivos: emUso },
+      );
+    }
   }
 
   private async garantirNomeDisponivel(

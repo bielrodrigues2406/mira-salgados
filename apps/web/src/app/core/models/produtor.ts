@@ -2,6 +2,8 @@ export interface Produtor {
   id: string;
   nome: string;
   ativo: boolean;
+  /** Produtos ativos que sugerem este produtor por padrão. */
+  produtosPadrao: { id: string; nome: string }[];
   criadoEm: string;
   atualizadoEm: string;
 }

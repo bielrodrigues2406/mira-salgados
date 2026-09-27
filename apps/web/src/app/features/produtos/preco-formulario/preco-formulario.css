@@ -1,0 +1,123 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-controle);
+  background: var(--cor-fundo);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.grupo legend {
+  padding: 0 0 6px;
+}
+
+.preparos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.opcao-preparo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: var(--alvo-toque);
+  padding: 0;
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-controle);
+  background: var(--cor-cartao);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opcao-preparo:has(:checked) {
+  border-color: var(--cor-acao);
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+}
+
+.segmentado {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-controle);
+  background: var(--cor-cartao);
+}
+
+.opcao-segmento {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--alvo-toque);
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opcao-segmento:has(:checked) {
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+}
+
+.opcao-preparo:has(:focus-visible),
+.opcao-segmento:has(:focus-visible) {
+  outline: 2px solid var(--cor-acao);
+  outline-offset: 2px;
+}
+
+.prefixo {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: var(--cor-texto-secundario);
+  pointer-events: none;
+}
+
+.valor {
+  padding-left: 38px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.aviso {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--tint-acao-borda);
+  border-radius: var(--raio-controle);
+  background: var(--tint-acao);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.aviso-icone {
+  padding-top: 2px;
+  color: var(--cor-acao);
+}
+
+.aviso strong {
+  font-weight: 600;
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+}
+
+.salvar {
+  flex-grow: 1;
+}

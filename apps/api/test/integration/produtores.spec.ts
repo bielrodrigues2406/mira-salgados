@@ -46,7 +46,7 @@ describe('produtores', () => {
     const resposta = await api.post('/produtores', { nome: '  Célia  ' }).expect(201);
 
     expect(Object.keys(dadosDe<Produtor>(resposta)).sort()).toEqual(
-      ['ativo', 'atualizadoEm', 'criadoEm', 'id', 'nome'].sort(),
+      ['ativo', 'atualizadoEm', 'criadoEm', 'id', 'nome', 'produtosPadrao'].sort(),
     );
     expect(dadosDe<Produtor>(resposta)).toMatchObject({ nome: 'Célia', ativo: true });
   });

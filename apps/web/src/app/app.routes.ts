@@ -35,7 +35,11 @@ export const routes: Routes = [
         title: `Clientes · ${TITULO}`,
         loadComponent: () => import('./features/clientes/clientes').then((m) => m.Clientes),
       },
-      emBreve('produtos', 'Produtos'),
+      {
+        path: 'produtos',
+        title: `Produtos · ${TITULO}`,
+        loadComponent: () => import('./features/produtos/produtos').then((m) => m.Produtos),
+      },
       {
         path: 'produtores',
         title: `Produtores · ${TITULO}`,

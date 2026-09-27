@@ -1,0 +1,170 @@
+<article class="cartao produto" [class.inativo]="!produto().ativo" [attr.aria-labelledby]="id">
+  @if (editando()) {
+    <ms-produto-formulario
+      [titulo]="'Editar ' + produto().nome"
+      [inicial]="dadosAtuais()"
+      [produtores]="produtores()"
+      [produtorAtual]="produto().produtorPadrao"
+      [edicao]="true"
+      rotuloSalvar="Salvar alterações"
+      [salvar]="salvarProduto"
+      (cancelar)="editando.set(false)"
+    />
+  } @else {
+    <div class="cabecalho">
+      <h2 class="texto-titulo" [id]="id">{{ produto().nome }}</h2>
+      @if (!produto().ativo) {
+        <ms-chip tom="neutro" icone="pausado" [compacto]="true">Inativo</ms-chip>
+      }
+      <button
+        type="button"
+        class="botao botao-terciario botao-icone editar"
+        [attr.aria-label]="'Editar ' + produto().nome"
+        (click)="editar()"
+      >
+        <ms-icone nome="editar" />
+      </button>
+    </div>
+
+    <div class="produtor">
+      <span class="texto-rotulo">Produtor padrão</span>
+      <ms-chip [tom]="produto().produtorPadrao.ativo ? 'positivo' : 'neutro'" icone="produtor">
+        {{ produto().produtorPadrao.nome }}
+      </ms-chip>
+    </div>
+  }
+
+  @if (produto().precosVigentes.length > 0) {
+    <table class="precos">
+      <caption class="texto-rotulo">
+        Preços vigentes
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Preparo</th>
+          <th scope="col">Unidade</th>
+          <th scope="col" class="coluna-preco">Preço</th>
+          <th scope="col"><span class="somente-leitor-de-tela">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (preco of produto().precosVigentes; track preco.id) {
+          @if (encerrando() === preco.id) {
+            <tr class="confirmacao">
+              <td colspan="4">
+                <div
+                  class="confirmacao-conteudo"
+                  role="group"
+                  [attr.aria-label]="'Encerrar ' + combinacao(preco)"
+                >
+                  <span class="numerico">
+                    Encerrar {{ combinacao(preco) }} ({{ preco.precoCentavos | moeda }})? Sai da
+                    tabela e fica no histórico.
+                  </span>
+                  <div class="confirmacao-acoes">
+                    <button type="button" class="botao botao-negativo" (click)="encerrar(preco)">
+                      Encerrar
+                    </button>
+                    <button
+                      type="button"
+                      class="botao botao-secundario"
+                      (click)="encerrando.set(null)"
+                    >
+                      Manter
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          } @else {
+            <tr>
+              <td><ms-chip-preparo [preparo]="preco.preparo" /></td>
+              <td>{{ rotuloUnidade[preco.unidadeVenda] }}</td>
+              <td class="coluna-preco numerico">{{ preco.precoCentavos | moeda }}</td>
+              <td class="coluna-acao">
+                <button
+                  type="button"
+                  class="botao botao-terciario botao-icone encerrar"
+                  [attr.aria-label]="'Encerrar preço ' + combinacao(preco)"
+                  (click)="encerrando.set(preco.id)"
+                >
+                  <ms-icone nome="fechar" />
+                </button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p class="sem-precos">Sem preços vigentes. Adicione ao menos um para vender este produto.</p>
+  }
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  @if (precoAberto()) {
+    <ms-preco-formulario
+      [vigentes]="produto().precosVigentes"
+      [salvar]="salvarPreco"
+      (cancelar)="precoAberto.set(false)"
+    />
+  } @else if (produto().ativo && !editando()) {
+    <button type="button" class="botao botao-secundario adicionar" (click)="abrirPreco()">
+      <ms-icone nome="mais" />
+      <span>Adicionar preço</span>
+    </button>
+  }
+
+  <button
+    type="button"
+    class="botao botao-terciario historico-botao"
+    [attr.aria-expanded]="historicoAberto()"
+    [attr.aria-controls]="id + '-historico'"
+    (click)="alternarHistorico()"
+  >
+    <ms-icone nome="historico" />
+    <span>Histórico de preços</span>
+  </button>
+
+  @if (historicoAberto()) {
+    <section class="historico" [id]="id + '-historico'" aria-label="Histórico de preços">
+      @if (historico.hasValue()) {
+        @if (historico.value().itens.length === 0) {
+          <p class="texto-legenda">Nenhum preço registrado ainda.</p>
+        } @else {
+          <ul class="historico-lista">
+            @for (preco of historico.value().itens; track preco.id) {
+              <li class="historico-item" [class.encerrado]="preco.vigenteAte !== null">
+                <span class="historico-combinacao">{{ combinacao(preco) }}</span>
+                <span class="numerico historico-preco">{{ preco.precoCentavos | moeda }}</span>
+                <span class="texto-legenda numerico historico-periodo">
+                  @if (preco.vigenteAte; as fim) {
+                    {{ preco.vigenteDesde | date: 'dd/MM/yyyy HH:mm' }} até
+                    {{ fim | date: 'dd/MM/yyyy HH:mm' }}
+                  } @else {
+                    Vigente desde {{ preco.vigenteDesde | date: 'dd/MM/yyyy HH:mm' }}
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      } @else if (historico.error()) {
+        <div class="alerta alerta-negativo" role="alert">
+          <ms-icone nome="alerta" [tamanho]="20" />
+          <span>Não foi possível carregar o histórico.</span>
+          <button type="button" class="botao botao-terciario" (click)="historico.reload()">
+            Tentar novamente
+          </button>
+        </div>
+      } @else {
+        <p class="texto-legenda" role="status">Carregando histórico…</p>
+      }
+    </section>
+  }
+</article>

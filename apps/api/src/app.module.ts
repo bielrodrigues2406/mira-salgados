@@ -17,6 +17,7 @@ import { type Env, validateEnv } from './config/env.schema.js';
 import { typeOrmOptions } from './database/typeorm.options.js';
 import { HealthModule } from './health/health.module.js';
 import { ProdutoresModule } from './produtores/produtores.module.js';
+import { ProdutosModule } from './produtos/produtos.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
 
 @Module({
@@ -49,6 +50,7 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     HealthModule,
     ProdutoresModule,
     ClientesModule,
+    ProdutosModule,
   ],
   providers: [
     // A ordem importa: excesso de requisições é recusado antes de qualquer

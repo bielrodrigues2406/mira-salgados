@@ -141,6 +141,11 @@ export class Produtores {
     },
   );
 
+  protected descricaoDosProdutos(produtor: Produtor): string {
+    const nomes = produtor.produtosPadrao.map((produto) => produto.nome);
+    return nomes.length > 0 ? `Padrão de: ${nomes.join(', ')}` : 'Sem produtos como padrão';
+  }
+
   protected abrirFormulario(): void {
     this.cancelarEdicao();
     this.formularioAberto.set(true);

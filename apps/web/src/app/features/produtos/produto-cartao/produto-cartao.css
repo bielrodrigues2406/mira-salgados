@@ -1,0 +1,152 @@
+.produto {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cabecalho h2 {
+  flex-grow: 1;
+  overflow-wrap: anywhere;
+}
+
+.cabecalho ms-chip + .editar,
+.editar {
+  margin: -10px -10px -10px 0;
+  color: var(--cor-texto-secundario);
+}
+
+.produtor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.inativo .cabecalho h2 {
+  color: var(--cor-texto-secundario);
+}
+
+.precos {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.precos caption {
+  padding-bottom: 6px;
+  text-align: left;
+}
+
+.precos th {
+  padding: 0 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--cor-texto-secundario);
+}
+
+.precos tbody tr {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.precos td {
+  padding: 4px 0;
+}
+
+.coluna-preco {
+  text-align: right;
+  font-weight: 600;
+}
+
+.precos th.coluna-preco {
+  text-align: right;
+  font-weight: 500;
+}
+
+.coluna-acao {
+  width: 44px;
+  text-align: right;
+}
+
+.encerrar {
+  margin-right: -10px;
+  color: var(--cor-texto-secundario);
+}
+
+.confirmacao td {
+  padding: 10px 0;
+}
+
+.confirmacao-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.confirmacao-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.sem-precos {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--cor-texto-secundario);
+}
+
+.adicionar {
+  width: 100%;
+}
+
+.historico-botao {
+  align-self: flex-start;
+  margin: -6px 0 -8px -8px;
+  padding: 0 8px;
+}
+
+.historico {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historico-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historico-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.historico-combinacao {
+  font-weight: 600;
+}
+
+.historico-preco {
+  font-weight: 600;
+  text-align: right;
+}
+
+.historico-periodo {
+  grid-column: 1 / -1;
+}
+
+.encerrado .historico-combinacao,
+.encerrado .historico-preco {
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+  text-decoration: line-through;
+}
