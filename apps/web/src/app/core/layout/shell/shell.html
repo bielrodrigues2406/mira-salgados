@@ -86,12 +86,12 @@
 </main>
 
 <nav class="inferior" aria-label="Navegação principal">
-  @for (destino of destinos; track destino.rota) {
+  @for (destino of destinosInferiores; track destino.rota) {
     <a
       class="inferior-item"
       [routerLink]="destino.rota"
-      routerLinkActive="ativo"
-      ariaCurrentWhenActive="page"
+      [class.ativo]="destino.atual() !== null"
+      [attr.aria-current]="destino.atual()"
     >
       <span class="inferior-icone"><ms-icone [nome]="destino.icone" [tamanho]="20" /></span>
       <span>{{ destino.rotulo }}</span>

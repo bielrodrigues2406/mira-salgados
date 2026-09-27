@@ -32,7 +32,11 @@ export const routes: Routes = [
       emBreve('producao', 'Produção do dia'),
       emBreve('clientes', 'Clientes'),
       emBreve('produtos', 'Produtos'),
-      emBreve('produtores', 'Produtores'),
+      {
+        path: 'produtores',
+        title: `Produtores · ${TITULO}`,
+        loadComponent: () => import('./features/produtores/produtores').then((m) => m.Produtores),
+      },
       emBreve('relatorios', 'Relatórios'),
     ],
   },

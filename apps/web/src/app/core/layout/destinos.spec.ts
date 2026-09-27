@@ -13,7 +13,9 @@ describe('destinos', () => {
 
   it.each([
     ['Lúcia Andrade', 'LA'],
-    ['Mira', 'M'],
+    ['Mira', 'MI'],
+    ['Célia', 'CÉ'],
+    ['Ce\u0301lia', 'CE\u0301'],
     ['  ana paula ribeiro ', 'AR'],
     ['', ''],
   ])('extrai as iniciais de "%s"', (nome, esperado) => {
