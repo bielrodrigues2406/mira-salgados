@@ -1,0 +1,63 @@
+<section class="cartao resumo" aria-labelledby="titulo-financeiro">
+  <h2 id="titulo-financeiro" class="texto-titulo">Resumo financeiro</h2>
+  <dl class="linhas">
+    <div class="linha">
+      <dt>
+        Subtotal
+        <span class="texto-legenda numerico">
+          · {{ quantidadeItens() }} {{ quantidadeItens() === 1 ? 'item' : 'itens' }}
+        </span>
+      </dt>
+      <dd class="numerico">{{ resumo().subtotalCentavos | moeda }}</dd>
+    </div>
+    @if (resumo().descontoCentavos > 0) {
+      <div class="linha">
+        <dt class="com-icone"><ms-icone nome="desconto" [tamanho]="14" />Desconto</dt>
+        <dd class="numerico">− {{ resumo().descontoCentavos | moeda }}</dd>
+      </div>
+    }
+    <div class="linha">
+      <dt>
+        Taxa de entrega
+        <span class="texto-legenda">
+          · {{ pedido().tipoEntrega === 'ENTREGA' ? 'entrega' : 'retirada' }}
+        </span>
+      </dt>
+      <dd class="numerico">{{ resumo().taxaEntregaCentavos | moeda }}</dd>
+    </div>
+    <div class="linha total">
+      <dt>Total</dt>
+      <dd class="numerico">{{ resumo().totalCentavos | moeda }}</dd>
+    </div>
+    <div class="linha">
+      <dt>Pago</dt>
+      <dd class="numerico">{{ resumo().totalPagoCentavos | moeda }}</dd>
+    </div>
+    @if (resumo().totalFiadoCentavos > 0) {
+      <div class="linha">
+        <dt class="com-icone"><ms-icone nome="fiado" [tamanho]="14" />Fiado registrado</dt>
+        <dd class="numerico">{{ resumo().totalFiadoCentavos | moeda }}</dd>
+      </div>
+    }
+  </dl>
+
+  @if (pedido().status !== 'CANCELADO') {
+    <div class="progresso">
+      <div
+        class="barra"
+        role="img"
+        [attr.aria-label]="percentualRecebido() + '% do total recebido'"
+      >
+        <div class="barra-preenchida" [style.width.%]="percentualRecebido()"></div>
+      </div>
+      <span class="texto-legenda numerico">{{ percentualRecebido() }}% do total recebido</span>
+    </div>
+  }
+
+  @if (resumo().saldoDevedorCentavos > 0 && pedido().status !== 'CANCELADO') {
+    <div class="saldo">
+      <span class="com-icone"><ms-icone nome="alerta" />Saldo devedor</span>
+      <span class="numerico saldo-valor">{{ resumo().saldoDevedorCentavos | moeda }}</span>
+    </div>
+  }
+</section>

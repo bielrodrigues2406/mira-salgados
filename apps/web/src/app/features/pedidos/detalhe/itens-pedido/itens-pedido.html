@@ -1,0 +1,166 @@
+<section class="cartao itens" aria-labelledby="titulo-itens">
+  <div class="cabecalho">
+    <h2 id="titulo-itens" class="texto-titulo">Itens</h2>
+    <span class="contador numerico">{{ pedido().itens.length }}</span>
+  </div>
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  @if (pedido().itens.length === 0 && !adicionando()) {
+    <p class="vazio">
+      Nenhum item ainda. Adicione os salgados da encomenda para poder confirmá-la.
+    </p>
+  }
+
+  <ul class="lista">
+    @for (item of pedido().itens; track item.id) {
+      <li class="item">
+        @if (emEdicao()?.id === item.id) {
+          <form
+            class="edicao"
+            [attr.aria-label]="'Editar ' + item.produto.nome"
+            [formRoot]="formularioEdicao"
+          >
+            <span class="item-nome">{{ item.produto.nome }}</span>
+            <div class="duas-colunas">
+              <div class="campo">
+                <label class="texto-rotulo" for="edicao-item-quantidade">Quantidade</label>
+                <input
+                  id="edicao-item-quantidade"
+                  class="campo-entrada numerico"
+                  type="number"
+                  inputmode="numeric"
+                  [formField]="formularioEdicao.quantidade"
+                  aria-describedby="edicao-item-quantidade-erro"
+                />
+                <ms-erros-do-campo
+                  id="edicao-item-quantidade-erro"
+                  [estado]="formularioEdicao.quantidade()"
+                />
+              </div>
+              <div class="campo">
+                <label class="texto-rotulo" for="edicao-item-produtor">Produtor</label>
+                <select
+                  id="edicao-item-produtor"
+                  class="campo-entrada campo-selecao"
+                  [formField]="formularioEdicao.produtorId"
+                >
+                  @for (produtor of produtoresDoItem(item); track produtor.id) {
+                    <option [value]="produtor.id">{{ produtor.nome }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="campo">
+              <label class="texto-rotulo" for="edicao-item-observacao">Observação de preparo</label>
+              <input
+                id="edicao-item-observacao"
+                class="campo-entrada"
+                autocomplete="off"
+                [formField]="formularioEdicao.observacao"
+              />
+            </div>
+            <div class="acoes">
+              <button
+                type="submit"
+                class="botao botao-primario salvar"
+                [disabled]="formularioEdicao().submitting()"
+              >
+                Salvar item
+              </button>
+              <button type="button" class="botao botao-secundario" (click)="emEdicao.set(null)">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        } @else if (removendo() === item.id) {
+          <div class="confirmacao" role="group" [attr.aria-label]="'Remover ' + item.produto.nome">
+            <span>Remover {{ item.produto.nome }} do pedido?</span>
+            <div class="acoes">
+              <button type="button" class="botao botao-negativo" (click)="remover(item)">
+                Remover
+              </button>
+              <button type="button" class="botao botao-secundario" (click)="removendo.set(null)">
+                Manter
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="item-topo">
+            <div class="item-textos">
+              <span class="item-nome">{{ item.produto.nome }}</span>
+              <span class="item-combinacao">
+                <ms-chip-preparo [preparo]="item.preparo" />
+                <span class="texto-legenda">{{ rotuloUnidade[item.unidadeVenda] }}</span>
+              </span>
+            </div>
+            <div class="item-valores">
+              <span class="item-subtotal numerico">{{ item.subtotalCentavos | moeda }}</span>
+              <span class="texto-legenda numerico">
+                {{ item.quantidade }} × {{ item.precoUnitarioCentavos | moeda }}
+              </span>
+            </div>
+          </div>
+          <div class="item-rodape">
+            <ms-chip tom="positivo" icone="produtor" [compacto]="true">{{
+              item.produtor.nome
+            }}</ms-chip>
+            @if (item.produtor.id !== item.produtorPadrao.id) {
+              <span class="texto-legenda">Padrão do produto: {{ item.produtorPadrao.nome }}</span>
+            }
+            @if (editavel()) {
+              <span class="item-acoes">
+                <button
+                  type="button"
+                  class="botao botao-terciario botao-icone"
+                  [attr.aria-label]="'Editar ' + item.produto.nome"
+                  (click)="editar(item)"
+                >
+                  <ms-icone nome="editar" />
+                </button>
+                <button
+                  type="button"
+                  class="botao botao-terciario botao-icone"
+                  [attr.aria-label]="'Remover ' + item.produto.nome"
+                  (click)="removendo.set(item.id)"
+                >
+                  <ms-icone nome="fechar" />
+                </button>
+              </span>
+            }
+          </div>
+          @if (item.observacao) {
+            <div class="observacao">
+              <ms-icone nome="atencao" />
+              <span class="observacao-textos">
+                <span class="texto-rotulo">Observação de preparo</span>
+                <span>{{ item.observacao }}</span>
+              </span>
+            </div>
+          }
+        }
+      </li>
+    }
+  </ul>
+
+  @if (editavel()) {
+    @if (adicionando()) {
+      <ms-item-formulario
+        [produtos]="produtos()"
+        [produtores]="produtores()"
+        [salvar]="adicionar"
+        (cancelar)="adicionando.set(false)"
+      />
+    } @else {
+      <button type="button" class="botao botao-secundario adicionar" (click)="abrirNovo()">
+        <ms-icone nome="mais" />
+        <span>Adicionar item</span>
+      </button>
+    }
+  }
+</section>
