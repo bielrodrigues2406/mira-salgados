@@ -36,21 +36,24 @@ Pontos com resolução técnica adotada, sem decisão pendente:
 - **Saldo devedor do cliente:** soma apenas pedidos CONFIRMADO e CONCLUIDO.
 
 Pontos levantados ao implementar pedidos
-([ADR 0011](adr/0011-agregado-do-pedido.md)):
+([ADR 0011](adr/0011-agregado-do-pedido.md)) e a produção do dia:
 
-| #   | Ponto                                                                              | Resolução                                                                                                                                         |
-| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P1  | Pela fórmula, um pedido de total zero (desconto integral) fica PENDENTE            | Fica PAGO: não há nada a receber                                                                                                                  |
-| P2  | Nada impede registrar mais do que o saldo                                          | Dinheiro e PIX valem no máximo o saldo; troco não é pagamento. Fiado vale no máximo o saldo ainda não marcado como fiado                          |
-| P3  | Desconto ou remoção de item podem deixar o total abaixo do pago                    | Recusado com 422; estorna-se antes                                                                                                                |
-| P4  | Desconto maior que o valor dos itens tornaria negativa a parte dos produtores (D3) | Recusado em pedido confirmado; no rascunho o desconto pode anteceder os itens e a regra vale ao confirmar                                         |
-| P5  | O contrato prevê `DELETE` para estorno, sem dizer se apaga                         | Estorno lógico: o lançamento fica com data e autor do estorno e sai das somas                                                                     |
-| P6  | Taxa de entrega e entregador no pedido                                             | Fora do sistema (D3): a API recusa os dois campos com 400, e trocar entre entrega e retirada não muda valores                                     |
-| P7  | Pedido confirmado sem nenhum item                                                  | Remover o último item de um pedido confirmado é recusado; cancela-se o pedido                                                                     |
-| P8  | `quantidade` inteira não representa "meio cento", comum em salgados                | Mantida inteira; meio cento é vendido como 50 unidades. Evolução possível: unidade MEIO_CENTO na tabela de preços, sem mudar a aritmética         |
-| P9  | `DELETE /clientes/:id`, `/produtos/:id` e `/produtores/:id` no contrato            | Implementados como desativação, equivalentes a `PATCH { ativo: false }`, com as mesmas regras (produtor padrão de produto ativo não é desativado) |
-| P10 | `GET /produtos/:id` "inclui histórico de preços"                                   | O histórico, que cresce sem limite, fica paginado em `GET /produtos/:id/precos`; o produto traz os preços vigentes                                |
-| P11 | Itens e pagamentos de um pedido sem paginação                                      | São poucos por natureza e fazem parte do agregado; paginar o detalhe só adicionaria requisições                                                   |
+| #   | Ponto                                                                              | Resolução                                                                                                                                                          |
+| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P1  | Pela fórmula, um pedido de total zero (desconto integral) fica PENDENTE            | Fica PAGO: não há nada a receber                                                                                                                                   |
+| P2  | Nada impede registrar mais do que o saldo                                          | Dinheiro e PIX valem no máximo o saldo; troco não é pagamento. Fiado vale no máximo o saldo ainda não marcado como fiado                                           |
+| P3  | Desconto ou remoção de item podem deixar o total abaixo do pago                    | Recusado com 422; estorna-se antes                                                                                                                                 |
+| P4  | Desconto maior que o valor dos itens tornaria negativa a parte dos produtores (D3) | Recusado em pedido confirmado; no rascunho o desconto pode anteceder os itens e a regra vale ao confirmar                                                          |
+| P5  | O contrato prevê `DELETE` para estorno, sem dizer se apaga                         | Estorno lógico: o lançamento fica com data e autor do estorno e sai das somas                                                                                      |
+| P6  | Taxa de entrega e entregador no pedido                                             | Fora do sistema (D3): a API recusa os dois campos com 400, e trocar entre entrega e retirada não muda valores                                                      |
+| P7  | Pedido confirmado sem nenhum item                                                  | Remover o último item de um pedido confirmado é recusado; cancela-se o pedido                                                                                      |
+| P8  | `quantidade` inteira não representa "meio cento", comum em salgados                | Mantida inteira; meio cento é vendido como 50 unidades. Evolução possível: unidade MEIO_CENTO na tabela de preços, sem mudar a aritmética                          |
+| P9  | `DELETE /clientes/:id`, `/produtos/:id` e `/produtores/:id` no contrato            | Implementados como desativação, equivalentes a `PATCH { ativo: false }`, com as mesmas regras (produtor padrão de produto ativo não é desativado)                  |
+| P10 | `GET /produtos/:id` "inclui histórico de preços"                                   | O histórico, que cresce sem limite, fica paginado em `GET /produtos/:id/precos`; o produto traz os preços vigentes                                                 |
+| P11 | Itens e pagamentos de um pedido sem paginação                                      | São poucos por natureza e fazem parte do agregado; paginar o detalhe só adicionaria requisições                                                                    |
+| P12 | O consolidado agrega "por produto e preparo", mas cada item tem seu produtor       | Uma linha por produto, preparo e produtor: um item com produtor trocado vira linha própria, e cada produtor vê a sua carga                                         |
+| P13 | Pedido concluído na produção do dia                                                | Entra, com marcador de concluído: a produção de uma data passada continua conferível; rascunho e cancelado ficam fora                                              |
+| P14 | Produção do dia sem paginação                                                      | O relatório é de uma data só, com dezenas de itens, e os dois modos são montados em memória a partir de uma consulta; os relatórios por intervalo agregam no banco |
 
 ## Desempenho e índices
 
