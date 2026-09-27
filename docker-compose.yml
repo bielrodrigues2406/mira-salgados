@@ -1,5 +1,11 @@
 name: mira-salgados
 
+# Pilha completa: banco, migrações, API e aplicação web servida pelo nginx.
+# Desenvolvimento local costuma subir só o banco (`docker compose up -d db`) e
+# rodar API e web pelos scripts do npm.
+
+x-database-url: &database-url postgres://${POSTGRES_USER:-mira}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no arquivo .env}@db:5432/${POSTGRES_DB:-mira_salgados}
+
 services:
   db:
     image: postgres:18.6-alpine
@@ -20,6 +26,56 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Aplica as migrations pendentes e termina; a API só sobe depois do sucesso.
+  migrate:
+    image: mira-salgados-api
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command:
+      [
+        'node',
+        '/app/node_modules/typeorm/cli.js',
+        'migration:run',
+        '-d',
+        'dist/database/data-source.js',
+      ]
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    image: mira-salgados-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: *database-url
+      CORS_ORIGINS: ${WEB_ORIGIN:-http://localhost:8080}
+      TRUST_PROXY: 1
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no arquivo .env}
+      COOKIE_SECURE: 'true'
+      AUTH_PUBLIC_SIGNUP_ENABLED: ${AUTH_PUBLIC_SIGNUP_ENABLED:-false}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    image: mira-salgados-web
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8080}:80'
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:

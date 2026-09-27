@@ -51,6 +51,17 @@ npm run build -w @mira/web                          # build de produção
 Para criar as primeiras contas, suba a API com `AUTH_PUBLIC_SIGNUP_ENABLED=true`,
 crie as contas pela tela de login e desligue a variável em seguida.
 
+## Pilha completa com Docker
+
+```sh
+cp .env.example .env        # defina POSTGRES_PASSWORD e JWT_ACCESS_SECRET
+docker compose up -d --build
+```
+
+A aplicação fica em http://localhost:8080. O serviço `migrate` aplica as
+migrations antes de a API subir. Detalhes em
+[ADR 0009](docs/adr/0009-imagens-docker.md).
+
 ## Scripts da raiz
 
 | Script              | O que faz                                          |

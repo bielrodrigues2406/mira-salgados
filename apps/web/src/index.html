@@ -10,6 +10,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
   </head>
   <body>
-    <ms-root></ms-root>
+    <!-- Em produção o nginx troca o valor de ngCspNonce por um nonce aleatório a cada requisição. -->
+    <ms-root ngCspNonce="CSP_NONCE"></ms-root>
   </body>
 </html>
