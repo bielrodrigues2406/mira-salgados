@@ -61,6 +61,23 @@ export const ICONES = {
   chevronAbaixo: [p('m6 9 6 6 6-6')],
   chevronAcima: [p('m18 15-6-6-6 6')],
   construcao: [p('M2 20h20M5 20V8l7-5 7 5v12'), p('M9 20v-6h6v6')],
+  mais: [p('M12 5v14M5 12h14')],
+  editar: [
+    p(
+      'M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z',
+    ),
+  ],
+  fechar: [p('M18 6 6 18M6 6l12 12')],
+  chevronEsquerda: [p('m15 18-6-6 6-6')],
+  chevronDireita: [p('m9 18 6-6-6-6')],
+  confirmado: [p('M20 6 9 17l-5-5')],
+  pausado: [c(12, 12, 9), p('M10 15V9M14 15V9')],
+  recarregar: [p('M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8'), p('M21 3v5h-5')],
+  semConexao: [
+    p(
+      'm2 2 20 20M5.78 5.78A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.31-.19M21.53 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7 7 0 0 0 10 5.07',
+    ),
+  ],
 } satisfies Record<string, readonly Forma[]>;
 
 export type NomeIcone = keyof typeof ICONES;

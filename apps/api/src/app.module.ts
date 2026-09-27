@@ -15,6 +15,7 @@ import { createValidationPipe } from './common/validation/validation.js';
 import { type Env, validateEnv } from './config/env.schema.js';
 import { typeOrmOptions } from './database/typeorm.options.js';
 import { HealthModule } from './health/health.module.js';
+import { ProdutoresModule } from './produtores/produtores.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
 
 @Module({
@@ -45,6 +46,7 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     UsuariosModule,
     AuthModule,
     HealthModule,
+    ProdutoresModule,
   ],
   providers: [
     // A ordem importa: excesso de requisições é recusado antes de qualquer

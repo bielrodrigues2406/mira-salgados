@@ -1,0 +1,16 @@
+@if (tentando()) {
+  <section class="cartao estado" aria-busy="true">
+    <span class="girando" aria-hidden="true"></span>
+    <span class="estado-texto" role="status">Tentando novamente…</span>
+  </section>
+} @else {
+  <section class="cartao estado" role="alert" [attr.aria-labelledby]="idTitulo">
+    <span class="estado-icone"><ms-icone nome="semConexao" [tamanho]="24" /></span>
+    <h2 class="texto-titulo" [id]="idTitulo">{{ titulo() }}</h2>
+    <p class="estado-texto">{{ mensagem() }}</p>
+    <button type="button" class="botao botao-primario tentar" (click)="tentarNovamente.emit()">
+      <ms-icone nome="recarregar" />
+      <span>Tentar novamente</span>
+    </button>
+  </section>
+}

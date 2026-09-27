@@ -1,8 +1,9 @@
-import { Transform } from 'class-transformer';
 import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
+import { Aparar } from '../../common/validation/transforms.js';
+
 export class RegistroDto {
-  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
+  @Aparar()
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)

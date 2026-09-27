@@ -1,11 +1,11 @@
 import { Component, input } from '@angular/core';
 
-import { Icone } from '../../shared/components/icone/icone';
+import { EstadoVazio } from '../../shared/components/estado-vazio/estado-vazio';
 
 /** Destino da navegação cujo módulo ainda não foi entregue. */
 @Component({
   selector: 'ms-em-breve',
-  imports: [Icone],
+  imports: [EstadoVazio],
   templateUrl: './em-breve.html',
   styleUrl: './em-breve.css',
 })

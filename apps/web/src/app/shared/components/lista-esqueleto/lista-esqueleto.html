@@ -1,0 +1,14 @@
+<span class="somente-leitor-de-tela" role="status">{{ rotulo() }}</span>
+<ul class="lista" aria-hidden="true">
+  @for (largura of linhas(); track $index) {
+    <li class="linha">
+      @if (comAvatar()) {
+        <span class="bloco avatar"></span>
+      }
+      <span class="textos">
+        <span class="bloco texto" [style.width.%]="largura"></span>
+        <span class="bloco legenda"></span>
+      </span>
+    </li>
+  }
+</ul>

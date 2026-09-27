@@ -1,0 +1,66 @@
+:host {
+  display: block;
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-cartao);
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+}
+
+.linha + .linha {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.textos {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bloco {
+  display: block;
+  border-radius: 4px;
+  background: var(--cor-borda);
+  animation: pulso 1.6s ease-in-out infinite;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--raio-pilula);
+}
+
+.texto {
+  height: 14px;
+}
+
+.legenda {
+  width: 36%;
+  height: 12px;
+  background: var(--tint-neutro);
+}
+
+@keyframes pulso {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}

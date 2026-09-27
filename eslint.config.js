@@ -100,4 +100,10 @@ export default defineConfig(
     files: ['apps/**/*.spec.ts', 'apps/**/*.e2e-spec.ts', 'apps/**/test/**/*.ts'],
     rules: regrasDeTeste,
   },
+  {
+    // Componentes hospedeiros de teste existem só para projetar conteúdo em um
+    // componente real; três arquivos para cada um seriam ruído.
+    files: ['apps/web/**/*.spec.ts'],
+    rules: { '@angular-eslint/component-max-inline-declarations': 'off' },
+  },
 );
