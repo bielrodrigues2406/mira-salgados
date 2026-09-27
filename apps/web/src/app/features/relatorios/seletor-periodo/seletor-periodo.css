@@ -1,0 +1,52 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.atalhos {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 0 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.atalho {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-cartao);
+  color: var(--cor-acao);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.atalho[aria-pressed='true'] {
+  border-color: var(--cor-acao);
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+}
+
+.datas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .atalhos {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+  }
+
+  .datas {
+    max-width: 420px;
+  }
+}

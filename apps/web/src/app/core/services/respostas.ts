@@ -1,4 +1,4 @@
-import type { ApiEnvelope, Pagina } from '../models/api';
+import type { ApiEnvelope, Pagina, PaginaComResumo } from '../models/api';
 
 /** Desembrulha uma coleção paginada; sem meta, trata a lista como página única. */
 export function paginaDe<T>(corpo: ApiEnvelope<T[]>): Pagina<T> {
@@ -7,6 +7,11 @@ export function paginaDe<T>(corpo: ApiEnvelope<T[]>): Pagina<T> {
     itens,
     meta: corpo.meta ?? { page: 1, pageSize: itens.length, total: itens.length, totalPages: 1 },
   };
+}
+
+/** Página de relatório; o resumo vem do envelope, e na falta dele vale `vazio`. */
+export function paginaComResumoDe<T, R>(corpo: ApiEnvelope<T[]>, vazio: R): PaginaComResumo<T, R> {
+  return { ...paginaDe(corpo), resumo: (corpo.resumo as R | undefined) ?? vazio };
 }
 
 type ValorDeParametro = string | number | boolean | readonly string[];

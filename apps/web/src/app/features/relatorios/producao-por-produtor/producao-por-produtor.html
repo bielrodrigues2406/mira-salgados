@@ -1,0 +1,89 @@
+<ms-seletor-periodo [periodo]="periodo()" (periodoMudou)="mudarPeriodo($event)" />
+
+<div class="campo filtro">
+  <label class="texto-rotulo" for="filtro-produtor">Produtor</label>
+  <select
+    #filtro
+    id="filtro-produtor"
+    class="campo-entrada campo-selecao"
+    (change)="filtrarProdutor(filtro.value)"
+  >
+    <option value="" [selected]="!produtorId()">Todos os produtores</option>
+    @for (opcao of produtores(); track opcao.id) {
+      <option [value]="opcao.id" [selected]="opcao.id === produtorId()">{{ opcao.nome }}</option>
+    }
+  </select>
+</div>
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando a produção" [quantidade]="3" [comAvatar]="true" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar a produção" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar a produção"
+      [erro]="recurso.error()"
+      (tentarNovamente)="recurso.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="producao" titulo="Nenhuma produção no período">
+      A produção considera os pedidos confirmados e concluídos com entrega entre as duas datas.
+      <a estadoAcao class="botao botao-secundario" routerLink="/pedidos">Ver pedidos</a>
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @if (resultado(); as resultado) {
+      <p class="texto-legenda numerico">
+        {{ resumo() }} · {{ resultado.resumo.valorCentavos | moeda }} em itens, antes dos descontos
+      </p>
+      <div class="produtores">
+        @for (producao of resultado.itens; track producao.produtor.id) {
+          <article
+            class="cartao produtor"
+            [attr.aria-labelledby]="'produtor-' + producao.produtor.id"
+          >
+            <div class="identificacao">
+              <span class="avatar" aria-hidden="true">{{ iniciais(producao.produtor.nome) }}</span>
+              <div class="nome">
+                <h3 [id]="'produtor-' + producao.produtor.id">{{ producao.produtor.nome }}</h3>
+                <span class="texto-legenda numerico">{{ detalhe(producao) }}</span>
+              </div>
+              <div class="participacao">
+                <span class="participacao-valor numerico">{{
+                  percentual(participacao(producao))
+                }}</span>
+                <span class="rotulo-pequeno">Do volume</span>
+              </div>
+            </div>
+            <div class="barra" aria-hidden="true">
+              <div class="barra-preenchida" [style.width.%]="participacao(producao)"></div>
+            </div>
+            <ul class="itens">
+              @for (item of producao.itens; track item.produto.id + item.preparo) {
+                <li class="linha">
+                  <div class="linha-textos">
+                    <span class="linha-produto">{{ item.produto.nome }}</span>
+                    <ms-chip-preparo [preparo]="item.preparo" />
+                  </div>
+                  <span class="linha-quantidade numerico">
+                    {{ numero(item.unidades) }}
+                    <span class="texto-legenda">{{ item.valorCentavos | moeda }}</span>
+                  </span>
+                </li>
+              }
+            </ul>
+            <div class="rodape">
+              <span>Valor em itens</span>
+              <span class="valor numerico">{{ producao.valorCentavos | moeda }}</span>
+            </div>
+          </article>
+        }
+      </div>
+      <ms-paginacao [meta]="resultado.meta" (paginaMudou)="paginaAtual.set($event)" />
+    }
+  }
+}

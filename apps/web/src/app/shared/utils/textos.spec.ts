@@ -4,6 +4,7 @@ import {
   listaDePedidos,
   numero,
   percentuaisInteiros,
+  percentual,
   percentualDeDecimos,
   rotuloDaVenda,
 } from './textos';
@@ -40,6 +41,11 @@ describe('textos de quantidades', () => {
     expect(percentualDeDecimos(568)).toBe('56,8%');
     expect(percentualDeDecimos(1000)).toBe('100,0%');
     expect(percentualDeDecimos(5)).toBe('0,5%');
+  });
+
+  it('escreve percentuais com vírgula', () => {
+    expect(percentual(54.5)).toBe('54,5%');
+    expect(percentual(100)).toBe('100%');
   });
 
   it('arredonda percentuais de barra para somar 100', () => {

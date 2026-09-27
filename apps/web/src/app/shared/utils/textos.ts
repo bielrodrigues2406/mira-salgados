@@ -59,3 +59,10 @@ export function percentuaisInteiros(valores: readonly number[]): number[] {
   }
   return partes.map((parte) => parte.piso);
 }
+
+const PERCENTUAL = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+
+/** 54.5 para "54,5%", 100 para "100%". */
+export function percentual(valor: number): string {
+  return `${PERCENTUAL.format(valor)}%`;
+}

@@ -2,7 +2,14 @@
 
 <nav class="abas" aria-label="Relatórios">
   @for (aba of abas; track aba.rota) {
-    <a class="aba" [routerLink]="aba.rota" routerLinkActive="ativa" ariaCurrentWhenActive="page">
+    <a
+      #link
+      class="aba"
+      [routerLink]="aba.rota"
+      routerLinkActive="ativa"
+      ariaCurrentWhenActive="page"
+      (isActiveChange)="aoAtivar($event, link)"
+    >
       {{ aba.rotulo }}
     </a>
   }

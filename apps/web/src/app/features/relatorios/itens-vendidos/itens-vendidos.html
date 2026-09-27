@@ -1,0 +1,52 @@
+<ms-seletor-periodo [periodo]="periodo()" (periodoMudou)="mudarPeriodo($event)" />
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando os itens vendidos" [quantidade]="5" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar os itens vendidos" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar os itens vendidos"
+      [erro]="recurso.error()"
+      (tentarNovamente)="recurso.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="produtos" titulo="Nenhum item vendido no período">
+      O ranking considera os pedidos confirmados e concluídos com entrega entre as duas datas.
+      <a estadoAcao class="botao botao-secundario" routerLink="/pedidos">Ver pedidos</a>
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @if (resultado(); as resultado) {
+      <p class="texto-legenda numerico">{{ resumo() }}</p>
+      <ol class="ranking" aria-label="Itens mais vendidos">
+        @for (item of resultado.itens; track item.produto.id + item.preparo) {
+          <li class="cartao item">
+            <span class="colocacao numerico" aria-hidden="true">{{ item.posicao }}º</span>
+            <div class="item-textos">
+              <span class="item-produto">{{ item.produto.nome }}</span>
+              <span class="item-detalhe">
+                <ms-chip-preparo [preparo]="item.preparo" />
+                <span class="texto-legenda numerico">
+                  {{ item.valorCentavos | moeda }} · {{ detalhe(item) }}
+                </span>
+              </span>
+              <div class="barra" aria-hidden="true">
+                <div class="barra-preenchida" [style.width.%]="participacao(item)"></div>
+              </div>
+            </div>
+            <div class="item-quantidade">
+              <span class="quantidade numerico">{{ numero(item.unidades) }}</span>
+              <span class="unidades">{{ item.unidades === 1 ? 'unidade' : 'unidades' }}</span>
+            </div>
+          </li>
+        }
+      </ol>
+      <ms-paginacao [meta]="resultado.meta" (paginaMudou)="paginaAtual.set($event)" />
+    }
+  }
+}
