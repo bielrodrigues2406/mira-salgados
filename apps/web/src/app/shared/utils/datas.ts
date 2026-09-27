@@ -78,3 +78,36 @@ export function momentoCurto(iso: string): string {
   const data = new Date(iso);
   return `${String(data.getDate())} ${MESES[data.getMonth()] ?? ''}, ${doisDigitos(data.getHours())}:${doisDigitos(data.getMinutes())}`;
 }
+
+/** "Sex, 2 de outubro de 2026" */
+export function dataCompleta(texto: string): string {
+  const data = deTextoDeData(texto);
+  return `${DIAS[data.getDay()] ?? ''}, ${String(data.getDate())} de ${MESES_EXTENSO[data.getMonth()] ?? ''} de ${String(data.getFullYear())}`;
+}
+
+const FORMATO_DE_DATA = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A data, se for AAAA-MM-DD e existir no calendário; 2026-02-30 não passa. */
+export function dataDoCalendario(texto: string | undefined): string | undefined {
+  if (!texto || !FORMATO_DE_DATA.test(texto)) return undefined;
+  return paraTextoDeData(deTextoDeData(texto)) === texto ? texto : undefined;
+}
+
+export function primeiroDiaDoMes(texto: string): string {
+  const data = deTextoDeData(texto);
+  return paraTextoDeData(new Date(data.getFullYear(), data.getMonth(), 1));
+}
+
+export function ultimoDiaDoMes(texto: string): string {
+  const data = deTextoDeData(texto);
+  return paraTextoDeData(new Date(data.getFullYear(), data.getMonth() + 1, 0));
+}
+
+/** Quantos dias vão de `de` a `ate`, contando os dois; zero ou menos se `ate` vem antes. */
+export function diasNoIntervalo(de: string, ate: string): number {
+  const inicio = deTextoDeData(de);
+  const fim = deTextoDeData(ate);
+  // Date.UTC descarta a hora de verão, que faria um dia ter 23 ou 25 horas.
+  const utc = (data: Date): number => Date.UTC(data.getFullYear(), data.getMonth(), data.getDate());
+  return Math.round((utc(fim) - utc(inicio)) / 86_400_000) + 1;
+}

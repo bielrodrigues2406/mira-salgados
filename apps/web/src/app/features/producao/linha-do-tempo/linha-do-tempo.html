@@ -1,0 +1,68 @@
+<ol class="faixas" aria-label="Linha do tempo da produção">
+  @for (faixa of faixas(); track faixa.horario) {
+    <li class="faixa">
+      <div class="faixa-cabecalho">
+        <span class="horario" [class.sem-horario]="faixa.horario === null">
+          <ms-icone nome="relogio" />
+          <span class="numerico">{{ faixa.horario ?? 'Sem horário' }}</span>
+        </span>
+        <span class="faixa-resumo numerico">{{ resumo(faixa) }}</span>
+      </div>
+      <div class="pedidos">
+        @for (pedido of faixa.pedidos; track pedido.id) {
+          <article class="pedido">
+            <a class="pedido-cabecalho" [routerLink]="['/pedidos', pedido.id]">
+              <span class="pedido-numero numerico">#{{ pedido.numero }}</span>
+              <span class="pedido-cliente">{{ pedido.cliente.nome }}</span>
+              <span class="pedido-entrega">
+                <ms-icone
+                  [nome]="pedido.tipoEntrega === 'ENTREGA' ? 'entrega' : 'retirada'"
+                  [tamanho]="16"
+                />
+                <span>{{ pedido.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada' }}</span>
+              </span>
+            </a>
+            @if (pedido.status === 'CONCLUIDO' || pedido.observacao) {
+              <div class="pedido-extras">
+                @if (pedido.status === 'CONCLUIDO') {
+                  <ms-chip-status [status]="pedido.status" />
+                }
+                @if (pedido.observacao; as observacao) {
+                  <span class="pedido-observacao">
+                    <ms-icone nome="observacao" [tamanho]="16" />
+                    <span>{{ observacao }}</span>
+                  </span>
+                }
+              </div>
+            }
+            <ul class="itens">
+              @for (item of pedido.itens; track item.id) {
+                <li class="item">
+                  <div class="item-textos">
+                    <span class="item-produto">{{ item.produto.nome }}</span>
+                    <div class="item-chips">
+                      <ms-chip-preparo [preparo]="item.preparo" />
+                      <ms-chip tom="positivo" icone="produtor">{{ item.produtor.nome }}</ms-chip>
+                    </div>
+                    @if (item.observacao; as observacao) {
+                      <span class="item-observacao">
+                        <ms-icone nome="atencao" [tamanho]="16" />
+                        <span>{{ observacao }}</span>
+                      </span>
+                    }
+                  </div>
+                  <div class="item-quantidade">
+                    <span class="quantidade numerico">{{ numero(item.unidades) }}</span>
+                    <span class="venda numerico">
+                      {{ rotuloDaVenda(item.unidadeVenda, item.quantidade) }}
+                    </span>
+                  </div>
+                </li>
+              }
+            </ul>
+          </article>
+        }
+      </div>
+    </li>
+  }
+</ol>

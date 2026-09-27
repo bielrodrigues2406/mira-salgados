@@ -1,0 +1,64 @@
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando os fiados" [quantidade]="4" [comAvatar]="true" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar os fiados" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar os fiados"
+      [erro]="recurso.error()"
+      (tentarNovamente)="recurso.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="fiado" titulo="Nenhum fiado em aberto">
+      Quando um pedido confirmado tiver fiado registrado e saldo a receber, o cliente aparece aqui.
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @if (resultado(); as resultado) {
+      <section class="destaque" aria-labelledby="titulo-fiados">
+        <h2 id="titulo-fiados" class="destaque-rotulo">Fiado em aberto</h2>
+        <span class="destaque-valor numerico">{{
+          resultado.resumo.totalEmAbertoCentavos | moeda
+        }}</span>
+        <span class="destaque-legenda numerico">{{ legenda() }}</span>
+      </section>
+
+      <ul class="clientes" aria-label="Clientes com fiado em aberto">
+        @for (fiado of resultado.itens; track fiado.cliente.id) {
+          <li class="cartao cliente">
+            <div class="cliente-cabecalho">
+              <div class="cliente-textos">
+                <span class="cliente-nome">{{ fiado.cliente.nome }}</span>
+                <span class="texto-legenda numerico">Desde {{ dataCurta(fiado.desde) }}</span>
+              </div>
+              <span class="cliente-valor numerico">{{ fiado.emAbertoCentavos | moeda }}</span>
+            </div>
+            @if (telefoneParaLigar(fiado); as telefone) {
+              <a class="telefone numerico" [href]="telefone">
+                <ms-icone nome="telefone" [tamanho]="16" />
+                {{ fiado.cliente.telefone | telefone }}
+              </a>
+            }
+            <ul class="pedidos">
+              @for (pedido of fiado.pedidos; track pedido.id) {
+                <li>
+                  <a class="pedido" [routerLink]="['/pedidos', pedido.id]">
+                    <span class="pedido-numero numerico">#{{ pedido.numero }}</span>
+                    <span class="pedido-data numerico">{{ dataCurta(pedido.dataEntrega) }}</span>
+                    <span class="pedido-valor numerico">{{ pedido.emAbertoCentavos | moeda }}</span>
+                    <ms-icone nome="chevronDireita" [tamanho]="16" />
+                  </a>
+                </li>
+              }
+            </ul>
+          </li>
+        }
+      </ul>
+      <ms-paginacao [meta]="resultado.meta" (paginaMudou)="paginaAtual.set($event)" />
+    }
+  }
+}

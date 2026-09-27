@@ -1,0 +1,153 @@
+<ms-seletor-data [data]="dia()" rotulo="Data do acerto" (dataMudou)="irPara($event)" />
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando o acerto" [quantidade]="3" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar o acerto" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar o acerto"
+      [erro]="recurso.error()"
+      (tentarNovamente)="recurso.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="relatorios" titulo="Nenhuma encomenda nesta data">
+      O acerto considera os pedidos confirmados e concluídos com entrega no dia. Escolha outra data
+      ou confira os pedidos.
+      <a estadoAcao class="botao botao-secundario" routerLink="/pedidos">Ver pedidos</a>
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @if (acerto(); as acerto) {
+      <section class="sintese" aria-labelledby="titulo-sintese">
+        <h2 id="titulo-sintese" class="sintese-titulo">Síntese do dia</h2>
+        <dl class="sintese-numeros">
+          <div class="sintese-numero">
+            <dt>Encomendas</dt>
+            <dd class="numerico">{{ acerto.quantidadePedidos }}</dd>
+          </div>
+          <div class="sintese-numero">
+            <dt>Valor movimentado</dt>
+            <dd class="numerico">{{ acerto.valorMovimentadoCentavos | moeda }}</dd>
+          </div>
+        </dl>
+        <p class="sintese-legenda numerico">
+          Pedidos confirmados e concluídos com entrega nesta data · {{ unidades() }}
+        </p>
+      </section>
+
+      <section class="cartao caixa" aria-labelledby="titulo-caixa">
+        <h2 id="titulo-caixa" class="texto-titulo">Caixa por forma de recebimento</h2>
+        <div class="barra-caixa" role="img" [attr.aria-label]="descricaoDaBarra()">
+          @if (acerto.caixa.totalCentavos > 0) {
+            <span
+              class="barra-parte em-caixa"
+              [style.flex-grow]="acerto.caixa.totalCentavos"
+            ></span>
+          }
+          @if (acerto.fiado.valorCentavos > 0) {
+            <span
+              class="barra-parte em-fiado"
+              [style.flex-grow]="acerto.fiado.valorCentavos"
+            ></span>
+          }
+          @if (acerto.semPagamento.valorCentavos > 0) {
+            <span
+              class="barra-parte sem-pagamento"
+              [style.flex-grow]="acerto.semPagamento.valorCentavos"
+            ></span>
+          }
+        </div>
+
+        <div class="grupo">
+          <h3 class="grupo-titulo">Disponível</h3>
+          <ul class="formas">
+            <li class="forma">
+              <span class="forma-icone"><ms-icone nome="pix" /></span>
+              <span class="forma-nome">PIX</span>
+              <span class="forma-valor numerico">{{ acerto.caixa.pixCentavos | moeda }}</span>
+            </li>
+            <li class="forma">
+              <span class="forma-icone"><ms-icone nome="dinheiro" /></span>
+              <span class="forma-nome">Dinheiro</span>
+              <span class="forma-valor numerico">{{ acerto.caixa.dinheiroCentavos | moeda }}</span>
+            </li>
+          </ul>
+          <div class="total-em-caixa">
+            <span class="total-em-caixa-rotulo"><ms-icone nome="confirmado" />Total em caixa</span>
+            <span class="total-em-caixa-valor numerico">{{
+              acerto.caixa.totalCentavos | moeda
+            }}</span>
+          </div>
+        </div>
+
+        <div class="grupo">
+          <h3 class="grupo-titulo">Não disponível</h3>
+          <ul class="formas">
+            <li class="forma">
+              <span class="forma-icone atencao"><ms-icone nome="fiado" /></span>
+              <span class="forma-textos">
+                <span class="forma-nome">Fiado</span>
+                <span class="texto-legenda numerico">
+                  Crédito informal{{
+                    acerto.fiado.pedidos.length > 0 ? ' · ' + pedidosComFiado() : ''
+                  }}
+                </span>
+              </span>
+              <span class="forma-valor numerico valor-fiado">{{
+                acerto.fiado.valorCentavos | moeda
+              }}</span>
+            </li>
+            <li class="forma">
+              <span class="forma-icone neutra"><ms-icone nome="pagamentoPendente" /></span>
+              <span class="forma-textos">
+                <span class="forma-nome">Sem pagamento registrado</span>
+                @if (acerto.semPagamento.pedidos.length > 0) {
+                  <span class="texto-legenda numerico">{{ pedidosSemPagamento() }}</span>
+                }
+              </span>
+              <span class="forma-valor numerico valor-sem-pagamento">{{
+                acerto.semPagamento.valorCentavos | moeda
+              }}</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="divisao-cabecalho">
+        <h2 class="texto-rotulo divisao-titulo">Divisão por produtor</h2>
+        <p class="texto-legenda numerico">
+          Proporcional ao valor produzido ({{ acerto.totalProduzidoCentavos | moeda }}) sobre o
+          caixa líquido de {{ acerto.caixa.totalCentavos | moeda }}. Fiado não entra na divisão.
+        </p>
+      </div>
+
+      <div class="produtores">
+        @for (parte of acerto.produtores; track parte.produtor.id) {
+          <ms-cartao-produtor [parte]="parte" />
+        }
+      </div>
+
+      <section class="cartao conferencia" aria-label="Conferência">
+        <div class="conferencia-linha">
+          <span>Soma a receber do caixa</span>
+          <span class="numerico">{{ acerto.somaAReceberCentavos | moeda }}</span>
+        </div>
+        <div class="conferencia-linha">
+          <span>Soma pendente</span>
+          <span class="numerico">{{ acerto.somaPendenteCentavos | moeda }}</span>
+        </div>
+        @if (fechaComOCaixa()) {
+          <span class="conferencia-ok">
+            <ms-icone nome="confirmado" [tamanho]="16" />
+            Distribuição fecha com o caixa líquido, centavo a centavo
+          </span>
+        }
+      </section>
+    }
+  }
+}

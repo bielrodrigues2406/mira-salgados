@@ -1,0 +1,44 @@
+<div class="atalhos" role="group" aria-label="Períodos prontos">
+  @for (atalho of atalhos; track atalho.rotulo) {
+    <button
+      type="button"
+      class="atalho"
+      [attr.aria-pressed]="ehAtual(atalho)"
+      (click)="escolher(atalho)"
+    >
+      {{ atalho.rotulo }}
+    </button>
+  }
+</div>
+
+<div class="datas">
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-de'">De</label>
+    <input
+      #inicio
+      type="date"
+      class="campo-entrada numerico"
+      [id]="id + '-de'"
+      [value]="rascunho().de"
+      [attr.aria-invalid]="erro() !== null"
+      [attr.aria-describedby]="erro() ? id + '-erro' : null"
+      (change)="alterar('de', inicio.value)"
+    />
+  </div>
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-ate'">Até</label>
+    <input
+      #fim
+      type="date"
+      class="campo-entrada numerico"
+      [id]="id + '-ate'"
+      [value]="rascunho().ate"
+      [attr.aria-invalid]="erro() !== null"
+      [attr.aria-describedby]="erro() ? id + '-erro' : null"
+      (change)="alterar('ate', fim.value)"
+    />
+  </div>
+</div>
+@if (erro(); as mensagem) {
+  <p class="campo-erro" role="alert" [id]="id + '-erro'">{{ mensagem }}</p>
+}

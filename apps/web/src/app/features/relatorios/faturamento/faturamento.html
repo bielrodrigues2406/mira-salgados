@@ -1,0 +1,83 @@
+<ms-seletor-periodo [periodo]="periodo()" (periodoMudou)="mudarPeriodo($event)" />
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando o faturamento" [quantidade]="3" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar o faturamento" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar o faturamento"
+      [erro]="recurso.error()"
+      (tentarNovamente)="recurso.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="relatorios" titulo="Nenhuma encomenda no período">
+      O faturamento soma os pedidos confirmados e concluídos com entrega entre as duas datas.
+      <a estadoAcao class="botao botao-secundario" routerLink="/pedidos">Ver pedidos</a>
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @if (faturamento(); as faturamento) {
+      <section class="destaque" aria-labelledby="titulo-faturamento">
+        <h2 id="titulo-faturamento" class="destaque-rotulo">Faturamento do período</h2>
+        <span class="destaque-valor numerico">{{ faturamento.faturamentoCentavos | moeda }}</span>
+        <span class="destaque-legenda numerico">{{ legenda() }}</span>
+      </section>
+
+      <dl class="metricas">
+        <div class="cartao metrica">
+          <dt>Recebido</dt>
+          <dd class="metrica-valor numerico positivo">
+            {{ faturamento.recebidoCentavos | moeda }}
+          </dd>
+          <dd class="texto-legenda">Dinheiro e PIX</dd>
+        </div>
+        <div class="cartao metrica">
+          <dt>A receber</dt>
+          <dd class="metrica-valor numerico negativo">
+            {{ faturamento.aReceberCentavos | moeda }}
+          </dd>
+          <dd class="texto-legenda numerico">
+            @if (faturamento.fiadoCentavos > 0) {
+              Inclui {{ faturamento.fiadoCentavos | moeda }} em fiado
+            } @else {
+              Sem fiado
+            }
+          </dd>
+        </div>
+        <div class="cartao metrica">
+          <dt>Ticket médio</dt>
+          <dd class="metrica-valor numerico">{{ faturamento.ticketMedioCentavos | moeda }}</dd>
+          <dd class="texto-legenda">Por encomenda</dd>
+        </div>
+        <div class="cartao metrica">
+          <dt>Descontos</dt>
+          <dd class="metrica-valor numerico">{{ faturamento.descontosCentavos | moeda }}</dd>
+          <dd class="texto-legenda">Já abatidos do faturamento</dd>
+        </div>
+      </dl>
+
+      <section class="cartao por-dia" aria-labelledby="titulo-por-dia">
+        <h2 id="titulo-por-dia" class="texto-titulo">Faturamento por dia</h2>
+        <ul class="dias">
+          @for (dia of dias(); track dia.data) {
+            <li class="dia">
+              <div class="dia-textos">
+                <span class="dia-data numerico">{{ dia.rotulo }}</span>
+                <span class="texto-legenda numerico">{{ dia.encomendas }}</span>
+              </div>
+              <div class="dia-barra" aria-hidden="true">
+                <div class="dia-barra-preenchida" [style.width.%]="dia.largura"></div>
+              </div>
+              <span class="dia-valor numerico">{{ dia.faturamentoCentavos | moeda }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+}
