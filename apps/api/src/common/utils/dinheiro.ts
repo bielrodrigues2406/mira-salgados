@@ -35,6 +35,13 @@ export function centavosParaDecimal(valor: Centavos): string {
   return `${valor < 0 ? '-' : ''}${reais}.${resto}`;
 }
 
+/** "R$ 1.234,50", para mensagens ao usuário. */
+export function formatarReais(valor: Centavos): string {
+  const [inteiro = '0', fracao = '00'] = centavosParaDecimal(valor).replace('-', '').split('.');
+  const comMilhar = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${valor < 0 ? '-' : ''}R$ ${comMilhar},${fracao}`;
+}
+
 export function somar(...valores: readonly Centavos[]): Centavos {
   return centavos(valores.reduce<number>((acumulado, valor) => acumulado + valor, 0));
 }
