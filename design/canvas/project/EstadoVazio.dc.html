@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Produção do dia — sem encomendas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F5F6F8;font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:#0F2440;-webkit-font-smoothing:antialiased}
+a{color:#1E3A5F}a:hover{color:#0F2440}
+button,input,select,textarea{font:inherit;color:inherit}
+a,button,input{transition:color 150ms ease,background-color 150ms ease,border-color 150ms ease}
+:focus-visible{outline:2px solid #1E3A5F;outline-offset:2px}
+.escuro :focus-visible{outline-color:#FFFFFF}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: #F5F6F8; display: flex; flex-direction: column; overflow: hidden">
+
+<header class="escuro" style="height: 56px; flex-shrink: 0; box-sizing: border-box; background: #0F2440; display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 16px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 6px; background: #1E3A5F; border: 1px solid rgba(255,255,255,0.2); box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; font-weight: 700">M</span>
+<span style="color: #FFFFFF; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">Mira Salgados</span>
+</div>
+<button type="button" aria-label="Conta de Lúcia Andrade" style="width: 44px; height: 44px; border: 0; padding: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<span style="width: 32px; height: 32px; border-radius: 999px; background: rgba(255,255,255,0.12); color: #FFFFFF; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">LA</span>
+</button>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 32px">Produção do dia</h1>
+<div style="display: flex; align-items: center; gap: 4px; margin-left: -8px">
+<button type="button" aria-label="Dia anterior" style="width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: #1E3A5F; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+<span style="flex-grow: 1; font-size: 14px; font-weight: 600">Domingo, 4 de outubro</span>
+<button type="button" aria-label="Próximo dia" style="width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: #1E3A5F; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+</div>
+</div>
+
+<nav aria-label="Modo de visualização" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 2px; border: 1px solid #8A94A0; border-radius: 6px; background: #FFFFFF">
+<a href="ProducaoCronologica.dc.html" aria-current="page" style="height: 44px; border-radius: 4px; background: #1E3A5F; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+<span>Cronológico</span>
+</a>
+<a href="ProducaoConsolidada.dc.html" style="height: 44px; border-radius: 4px; background: transparent; color: #1E3A5F; font-size: 14px; font-weight: 500; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="m2 12.65 9.17 4.16a2 2 0 0 0 1.66 0L22 12.65M2 17.65l9.17 4.16a2 2 0 0 0 1.66 0L22 17.65"/></svg>
+<span>Consolidado</span>
+</a>
+</nav>
+
+<section aria-labelledby="titulo-vazio" style="background: #FFFFFF; border: 1px solid #E3E6EA; border-radius: 8px; padding: 32px 20px 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+<span aria-hidden="true" style="width: 56px; height: 56px; border-radius: 999px; background: #F5F6F8; border: 1px solid #E3E6EA; box-sizing: border-box; color: #5A6472; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.46.32-.84.73-1.04a4 4 0 0 0-2.14-7.59 5 5 0 0 0-9.18 0 4 4 0 0 0-2.14 7.59c.41.2.73.58.73 1.04V20a1 1 0 0 0 1 1z"/><path d="M6 17h12"/></svg></span>
+<h2 id="titulo-vazio" style="margin: 8px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">Nenhuma produção para este dia</h2>
+<p style="margin: 0; font-size: 14px; line-height: 20px; color: #5A6472">Não há encomendas confirmadas com entrega no domingo, 4 de outubro.</p>
+<div style="margin-top: 12px; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 6px; background: #EEF0F3; border: 1px solid #D5DAE0; text-align: left">
+<span style="color: #5A6472; display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.85.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.85z"/></svg></span>
+<span class="num" style="flex-grow: 1; font-size: 12px; line-height: 18px; color: #0F2440">1 rascunho com entrega nesta data aguarda confirmação: <strong style="font-weight: 600">#1047 · Fernanda Castro</strong></span>
+</div>
+<a href="PedidoDetalhe.dc.html" style="margin-top: 8px; width: 100%; height: 44px; border-radius: 6px; background: #1E3A5F; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Revisar rascunho</a>
+<a href="ProducaoCronologica.dc.html" style="width: 100%; height: 44px; border-radius: 6px; border: 1px solid #8A94A0; box-sizing: border-box; background: #FFFFFF; color: #1E3A5F; font-size: 14px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Voltar para hoje</a>
+</section>
+
+</main>
+
+<nav aria-label="Navegação principal" class="escuro" style="flex-shrink: 0; height: 84px; box-sizing: border-box; background: #0F2440; padding: 6px 4px 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg></span>
+<span>Pedidos</span>
+</a>
+<a href="ProducaoCronologica.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #FFFFFF; font-size: 12px; font-weight: 600">
+<span style="width: 52px; height: 28px; border-radius: 999px; background: rgba(199,154,46,0.24); color: #C79A2E; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.46.32-.84.73-1.04a4 4 0 0 0-2.14-7.59 5 5 0 0 0-9.18 0 4 4 0 0 0-2.14 7.59c.41.2.73.58.73 1.04V20a1 1 0 0 0 1 1z"/><path d="M6 17h12"/></svg></span>
+<span>Produção</span>
+</a>
+<a href="Clientes.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+<span>Clientes</span>
+</a>
+<a href="Produtos.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.3 7 12 12l8.7-5M7.5 4.27l9 5.15"/></svg></span>
+<span>Produtos</span>
+</a>
+<a href="RelatorioAcerto.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></span>
+<span>Relatórios</span>
+</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

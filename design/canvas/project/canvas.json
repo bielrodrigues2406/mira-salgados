@@ -1,0 +1,50 @@
+{
+  "v": 3,
+  "attachments": {},
+  "createdOnFiles": { "v": 1, "at": "2026-09-27T18:00:00Z" },
+  "title": "Mira Salgados",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Login.dc.html": { "x": 0, "y": 0, "w": 390, "h": 844, "title": "Autenticação", "is_interactive": true },
+    "LoginCadastro.dc.html": { "x": 470, "y": 0, "w": 390, "h": 1040, "title": "Autenticação — nova conta", "is_interactive": true },
+    "Main.dc.html": { "x": 940, "y": 0, "w": 390, "h": 1640, "title": "Pedidos", "is_interactive": true },
+    "PedidoDetalhe.dc.html": { "x": 1410, "y": 0, "w": 390, "h": 2100, "title": "Detalhe do pedido", "is_interactive": true },
+    "ProducaoCronologica.dc.html": { "x": 1880, "y": 0, "w": 390, "h": 1780, "title": "Produção do dia — cronológico", "is_interactive": true },
+    "ProducaoConsolidada.dc.html": { "x": 2350, "y": 0, "w": 390, "h": 1800, "title": "Produção do dia — consolidado", "is_interactive": true },
+    "Clientes.dc.html": { "x": 0, "y": 2540, "w": 390, "h": 1420, "title": "Clientes", "is_interactive": true },
+    "Produtos.dc.html": { "x": 470, "y": 2540, "w": 390, "h": 1760, "title": "Produtos e precificação", "is_interactive": true },
+    "Produtores.dc.html": { "x": 940, "y": 2540, "w": 390, "h": 844, "title": "Produtores", "is_interactive": true },
+    "RelatorioAcerto.dc.html": { "x": 1410, "y": 2540, "w": 390, "h": 2380, "title": "Relatórios — acerto diário", "is_interactive": true },
+    "EstadoCarregando.dc.html": { "x": 0, "y": 5360, "w": 390, "h": 844, "title": "Carregando — pedidos" },
+    "EstadoVazio.dc.html": { "x": 470, "y": 5360, "w": 390, "h": 844, "title": "Vazio — produção do dia", "is_interactive": true },
+    "EstadoErro.dc.html": { "x": 940, "y": 5360, "w": 390, "h": 844, "title": "Erro — clientes", "is_interactive": true },
+    "PedidosDesktop.dc.html": { "x": 1490, "y": 5360, "w": 1440, "h": 1080, "title": "Pedidos — desktop", "is_interactive": true },
+    "Fundamentos.dc.html": { "x": 0, "y": 6880, "w": 1440, "h": 4080, "title": "Fundamentos" }
+  },
+  "order": [
+    "Login.dc.html",
+    "LoginCadastro.dc.html",
+    "Main.dc.html",
+    "PedidoDetalhe.dc.html",
+    "ProducaoCronologica.dc.html",
+    "ProducaoConsolidada.dc.html",
+    "Clientes.dc.html",
+    "Produtos.dc.html",
+    "Produtores.dc.html",
+    "RelatorioAcerto.dc.html",
+    "EstadoCarregando.dc.html",
+    "EstadoVazio.dc.html",
+    "EstadoErro.dc.html",
+    "PedidosDesktop.dc.html",
+    "Fundamentos.dc.html"
+  ],
+  "notes": {
+    "fluxo": { "x": 0, "y": -280, "w": 240, "text": "Mobile — pedidos e produção", "kind": "title1", "maxW": 2740 },
+    "cadastros": { "x": 0, "y": 2260, "w": 240, "text": "Mobile — cadastros e relatórios", "kind": "title1", "maxW": 1800 },
+    "estados": { "x": 0, "y": 5080, "w": 240, "text": "Estados", "kind": "title1", "maxW": 1330 },
+    "desktop": { "x": 1490, "y": 5080, "w": 240, "text": "Desktop — navegação lateral", "kind": "title1", "maxW": 1440 },
+    "fundamentos": { "x": 0, "y": 6600, "w": 240, "text": "Fundamentos", "kind": "title1", "maxW": 1440 }
+  },
+  "designSystems": []
+}
