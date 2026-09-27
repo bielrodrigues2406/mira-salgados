@@ -54,4 +54,5 @@ npm run test:integration -w @mira/api               # testes contra o PostgreSQL
 
 - [Convenções de idioma, código e git](docs/convencoes.md)
 - [Decisões de arquitetura](docs/adr)
+- [Análise crítica da especificação](docs/analise-critica.md)
 - [Design de interface](design/README.md)

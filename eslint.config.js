@@ -11,6 +11,10 @@ const regrasTypeScript = {
   '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
   '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
   '@typescript-eslint/no-import-type-side-effects': 'error',
+  '@typescript-eslint/no-unused-vars': [
+    'error',
+    { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+  ],
   eqeqeq: ['error', 'always'],
   'no-console': 'error',
 };
