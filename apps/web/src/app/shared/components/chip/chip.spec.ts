@@ -1,23 +1,29 @@
-import { Component } from '@angular/core';
+import { ApplicationRef, createComponent, EnvironmentInjector, inputBinding } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { Chip } from './chip';
 
-@Component({
-  imports: [Chip],
-  template: `<ms-chip tom="positivo" icone="confirmado" [compacto]="true">Ativo</ms-chip>`,
-})
-class Hospedeiro {}
-
 describe('Chip', () => {
-  it('aplica o tom, o tamanho e mostra texto com ícone', () => {
-    const fixture = TestBed.createComponent(Hospedeiro);
-    fixture.detectChanges();
-    const chip = (fixture.nativeElement as HTMLElement).querySelector('ms-chip');
+  it('aplica o tom, o tamanho e mostra texto com ícone', async () => {
+    const chip = createComponent(Chip, {
+      environmentInjector: TestBed.inject(EnvironmentInjector),
+      projectableNodes: [[document.createTextNode('Ativo')]],
+      bindings: [
+        inputBinding('tom', () => 'positivo'),
+        inputBinding('icone', () => 'confirmado'),
+        inputBinding('compacto', () => true),
+      ],
+    });
+    const aplicacao = TestBed.inject(ApplicationRef);
+    aplicacao.attachView(chip.hostView);
+    await aplicacao.whenStable();
+    const elemento = chip.location.nativeElement as HTMLElement;
 
-    expect(chip?.classList).toContain('tom-positivo');
-    expect(chip?.classList).toContain('compacto');
-    expect(chip?.textContent.trim()).toBe('Ativo');
-    expect(chip?.querySelector('svg')).not.toBeNull();
+    expect(elemento.classList).toContain('tom-positivo');
+    expect(elemento.classList).toContain('compacto');
+    expect(elemento.textContent.trim()).toBe('Ativo');
+    expect(elemento.querySelector('svg')).not.toBeNull();
+
+    chip.destroy();
   });
 });

@@ -17,11 +17,9 @@ interface Pedido {
   tipoEntrega: string;
   dataEntrega: string;
   horarioEntrega: string | null;
-  entregador: { id: string; nome: string } | null;
   resumo: {
     subtotalCentavos: number;
     descontoCentavos: number;
-    taxaEntregaCentavos: number;
     totalCentavos: number;
     totalPagoCentavos: number;
     totalFiadoCentavos: number;
@@ -132,16 +130,23 @@ describe('pedidos', () => {
     expect(erroDe(inativo).code).toBe('CLIENTE_INVALIDO');
   });
 
-  it('recusa taxa e entregador em pedido para retirada', async () => {
+  it('recusa taxa de entrega e entregador: entrega não tem efeito financeiro', async () => {
     const resposta = await api.post('/pedidos', {
       clienteId: cenario.ana.id,
-      tipoEntrega: 'RETIRADA',
+      tipoEntrega: 'ENTREGA',
       dataEntrega: '2026-10-02',
       taxaEntregaCentavos: 1000,
+      entregadorId: cenario.celia.id,
     });
 
-    expect(resposta.status).toBe(422);
-    expect(erroDe(resposta).code).toBe('RETIRADA_SEM_ENTREGA');
+    expect(resposta.status).toBe(400);
+    expect(erroDe(resposta).details).toEqual([
+      {
+        field: 'taxaEntregaCentavos',
+        messages: ['O campo "taxaEntregaCentavos" não é permitido.'],
+      },
+      { field: 'entregadorId', messages: ['O campo "entregadorId" não é permitido.'] },
+    ]);
   });
 
   it('copia o preço vigente e o produtor padrão para o item', async () => {
@@ -216,27 +221,21 @@ describe('pedidos', () => {
     expect(erroDe(inativo).code).toBe('PRODUTO_INVALIDO');
   });
 
-  it('calcula totais com desconto e taxa de entrega', async () => {
-    let pedido = await novoPedido({
-      tipoEntrega: 'ENTREGA',
-      taxaEntregaCentavos: 1200,
-      descontoCentavos: 2000,
-      entregadorId: cenario.celia.id,
-    });
+  it('calcula totais com desconto, igual para entrega e retirada', async () => {
+    let pedido = await novoPedido({ tipoEntrega: 'ENTREGA', descontoCentavos: 2000 });
     await adicionarItem(pedido, { quantidade: 3 });
     pedido = await adicionarItem(pedido, { produtoId: cenario.kibe.id, quantidade: 1 });
 
+    expect(pedido.tipoEntrega).toBe('ENTREGA');
     expect(pedido.resumo).toEqual({
       subtotalCentavos: 37500,
       descontoCentavos: 2000,
-      taxaEntregaCentavos: 1200,
-      totalCentavos: 36700,
+      totalCentavos: 35500,
       totalPagoCentavos: 0,
       totalFiadoCentavos: 0,
-      saldoDevedorCentavos: 36700,
+      saldoDevedorCentavos: 35500,
     });
     expect(pedido.statusPagamento).toBe('PENDENTE');
-    expect(pedido.entregador?.nome).toBe('Célia');
   });
 
   describe('transições de status', () => {
@@ -310,18 +309,12 @@ describe('pedidos', () => {
       expect(cancelado.status).toBe(200);
     });
 
-    it('exige entregador para concluir entrega com taxa (D3)', async () => {
-      const pedido = await adicionarItem(
-        await novoPedido({ tipoEntrega: 'ENTREGA', taxaEntregaCentavos: 1000 }),
-        {},
-      );
+    it('conclui pedido de entrega sem exigir mais nada', async () => {
+      const pedido = await adicionarItem(await novoPedido({ tipoEntrega: 'ENTREGA' }), {});
       await mudarStatus(pedido, 'CONFIRMADO').expect(200);
 
-      const semEntregador = await mudarStatus(pedido, 'CONCLUIDO');
-      await api.patch(`/pedidos/${pedido.id}`, { entregadorId: cenario.celia.id }).expect(200);
       const concluido = await mudarStatus(pedido, 'CONCLUIDO');
 
-      expect(erroDe(semEntregador).code).toBe('ENTREGADOR_OBRIGATORIO');
       expect(concluido.status).toBe(200);
     });
 
@@ -421,19 +414,15 @@ describe('pedidos', () => {
     expect(erroDe(resposta).code).toBe('PEDIDO_SEM_ITENS');
   });
 
-  it('muda para retirada limpando taxa e entregador', async () => {
-    const pedido = await novoPedido({
-      tipoEntrega: 'ENTREGA',
-      taxaEntregaCentavos: 1000,
-      entregadorId: cenario.mira.id,
-    });
+  it('troca entre entrega e retirada sem mudar valores', async () => {
+    const pedido = await adicionarItem(await novoPedido({ tipoEntrega: 'ENTREGA' }), {});
 
     const retirada = dadosDe<Pedido>(
       await api.patch(`/pedidos/${pedido.id}`, { tipoEntrega: 'RETIRADA' }).expect(200),
     );
 
-    expect(retirada).toMatchObject({ tipoEntrega: 'RETIRADA', entregador: null });
-    expect(retirada.resumo.taxaEntregaCentavos).toBe(0);
+    expect(retirada.tipoEntrega).toBe('RETIRADA');
+    expect(retirada.resumo.totalCentavos).toBe(pedido.resumo.totalCentavos);
   });
 
   it('recusa null em campos que não podem ser apagados', async () => {

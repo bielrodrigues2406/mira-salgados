@@ -14,7 +14,6 @@ import {
 import { Cliente } from '../clientes/cliente.entity.js';
 import type { Centavos } from '../common/utils/dinheiro.js';
 import { centavosTransformer } from '../database/centavos.transformer.js';
-import { Produtor } from '../produtores/produtor.entity.js';
 import { Usuario } from '../usuarios/usuario.entity.js';
 import {
   STATUS_PEDIDO,
@@ -27,13 +26,7 @@ import {
 @Unique('uq_pedidos_numero', ['numero'])
 @Index('ix_pedidos_data_entrega_status', ['dataEntrega', 'status'])
 @Index('ix_pedidos_cliente_status', ['clienteId', 'status'])
-@Index('ix_pedidos_entregador_id', ['entregadorId'])
-@Check('ck_pedidos_taxa_nao_negativa', 'taxa_entrega >= 0')
 @Check('ck_pedidos_desconto_nao_negativo', 'desconto >= 0')
-@Check(
-  'ck_pedidos_retirada_sem_entrega',
-  "tipo_entrega = 'ENTREGA' OR (taxa_entrega = 0 AND entregador_id IS NULL)",
-)
 @Check('ck_pedidos_observacao_preenchida', "btrim(observacao) <> ''")
 export class Pedido {
   @PrimaryGeneratedColumn('uuid', { primaryKeyConstraintName: 'pk_pedidos' })
@@ -61,6 +54,7 @@ export class Pedido {
   @Column({ type: 'enum', enum: STATUS_PEDIDO, enumName: 'status_pedido', default: 'RASCUNHO' })
   status: StatusPedido;
 
+  /** Só logística: não altera valores nem o acerto. */
   @Column({ type: 'enum', enum: TIPOS_ENTREGA, enumName: 'tipo_entrega' })
   tipoEntrega: TipoEntrega;
 
@@ -71,24 +65,7 @@ export class Pedido {
     default: 0,
     transformer: centavosTransformer,
   })
-  taxaEntrega: Centavos;
-
-  @Column({
-    type: 'numeric',
-    precision: 10,
-    scale: 2,
-    default: 0,
-    transformer: centavosTransformer,
-  })
   desconto: Centavos;
-
-  /** Produtor que fez a entrega; recebe a taxa no acerto (decisão D3). */
-  @Column({ type: 'uuid', nullable: true })
-  entregadorId: string | null;
-
-  @ManyToOne(() => Produtor, { nullable: true })
-  @JoinColumn({ name: 'entregador_id', foreignKeyConstraintName: 'fk_pedidos_entregador' })
-  entregador?: Produtor | null;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   observacao: string | null;

@@ -101,7 +101,6 @@ export class PedidosConsultaService {
         resumo: resumoDeTotais({
           subtotal: centavosOuZero(doPedido?.subtotal),
           desconto: pedido.desconto,
-          taxaEntrega: pedido.taxaEntrega,
           totalPago: centavosOuZero(pago?.pago),
           totalFiado: centavosOuZero(pago?.fiado),
         }),

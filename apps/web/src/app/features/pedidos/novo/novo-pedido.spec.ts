@@ -31,10 +31,6 @@ describe('NovoPedido', () => {
     fixture = TestBed.createComponent(NovoPedido);
     tela = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
-    (await aguardar((url) => url.startsWith('/api/v1/produtores'))).flush({
-      data: [{ id: 'pr1', nome: 'Célia', ativo: true, produtosPadrao: [] }],
-      meta: { page: 1, pageSize: 100, total: 1, totalPages: 1 },
-    });
     await fixture.whenStable();
   }
 
@@ -49,6 +45,17 @@ describe('NovoPedido', () => {
     await fixture.whenStable();
 
     expect(tela.textContent).toContain('Escolha o cliente.');
+  });
+
+  it('entrega não pede taxa nem entregador', async () => {
+    await montar();
+
+    tela.querySelector<HTMLInputElement>('input[value="ENTREGA"]')?.click();
+    await fixture.whenStable();
+
+    expect(tela.querySelectorAll('input:not([type="radio"]), select')).toHaveLength(4);
+    expect(tela.textContent).not.toContain('Taxa');
+    expect(tela.textContent).not.toContain('Entregador');
   });
 
   it('busca o cliente, cria o rascunho e abre o detalhe para adicionar itens', async () => {
@@ -69,17 +76,17 @@ describe('NovoPedido', () => {
     tela.querySelector<HTMLButtonElement>('.resultado')?.click();
     await fixture.whenStable();
     expect(tela.textContent).toContain('Trocar');
+    tela.querySelector<HTMLInputElement>('input[value="ENTREGA"]')?.click();
+    await fixture.whenStable();
 
     tela.querySelector('form')?.dispatchEvent(new Event('submit', { cancelable: true }));
     const criacao = await aguardar((url) => url === '/api/v1/pedidos');
     expect(criacao.request.body).toEqual({
       clienteId: 'c1',
-      tipoEntrega: 'RETIRADA',
+      tipoEntrega: 'ENTREGA',
       dataEntrega: hoje(),
       horarioEntrega: null,
-      taxaEntregaCentavos: 0,
       descontoCentavos: 0,
-      entregadorId: null,
       observacao: null,
     });
     criacao.flush({ data: { id: 'novo' } });

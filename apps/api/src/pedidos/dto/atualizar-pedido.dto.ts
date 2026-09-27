@@ -12,13 +12,13 @@ import {
 
 import { DataDoCalendario } from '../../common/validation/data.js';
 import { comoEnum } from '../../common/validation/enum.js';
+import { Opcional } from '../../common/validation/opcional.js';
 import { ApararOuNulo } from '../../common/validation/transforms.js';
 import { TIPOS_ENTREGA, type TipoEntrega } from '../dominio/enums.js';
 import { VALOR_MAXIMO_CENTAVOS } from './limites.js';
-import { Opcional } from '../../common/validation/opcional.js';
 
 // O status muda só por PATCH /pedidos/:id/status, que valida a transição.
-// null em horário, entregador e observação apaga o valor.
+// null em horário e observação apaga o valor.
 export class AtualizarPedidoDto {
   @Opcional()
   @IsUUID()
@@ -40,17 +40,7 @@ export class AtualizarPedidoDto {
   @IsInt()
   @Min(0)
   @Max(VALOR_MAXIMO_CENTAVOS)
-  taxaEntregaCentavos?: number;
-
-  @Opcional()
-  @IsInt()
-  @Min(0)
-  @Max(VALOR_MAXIMO_CENTAVOS)
   descontoCentavos?: number;
-
-  @IsOptional()
-  @IsUUID()
-  entregadorId?: string | null;
 
   @IsOptional()
   @ApararOuNulo()

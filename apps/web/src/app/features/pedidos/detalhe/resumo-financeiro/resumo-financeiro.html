@@ -16,15 +16,6 @@
         <dd class="numerico">− {{ resumo().descontoCentavos | moeda }}</dd>
       </div>
     }
-    <div class="linha">
-      <dt>
-        Taxa de entrega
-        <span class="texto-legenda">
-          · {{ pedido().tipoEntrega === 'ENTREGA' ? 'entrega' : 'retirada' }}
-        </span>
-      </dt>
-      <dd class="numerico">{{ resumo().taxaEntregaCentavos | moeda }}</dd>
-    </div>
     <div class="linha total">
       <dt>Total</dt>
       <dd class="numerico">{{ resumo().totalCentavos | moeda }}</dd>

@@ -32,8 +32,6 @@ function erroDe(acao: () => void): BusinessRuleError {
 const PRONTO: EstadoParaTransicao = {
   quantidadeItens: 1,
   pagamentosAtivos: 0,
-  exigeEntregador: false,
-  temEntregador: false,
 };
 
 describe('máquina de estados do pedido', () => {
@@ -86,19 +84,6 @@ describe('máquina de estados do pedido', () => {
     expect(erro.code).toBe('PEDIDO_COM_PAGAMENTOS');
     expect(() => {
       validarCondicoesDaTransicao('CANCELADO', { ...PRONTO, quantidadeItens: 0 });
-    }).not.toThrow();
-  });
-
-  it('exige entregador para concluir entrega com taxa (D3)', () => {
-    const semEntregador = { ...PRONTO, exigeEntregador: true, temEntregador: false };
-
-    expect(
-      erroDe(() => {
-        validarCondicoesDaTransicao('CONCLUIDO', semEntregador);
-      }).code,
-    ).toBe('ENTREGADOR_OBRIGATORIO');
-    expect(() => {
-      validarCondicoesDaTransicao('CONCLUIDO', { ...semEntregador, temEntregador: true });
     }).not.toThrow();
   });
 });
