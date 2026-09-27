@@ -1,0 +1,76 @@
+.cartao-producao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-comando);
+  color: var(--sobre-comando);
+  text-decoration: none;
+}
+
+.cartao-producao:focus-visible {
+  outline-color: var(--cor-acao);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titulo {
+  color: var(--sobre-comando-secundario);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ver {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Três por linha, como no design; com mais produtores, a grade quebra. */
+.produtores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  row-gap: 12px;
+}
+
+.produtor {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 12px;
+  border-left: 1px solid var(--sobre-comando-borda);
+}
+
+.produtor:nth-child(3n + 1) {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.nome,
+.unidade {
+  overflow: hidden;
+  color: var(--sobre-comando-secundario);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quantidade {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+  letter-spacing: -0.02em;
+}

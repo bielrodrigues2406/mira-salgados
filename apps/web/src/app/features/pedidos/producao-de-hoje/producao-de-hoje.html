@@ -1,0 +1,17 @@
+@if (produtores().length > 0) {
+  <a class="cartao-producao" routerLink="/producao" [queryParams]="{ modo: 'consolidado' }">
+    <span class="cabecalho">
+      <span class="titulo">Produção de hoje por produtor</span>
+      <span class="ver">Ver produção<ms-icone nome="chevronDireita" [tamanho]="16" /></span>
+    </span>
+    <span class="produtores">
+      @for (carga of produtores(); track carga.produtor.id) {
+        <span class="produtor">
+          <span class="nome">{{ carga.produtor.nome }}</span>
+          <span class="quantidade numerico">{{ numero(carga.unidades) }}</span>
+          <span class="unidade">{{ carga.unidades === 1 ? 'salgado' : 'salgados' }}</span>
+        </span>
+      }
+    </span>
+  </a>
+}

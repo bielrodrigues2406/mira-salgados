@@ -61,6 +61,8 @@ export interface ProducaoDoDia {
   unidades: number;
   /** Os três preparos, sempre na mesma ordem. */
   porPreparo: { preparo: Preparo; unidades: number }[];
+  /** Carga de cada produtor, da maior para a menor. */
+  porProdutor: { produtor: Referencia; unidades: number }[];
   faixas: FaixaDeHorario[];
   consolidado: GrupoDePreparo[];
 }
