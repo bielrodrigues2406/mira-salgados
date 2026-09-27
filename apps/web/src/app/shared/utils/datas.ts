@@ -92,3 +92,22 @@ export function dataDoCalendario(texto: string | undefined): string | undefined 
   if (!texto || !FORMATO_DE_DATA.test(texto)) return undefined;
   return paraTextoDeData(deTextoDeData(texto)) === texto ? texto : undefined;
 }
+
+export function primeiroDiaDoMes(texto: string): string {
+  const data = deTextoDeData(texto);
+  return paraTextoDeData(new Date(data.getFullYear(), data.getMonth(), 1));
+}
+
+export function ultimoDiaDoMes(texto: string): string {
+  const data = deTextoDeData(texto);
+  return paraTextoDeData(new Date(data.getFullYear(), data.getMonth() + 1, 0));
+}
+
+/** Quantos dias vão de `de` a `ate`, contando os dois; zero ou menos se `ate` vem antes. */
+export function diasNoIntervalo(de: string, ate: string): number {
+  const inicio = deTextoDeData(de);
+  const fim = deTextoDeData(ate);
+  // Date.UTC descarta a hora de verão, que faria um dia ter 23 ou 25 horas.
+  const utc = (data: Date): number => Date.UTC(data.getFullYear(), data.getMonth(), data.getDate());
+  return Math.round((utc(fim) - utc(inicio)) / 86_400_000) + 1;
+}

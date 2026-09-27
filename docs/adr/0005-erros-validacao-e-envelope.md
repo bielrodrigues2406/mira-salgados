@@ -3,7 +3,8 @@
 ## Decisão
 
 **Envelope.** Sucesso: `{ "data": ... }`; coleções paginadas acrescentam
-`meta: { page, pageSize, total, totalPages }`. Erro:
+`meta: { page, pageSize, total, totalPages }`, e relatórios paginados também
+`resumo`, com totais da coleção inteira ([ADR 0012](0012-relatorios-e-acerto.md)). Erro:
 `{ "error": { "code", "message", "details"?, "requestId"? } }`.
 
 **Status.**

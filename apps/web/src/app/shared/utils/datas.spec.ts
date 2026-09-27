@@ -1,5 +1,8 @@
 import {
   dataCompleta,
+  diasNoIntervalo,
+  primeiroDiaDoMes,
+  ultimoDiaDoMes,
   dataCurta,
   dataDoCalendario,
   momentoCurto,
@@ -51,5 +54,18 @@ describe('momentoCurto', () => {
     expect(dataDoCalendario('2026-02-30')).toBeUndefined();
     expect(dataDoCalendario('02/10/2026')).toBeUndefined();
     expect(dataDoCalendario(undefined)).toBeUndefined();
+  });
+
+  it('acha o começo e o fim do mês, inclusive fevereiro bissexto', () => {
+    expect(primeiroDiaDoMes('2026-10-17')).toBe('2026-10-01');
+    expect(ultimoDiaDoMes('2026-10-17')).toBe('2026-10-31');
+    expect(ultimoDiaDoMes('2028-02-10')).toBe('2028-02-29');
+  });
+
+  it('conta os dias do intervalo com os dois extremos', () => {
+    expect(diasNoIntervalo('2026-10-01', '2026-10-01')).toBe(1);
+    expect(diasNoIntervalo('2026-10-01', '2026-10-31')).toBe(31);
+    expect(diasNoIntervalo('2026-01-01', '2026-12-31')).toBe(365);
+    expect(diasNoIntervalo('2026-10-05', '2026-10-01')).toBe(-3);
   });
 });

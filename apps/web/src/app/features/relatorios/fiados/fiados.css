@@ -1,0 +1,131 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.destaque {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 14px;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-comando);
+  color: var(--sobre-comando);
+}
+
+.destaque-rotulo {
+  color: var(--sobre-comando-secundario);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.destaque-valor {
+  color: var(--cor-temporal);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 44px;
+  letter-spacing: -0.02em;
+}
+
+.destaque-legenda {
+  color: var(--sobre-comando-secundario);
+  font-size: 12px;
+}
+
+.clientes {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+}
+
+.cliente-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cliente-textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cliente-nome {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cliente-valor {
+  flex-shrink: 0;
+  color: var(--cor-atencao);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.telefone {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  color: var(--cor-acao);
+  font-weight: 500;
+}
+
+.pedidos {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--cor-borda);
+  list-style: none;
+}
+
+.pedido {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--alvo-toque);
+  color: var(--cor-texto);
+  text-decoration: none;
+}
+
+li + li .pedido {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.pedido:hover {
+  color: var(--cor-acao);
+}
+
+.pedido-numero {
+  font-weight: 700;
+}
+
+.pedido-data {
+  flex-grow: 1;
+  color: var(--cor-texto-secundario);
+}
+
+.pedido-valor {
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .clientes {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    align-items: start;
+  }
+}

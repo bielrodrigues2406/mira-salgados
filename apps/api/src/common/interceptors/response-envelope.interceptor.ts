@@ -11,6 +11,8 @@ import { Paginated } from '../pagination/pagination.js';
 export interface DataEnvelope<T> {
   data: T;
   meta?: { page: number; pageSize: number; total: number; totalPages: number };
+  /** Totais da coleção inteira, nos relatórios paginados. */
+  resumo?: object;
 }
 
 export function wrapInEnvelope(body: unknown): DataEnvelope<unknown> | undefined {
@@ -24,6 +26,7 @@ export function wrapInEnvelope(body: unknown): DataEnvelope<unknown> | undefined
         total: body.total,
         totalPages: body.totalPages,
       },
+      ...(body.resumo === undefined ? {} : { resumo: body.resumo }),
     };
   }
   return { data: body };

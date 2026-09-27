@@ -10,6 +10,8 @@ export interface PaginacaoMeta {
 export interface ApiEnvelope<T> {
   data: T;
   meta?: PaginacaoMeta;
+  /** Totais da coleção inteira, nos relatórios paginados. */
+  resumo?: unknown;
 }
 
 export interface ErroDeCampo {
@@ -30,4 +32,9 @@ export interface ApiErro {
 export interface Pagina<T> {
   itens: T[];
   meta: PaginacaoMeta;
+}
+
+/** Página de relatório, com os totais do período inteiro. */
+export interface PaginaComResumo<T, R> extends Pagina<T> {
+  resumo: R;
 }

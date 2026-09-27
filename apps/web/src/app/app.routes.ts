@@ -66,6 +66,34 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/relatorios/acerto/acerto-diario').then((m) => m.AcertoDiario),
           },
+          {
+            path: 'faturamento',
+            title: `Faturamento · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/relatorios/faturamento/faturamento').then((m) => m.Faturamento),
+          },
+          {
+            path: 'producao',
+            title: `Produção por produtor · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/relatorios/producao-por-produtor/producao-por-produtor').then(
+                (m) => m.ProducaoPorProdutor,
+              ),
+          },
+          {
+            path: 'itens-vendidos',
+            title: `Itens vendidos · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/relatorios/itens-vendidos/itens-vendidos').then(
+                (m) => m.ItensVendidos,
+              ),
+          },
+          {
+            path: 'fiados',
+            title: `Fiados · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/relatorios/fiados/fiados').then((m) => m.Fiados),
+          },
         ],
       },
     ],

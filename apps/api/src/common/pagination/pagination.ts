@@ -30,10 +30,17 @@ export class Paginated<T> {
     readonly total: number,
     readonly page: number,
     readonly pageSize: number,
+    /** Totais da coleção inteira, não só da página, como o total em aberto dos fiados. */
+    readonly resumo?: object,
   ) {}
 
-  static of<T>(items: readonly T[], total: number, query: PaginationQueryDto): Paginated<T> {
-    return new Paginated(items, total, query.page, query.pageSize);
+  static of<T>(
+    items: readonly T[],
+    total: number,
+    query: PaginationQueryDto,
+    resumo?: object,
+  ): Paginated<T> {
+    return new Paginated(items, total, query.page, query.pageSize, resumo);
   }
 
   get totalPages(): number {
@@ -41,6 +48,12 @@ export class Paginated<T> {
   }
 
   map<U>(transform: (item: T) => U): Paginated<U> {
-    return new Paginated(this.items.map(transform), this.total, this.page, this.pageSize);
+    return new Paginated(
+      this.items.map(transform),
+      this.total,
+      this.page,
+      this.pageSize,
+      this.resumo,
+    );
   }
 }
