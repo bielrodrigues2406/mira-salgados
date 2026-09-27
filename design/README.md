@@ -58,6 +58,11 @@ cronológico/consolidado navegam entre as pranchas.
 
 ## Pontos da especificação que pedem decisão
 
+Decididos em 27/09/2026; o registro está em
+[`docs/analise-critica.md`](../docs/analise-critica.md#decisões-de-domínio). A
+taxa de entrega ficou à parte da divisão entre produtores (item 3), diferente
+da proposta original do protótipo.
+
 1. **Fiado como pagamento.** Por `totalPago = soma(pagamento.valor)`, um pedido
    todo em FIADO fica "PAGO" com saldo zero, e o cliente some da lista de
    devedores. Proposta usada no protótipo: o estado de pagamento considera só

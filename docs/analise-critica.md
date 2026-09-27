@@ -14,13 +14,26 @@ resolução proposta. Atualizado a cada módulo implementado.
 | S5  | O log de auditoria guardaria o estado completo das entidades                                                                        | Hash de senha e tokens copiados para uma tabela de leitura ampla              | Snapshots passam por sanitização que remove campos sensíveis                                                        |
 | S6  | Todo usuário autenticado lê a auditoria inteira                                                                                     | Aceitável com quatro pessoas; deixa de ser com papéis diferentes              | Guard de papéis entra sem mudar services quando houver níveis de permissão                                          |
 
-## Ambiguidades de domínio
+## Decisões de domínio
 
-As ambiguidades levantadas no protótipo estão em
-[`design/README.md`](../design/README.md#pontos-da-especificação-que-pedem-decisão):
-fiado como pagamento, base de datas do acerto, taxa e desconto no rateio,
-pedido cancelado com pagamentos, edição de itens após a confirmação e saldo
-devedor de rascunhos. Cada uma será resolvida no módulo correspondente.
+Ambiguidades levantadas no protótipo
+([`design/README.md`](../design/README.md#pontos-da-especificação-que-pedem-decisão))
+e decididas pelo responsável pelo produto em 27/09/2026.
+
+| #   | Ponto                                | Decisão                     | Efeito na implementação                                                                                                                                                                                               |
+| --- | ------------------------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Fiado como pagamento                 | Fiado não quita o pedido    | `statusPagamento` e `saldoDevedor` consideram só DINHEIRO e PIX; o fiado aparece como marcador e o valor continua no saldo devedor do cliente                                                                         |
+| D2  | Base de datas do acerto              | Pedidos com entrega na data | `caixaLiquido` soma os pagamentos em DINHEIRO e PIX dos pedidos CONFIRMADO ou CONCLUIDO entregues na data, qualquer que seja a data do registro                                                                       |
+| D3  | Taxa de entrega e desconto no rateio | Taxa de entrega à parte     | A taxa sai do caixa antes da divisão e cabe a quem fez a entrega; o valor dos itens, já com o desconto, é dividido entre os produtores. Exige registrar no pedido quem fez a entrega (a definir no módulo de pedidos) |
+| D4  | Cancelamento com pagamento           | Exige estorno antes         | A transição para CANCELADO é recusada com 422 enquanto houver pagamento registrado                                                                                                                                    |
+
+Pontos com resolução técnica adotada, sem decisão pendente:
+
+- **Arredondamento do rateio:** maior resto, em centavos e em décimos de ponto
+  percentual (ADR 0004).
+- **Edição de itens:** permitida em RASCUNHO e CONFIRMADO; bloqueada em
+  CONCLUIDO e CANCELADO, que são estados terminais.
+- **Saldo devedor do cliente:** soma apenas pedidos CONFIRMADO e CONCLUIDO.
 
 ## Desempenho e índices
 
