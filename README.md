@@ -72,6 +72,12 @@ migrations antes de a API subir. Detalhes em
 | `npm test`          | Testes de cada aplicação                           |
 | `npm run build`     | Build de cada aplicação                            |
 
+## Integração contínua
+
+O workflow `.github/workflows/ci.yml` roda em cada pull request e em cada push
+no `master`: formatação, lint, tipos, testes unitários, testes de integração
+contra PostgreSQL 18, build e construção das imagens Docker.
+
 ## Documentação
 
 - [Convenções de idioma, código e git](docs/convencoes.md)
