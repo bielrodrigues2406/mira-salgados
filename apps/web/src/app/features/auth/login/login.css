@@ -1,0 +1,128 @@
+.tela {
+  display: flex;
+  min-height: 100dvh;
+  padding: 40px 16px 32px;
+  background: var(--cor-comando);
+}
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+}
+
+.cartao-login {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 20px;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-cartao);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.marca-simbolo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-comando);
+  color: var(--sobre-comando);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.marca-textos {
+  display: flex;
+  flex-direction: column;
+}
+
+.marca-nome {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.campo-entrada-senha {
+  padding-right: 48px;
+}
+
+.alternar-senha {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  border: 0;
+  border-radius: var(--raio-controle);
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+}
+
+.alerta-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alerta-titulo {
+  font-weight: 600;
+}
+
+.botao-largo {
+  width: 100%;
+  min-height: 48px;
+}
+
+.cadastro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.alternar-cadastro {
+  align-self: center;
+  font-weight: 500;
+}
+
+.painel-cadastro {
+  padding: 16px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-controle);
+  background: var(--cor-fundo);
+}
+
+.painel-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rodape {
+  color: var(--sobre-comando-secundario);
+  font-size: 12px;
+  text-align: center;
+}
