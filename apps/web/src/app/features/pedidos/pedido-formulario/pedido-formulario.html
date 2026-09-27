@@ -1,0 +1,115 @@
+<form class="formulario" [formRoot]="formulario">
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-cliente'">Cliente</label>
+    <ms-seletor-cliente
+      [idCampo]="id + '-cliente'"
+      [descricao]="id + '-cliente-erro'"
+      [inicial]="clienteInicial()"
+      [formField]="formulario.clienteId"
+    />
+    <ms-erros-do-campo [id]="id + '-cliente-erro'" [estado]="formulario.clienteId()" />
+  </div>
+
+  <fieldset class="grupo">
+    <legend class="texto-rotulo">Entrega</legend>
+    <div class="segmentado">
+      <label class="opcao-segmento">
+        <input
+          type="radio"
+          class="somente-leitor-de-tela"
+          value="RETIRADA"
+          [formField]="formulario.tipoEntrega"
+        />
+        <ms-icone nome="retirada" />
+        <span>Retirada</span>
+      </label>
+      <label class="opcao-segmento">
+        <input
+          type="radio"
+          class="somente-leitor-de-tela"
+          value="ENTREGA"
+          [formField]="formulario.tipoEntrega"
+        />
+        <ms-icone nome="entrega" />
+        <span>Entrega</span>
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="duas-colunas">
+    <div class="campo">
+      <label class="texto-rotulo" [for]="id + '-data'">Data</label>
+      <input
+        class="campo-entrada numerico"
+        type="date"
+        [id]="id + '-data'"
+        [formField]="formulario.dataEntrega"
+        [attr.aria-invalid]="
+          formulario.dataEntrega().touched() && formulario.dataEntrega().invalid()
+        "
+        [attr.aria-describedby]="id + '-data-erro'"
+      />
+      <ms-erros-do-campo [id]="id + '-data-erro'" [estado]="formulario.dataEntrega()" />
+    </div>
+    <div class="campo">
+      <label class="texto-rotulo" [for]="id + '-horario'">Horário</label>
+      <input
+        class="campo-entrada numerico"
+        type="time"
+        [id]="id + '-horario'"
+        [formField]="formulario.horarioEntrega"
+        [attr.aria-describedby]="id + '-horario-ajuda'"
+      />
+      <span class="campo-ajuda" [id]="id + '-horario-ajuda'">Opcional.</span>
+    </div>
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-desconto'">Desconto</label>
+    <div class="campo-controle">
+      <span class="campo-prefixo" aria-hidden="true">R$</span>
+      <input
+        class="campo-entrada campo-entrada-com-prefixo numerico"
+        inputmode="decimal"
+        autocomplete="off"
+        placeholder="0,00"
+        [id]="id + '-desconto'"
+        [formField]="formulario.desconto"
+        [attr.aria-invalid]="formulario.desconto().touched() && formulario.desconto().invalid()"
+        [attr.aria-describedby]="id + '-desconto-erro'"
+      />
+    </div>
+    <ms-erros-do-campo [id]="id + '-desconto-erro'" [estado]="formulario.desconto()" />
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-observacao'">Observação</label>
+    <textarea
+      class="campo-entrada area"
+      rows="3"
+      placeholder="Combinados com o cliente, como bandejas ou ponto de retirada"
+      [id]="id + '-observacao'"
+      [formField]="formulario.observacao"
+      [attr.aria-describedby]="id + '-observacao-erro'"
+    ></textarea>
+    <ms-erros-do-campo [id]="id + '-observacao-erro'" [estado]="formulario.observacao()" />
+  </div>
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  <div class="acoes">
+    <button
+      type="submit"
+      class="botao botao-primario salvar"
+      [disabled]="formulario().submitting()"
+    >
+      {{ formulario().submitting() ? 'Salvando…' : rotuloSalvar() }}
+    </button>
+    <button type="button" class="botao botao-secundario" (click)="cancelar.emit()">Cancelar</button>
+  </div>
+</form>

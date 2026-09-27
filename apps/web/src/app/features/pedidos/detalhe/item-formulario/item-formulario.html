@@ -1,0 +1,115 @@
+<form class="formulario" [attr.aria-labelledby]="id + '-titulo'" [formRoot]="formulario">
+  <h3 class="texto-titulo" [id]="id + '-titulo'">Novo item</h3>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-produto'">Produto</label>
+    <select
+      #campoProduto
+      class="campo-entrada campo-selecao"
+      [id]="id + '-produto'"
+      [formField]="formulario.produtoId"
+      [attr.aria-invalid]="formulario.produtoId().touched() && formulario.produtoId().invalid()"
+      [attr.aria-describedby]="id + '-produto-erro'"
+      (change)="aoTrocarProduto()"
+    >
+      <option value="" disabled>Escolha o salgado</option>
+      @for (produto of produtos(); track produto.id) {
+        <option [value]="produto.id">{{ produto.nome }}</option>
+      }
+    </select>
+    <ms-erros-do-campo [id]="id + '-produto-erro'" [estado]="formulario.produtoId()" />
+  </div>
+
+  @if (produto()) {
+    <fieldset class="grupo">
+      <legend class="texto-rotulo">Preparo e unidade</legend>
+      <div class="combinacoes">
+        @for (preco of precos(); track preco.id) {
+          <label class="combinacao">
+            <input
+              type="radio"
+              class="somente-leitor-de-tela"
+              [value]="preco.id"
+              [formField]="formulario.precoId"
+            />
+            <span class="combinacao-rotulo">{{ preco.rotulo }}</span>
+            <span class="numerico combinacao-preco">{{ preco.precoCentavos | moeda }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <div class="duas-colunas">
+      <div class="campo">
+        <label class="texto-rotulo" [for]="id + '-quantidade'">{{ rotuloDaQuantidade() }}</label>
+        <input
+          class="campo-entrada numerico"
+          type="number"
+          inputmode="numeric"
+          [id]="id + '-quantidade'"
+          [formField]="formulario.quantidade"
+          [attr.aria-invalid]="
+            formulario.quantidade().touched() && formulario.quantidade().invalid()
+          "
+          [attr.aria-describedby]="id + '-quantidade-erro'"
+        />
+        <ms-erros-do-campo [id]="id + '-quantidade-erro'" [estado]="formulario.quantidade()" />
+      </div>
+      <div class="campo">
+        <label class="texto-rotulo" [for]="id + '-produtor'">Produtor</label>
+        <select
+          class="campo-entrada campo-selecao"
+          [id]="id + '-produtor'"
+          [formField]="formulario.produtorId"
+          [attr.aria-describedby]="id + '-produtor-ajuda'"
+        >
+          @for (produtor of produtoresDoItem(); track produtor.id) {
+            <option [value]="produtor.id">{{ produtor.nome }}</option>
+          }
+        </select>
+        <span class="campo-ajuda" [id]="id + '-produtor-ajuda'">
+          Padrão do produto: {{ produto()?.produtorPadrao?.nome }}
+        </span>
+      </div>
+    </div>
+
+    @if (previa(); as conta) {
+      <p class="previa numerico" aria-live="polite">
+        {{ conta.quantidade }} × {{ conta.precoCentavos | moeda }} =
+        <strong>{{ conta.subtotalCentavos | moeda }}</strong>
+        <span class="texto-legenda"> · {{ conta.salgados }} salgados</span>
+      </p>
+    }
+
+    <div class="campo">
+      <label class="texto-rotulo" [for]="id + '-observacao'">Observação de preparo</label>
+      <input
+        class="campo-entrada"
+        autocomplete="off"
+        placeholder="Metade sem cebola, em bandeja separada"
+        [id]="id + '-observacao'"
+        [formField]="formulario.observacao"
+        [attr.aria-describedby]="id + '-observacao-erro'"
+      />
+      <ms-erros-do-campo [id]="id + '-observacao-erro'" [estado]="formulario.observacao()" />
+    </div>
+  }
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  <div class="acoes">
+    <button
+      type="submit"
+      class="botao botao-primario salvar"
+      [disabled]="formulario().submitting()"
+    >
+      {{ formulario().submitting() ? 'Adicionando…' : 'Adicionar item' }}
+    </button>
+    <button type="button" class="botao botao-secundario" (click)="cancelar.emit()">Cancelar</button>
+  </div>
+</form>

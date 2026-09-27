@@ -32,6 +32,7 @@ export interface ClienteHttp {
   get(caminho: string): Test;
   post(caminho: string, corpo?: object): Test;
   patch(caminho: string, corpo?: object): Test;
+  delete(caminho: string): Test;
 }
 
 /** Cria um usuário, entra pela API e devolve requisições já autenticadas. */
@@ -53,5 +54,7 @@ export async function clienteAutenticado(app: NestExpressApplication): Promise<C
       request(servidor).post(`/api/v1${caminho}`).set('Authorization', autorizacao).send(corpo),
     patch: (caminho, corpo) =>
       request(servidor).patch(`/api/v1${caminho}`).set('Authorization', autorizacao).send(corpo),
+    delete: (caminho) =>
+      request(servidor).delete(`/api/v1${caminho}`).set('Authorization', autorizacao),
   };
 }

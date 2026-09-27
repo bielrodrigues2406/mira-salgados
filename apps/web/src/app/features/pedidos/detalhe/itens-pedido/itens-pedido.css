@@ -1,0 +1,139 @@
+.itens {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--raio-pilula);
+  background: var(--tint-neutro);
+  color: var(--cor-texto-secundario);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vazio {
+  color: var(--cor-texto-secundario);
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.item + .item {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.item-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.item-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.item-nome {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.item-combinacao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-valores {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.item-subtotal {
+  font-weight: 700;
+}
+
+.item-rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-acoes {
+  display: flex;
+  margin: -8px -10px -8px auto;
+  color: var(--cor-texto-secundario);
+}
+
+.observacao {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--tint-atencao-borda);
+  border-radius: var(--raio-controle);
+  background: var(--tint-atencao);
+  color: var(--cor-atencao);
+}
+
+.observacao-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--cor-texto);
+}
+
+.edicao,
+.confirmacao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.duas-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+}
+
+.salvar {
+  flex-grow: 1;
+}
+
+.adicionar {
+  width: 100%;
+}

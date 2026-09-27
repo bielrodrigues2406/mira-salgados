@@ -1,0 +1,98 @@
+<form class="formulario" [attr.aria-labelledby]="id + '-titulo'" [formRoot]="formulario">
+  <div class="cabecalho">
+    <h2 class="texto-titulo" [id]="id + '-titulo'">{{ titulo() }}</h2>
+    <button
+      type="button"
+      class="botao botao-terciario botao-icone fechar"
+      aria-label="Fechar formulário"
+      (click)="cancelar.emit()"
+    >
+      <ms-icone nome="fechar" [tamanho]="20" />
+    </button>
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-nome'">Nome</label>
+    <input
+      #campoNome
+      class="campo-entrada"
+      autocomplete="off"
+      placeholder="Coxinha de frango"
+      [id]="id + '-nome'"
+      [formField]="formulario.nome"
+      [attr.aria-invalid]="formulario.nome().touched() && formulario.nome().invalid()"
+      [attr.aria-describedby]="id + '-nome-erro'"
+    />
+    <ms-erros-do-campo [id]="id + '-nome-erro'" [estado]="formulario.nome()" />
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-produtor'">Produtor padrão</label>
+    @if (opcoes().length > 0) {
+      <select
+        class="campo-entrada campo-selecao"
+        [id]="id + '-produtor'"
+        [formField]="formulario.produtorPadraoId"
+        [attr.aria-invalid]="
+          formulario.produtorPadraoId().touched() && formulario.produtorPadraoId().invalid()
+        "
+        [attr.aria-describedby]="id + '-produtor-ajuda ' + id + '-produtor-erro'"
+      >
+        <option value="" disabled>Escolha quem prepara</option>
+        @for (produtor of opcoes(); track produtor.id) {
+          <option [value]="produtor.id">
+            {{ produtor.ativo ? produtor.nome : produtor.nome + ' (inativo)' }}
+          </option>
+        }
+      </select>
+      <span class="campo-ajuda" [id]="id + '-produtor-ajuda'">
+        Sugerido em cada item do pedido; pode ser trocado ali.
+      </span>
+      <ms-erros-do-campo [id]="id + '-produtor-erro'" [estado]="formulario.produtorPadraoId()" />
+    } @else {
+      <div class="alerta alerta-atencao" [id]="id + '-produtor'">
+        <ms-icone nome="alerta" [tamanho]="20" />
+        <span>
+          Nenhum produtor ativo. <a routerLink="/produtores">Cadastre um produtor</a> para escolher
+          quem prepara este produto.
+        </span>
+      </div>
+    }
+  </div>
+
+  @if (edicao()) {
+    <div class="opcao">
+      <input
+        type="checkbox"
+        class="opcao-caixa"
+        [id]="id + '-ativo'"
+        [formField]="formulario.ativo"
+        [attr.aria-describedby]="id + '-ativo-ajuda'"
+      />
+      <span class="opcao-textos">
+        <label class="opcao-rotulo" [for]="id + '-ativo'">Produto ativo</label>
+        <span class="campo-ajuda" [id]="id + '-ativo-ajuda'">
+          Inativos não aparecem em novos pedidos, mas continuam no histórico.
+        </span>
+      </span>
+    </div>
+  }
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  <div class="acoes">
+    <button
+      type="submit"
+      class="botao botao-primario salvar"
+      [disabled]="formulario().submitting()"
+    >
+      {{ formulario().submitting() ? 'Salvando…' : rotuloSalvar() }}
+    </button>
+    <button type="button" class="botao botao-secundario" (click)="cancelar.emit()">Cancelar</button>
+  </div>
+</form>

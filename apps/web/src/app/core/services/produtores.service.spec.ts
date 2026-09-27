@@ -11,6 +11,7 @@ const CELIA: Produtor = {
   id: 'a1',
   nome: 'Célia',
   ativo: true,
+  produtosPadrao: [],
   criadoEm: '2026-10-01T10:00:00.000Z',
   atualizadoEm: '2026-10-01T10:00:00.000Z',
 };

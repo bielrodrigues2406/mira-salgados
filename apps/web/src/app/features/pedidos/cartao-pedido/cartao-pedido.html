@@ -1,0 +1,38 @@
+<a
+  class="cartao-pedido"
+  [class.hoje]="ehHoje()"
+  [routerLink]="['/pedidos', pedido().id]"
+  [attr.aria-label]="'Pedido ' + pedido().numero + ', ' + pedido().cliente.nome"
+>
+  <span class="linha">
+    <span class="numero numerico">#{{ pedido().numero }}</span>
+    <span class="cliente">{{ pedido().cliente.nome }}</span>
+    <ms-chip-status [status]="pedido().status" />
+  </span>
+  <span class="linha linha-inferior">
+    <span class="metadados">
+      <span class="meta">
+        <ms-icone [nome]="pedido().tipoEntrega === 'ENTREGA' ? 'entrega' : 'retirada'" />
+        {{ pedido().tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada' }}
+      </span>
+      <span class="meta numerico">
+        <ms-icone [nome]="ehHoje() ? 'relogio' : 'calendario'" />
+        {{ quando() }}
+      </span>
+      @if (pedido().temDesconto) {
+        <span class="meta marcador"><ms-icone nome="desconto" [tamanho]="14" />Desconto</span>
+      }
+      @if (pedido().temFiado) {
+        <span class="meta marcador"><ms-icone nome="fiado" [tamanho]="14" />Fiado</span>
+      }
+    </span>
+    <span class="valores">
+      @if (!cancelado()) {
+        <ms-chip-status [pagamento]="pedido().statusPagamento" />
+      }
+      <span class="total numerico" [class.apagado]="cancelado()">
+        {{ pedido().totalCentavos | moeda }}
+      </span>
+    </span>
+  </span>
+</a>

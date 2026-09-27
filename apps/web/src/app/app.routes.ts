@@ -28,10 +28,35 @@ export const routes: Routes = [
     loadComponent: () => import('./core/layout/shell/shell').then((m) => m.Shell),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'pedidos' },
-      emBreve('pedidos', 'Pedidos'),
+      {
+        path: 'pedidos',
+        title: `Pedidos · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/pedidos/lista/lista-pedidos').then((m) => m.ListaPedidos),
+      },
+      {
+        path: 'pedidos/novo',
+        title: `Novo pedido · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/pedidos/novo/novo-pedido').then((m) => m.NovoPedido),
+      },
+      {
+        path: 'pedidos/:id',
+        title: `Pedido · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/pedidos/detalhe/pedido-detalhe').then((m) => m.PedidoDetalhe),
+      },
       emBreve('producao', 'Produção do dia'),
-      emBreve('clientes', 'Clientes'),
-      emBreve('produtos', 'Produtos'),
+      {
+        path: 'clientes',
+        title: `Clientes · ${TITULO}`,
+        loadComponent: () => import('./features/clientes/clientes').then((m) => m.Clientes),
+      },
+      {
+        path: 'produtos',
+        title: `Produtos · ${TITULO}`,
+        loadComponent: () => import('./features/produtos/produtos').then((m) => m.Produtos),
+      },
       {
         path: 'produtores',
         title: `Produtores · ${TITULO}`,

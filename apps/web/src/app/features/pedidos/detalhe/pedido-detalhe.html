@@ -1,0 +1,174 @@
+<a class="link-voltar" routerLink="/pedidos">
+  <ms-icone nome="chevronEsquerda" />
+  <span>Pedidos</span>
+</a>
+
+<p class="somente-leitor-de-tela" role="status">{{ aviso() }}</p>
+
+@if (pedido(); as pedido) {
+  <div class="colunas">
+    <div class="principal">
+      <section class="cabecalho" aria-labelledby="titulo-pedido">
+        <div class="identificacao">
+          <h1 id="titulo-pedido" class="texto-display numerico">Pedido #{{ pedido.numero }}</h1>
+          <span class="cliente">{{ pedido.cliente.nome }}</span>
+        </div>
+        <div class="chips">
+          <ms-chip-status [status]="pedido.status" />
+          @if (pedido.status !== 'CANCELADO') {
+            <ms-chip-status [pagamento]="pedido.statusPagamento" [extenso]="true" />
+          }
+        </div>
+        <div class="metadados">
+          <span class="meta numerico"><ms-icone nome="relogio" />{{ quando() }}</span>
+          <span class="meta">
+            <ms-icone [nome]="pedido.tipoEntrega === 'ENTREGA' ? 'entrega' : 'retirada'" />
+            {{ pedido.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada' }}
+          </span>
+          <span class="meta numerico"><ms-icone nome="calendario" />{{ dataDaEntrega() }}</span>
+        </div>
+        @if (pedido.observacao; as observacao) {
+          <div class="observacao">
+            <ms-icone nome="observacao" />
+            <span class="observacao-textos">
+              <span class="texto-rotulo">Observação do pedido</span>
+              <span>{{ observacao }}</span>
+            </span>
+          </div>
+        }
+      </section>
+
+      @if (pedido.editavel) {
+        <div class="acoes">
+          @if (avanco(); as acao) {
+            <button
+              type="button"
+              class="botao botao-primario avancar"
+              [disabled]="mudandoStatus()"
+              (click)="mudarStatus(acao.status)"
+            >
+              <ms-icone [nome]="acao.icone" />
+              <span>{{ acao.rotulo }}</span>
+            </button>
+          }
+          <div class="acoes-secundarias">
+            <button
+              type="button"
+              class="botao botao-secundario"
+              [attr.aria-expanded]="editando()"
+              (click)="editando.set(!editando())"
+            >
+              <ms-icone nome="editar" />
+              <span>Editar</span>
+            </button>
+            @if (podeCancelar()) {
+              <button
+                type="button"
+                class="botao botao-negativo"
+                [attr.aria-expanded]="confirmandoCancelamento()"
+                (click)="confirmandoCancelamento.set(true)"
+              >
+                <ms-icone nome="cancelado" />
+                <span>Cancelar pedido</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (confirmandoCancelamento()) {
+        <div class="cartao confirmacao" role="group" aria-label="Cancelar pedido">
+          <p>
+            Cancelar o pedido #{{ pedido.numero }}? Ele sai da produção e do acerto, e não pode ser
+            reaberto.
+          </p>
+          <div class="botoes">
+            <button
+              type="button"
+              class="botao botao-negativo"
+              [disabled]="mudandoStatus()"
+              (click)="mudarStatus('CANCELADO')"
+            >
+              Cancelar pedido
+            </button>
+            <button
+              type="button"
+              class="botao botao-secundario"
+              (click)="confirmandoCancelamento.set(false)"
+            >
+              Voltar
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (erroDeStatus(); as mensagem) {
+        <div class="alerta alerta-negativo" role="alert">
+          <ms-icone nome="alerta" [tamanho]="20" />
+          <span>{{ mensagem }}</span>
+        </div>
+      }
+
+      @if (editando()) {
+        @if (dadosAtuais(); as dados) {
+          <section class="cartao" aria-label="Editar dados do pedido">
+            <ms-pedido-formulario
+              [inicial]="dados"
+              [clienteInicial]="pedido.cliente"
+              rotuloSalvar="Salvar dados"
+              [salvar]="salvarDados"
+              (cancelar)="editando.set(false)"
+            />
+          </section>
+        }
+      }
+
+      <ms-itens-pedido
+        [pedido]="pedido"
+        [produtos]="produtos()"
+        [produtores]="produtores()"
+        (alterado)="aplicar($event)"
+      />
+
+      <ms-pagamentos-pedido [pedido]="pedido" (alterado)="aplicar($event)" />
+    </div>
+
+    <div class="lateral">
+      <ms-resumo-financeiro [pedido]="pedido" />
+
+      <section class="cartao cliente-secao" aria-labelledby="titulo-cliente">
+        <h2 id="titulo-cliente" class="texto-titulo">Cliente</h2>
+        <span class="cliente-nome">{{ pedido.cliente.nome }}</span>
+        @if (telefoneParaLigar(pedido); as ligar) {
+          <a class="meta telefone numerico" [href]="ligar">
+            <ms-icone nome="telefone" />
+            {{ pedido.cliente.telefone | telefone }}
+          </a>
+        }
+        @if (pedido.cliente.endereco; as endereco) {
+          <span class="meta"><ms-icone nome="local" />{{ endereco }}</span>
+        }
+        @for (outro of outrasEncomendas(); track outro.id) {
+          <a class="outra-encomenda" [routerLink]="['/pedidos', outro.id]">
+            <ms-icone nome="alerta" />
+            <span class="outra-textos">
+              <span>Saldo devedor em outra encomenda</span>
+              <span class="numerico">
+                {{ outro.saldoDevedorCentavos | moeda }} no pedido #{{ outro.numero }}
+              </span>
+            </span>
+            <ms-icone nome="chevronDireita" />
+          </a>
+        }
+      </section>
+    </div>
+  </div>
+} @else if (recurso.error()) {
+  <ms-estado-erro
+    titulo="Não foi possível carregar o pedido"
+    [erro]="recurso.error()"
+    (tentarNovamente)="recurso.reload()"
+  />
+} @else {
+  <ms-lista-esqueleto rotulo="Carregando pedido" [quantidade]="3" />
+}

@@ -7,6 +7,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { AuditoriaModule } from './auditoria/auditoria.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { ClientesModule } from './clientes/clientes.module.js';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { ResponseEnvelopeInterceptor } from './common/interceptors/response-envelope.interceptor.js';
@@ -15,7 +16,9 @@ import { createValidationPipe } from './common/validation/validation.js';
 import { type Env, validateEnv } from './config/env.schema.js';
 import { typeOrmOptions } from './database/typeorm.options.js';
 import { HealthModule } from './health/health.module.js';
+import { PedidosModule } from './pedidos/pedidos.module.js';
 import { ProdutoresModule } from './produtores/produtores.module.js';
+import { ProdutosModule } from './produtos/produtos.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
 
 @Module({
@@ -47,6 +50,9 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     AuthModule,
     HealthModule,
     ProdutoresModule,
+    ClientesModule,
+    ProdutosModule,
+    PedidosModule,
   ],
   providers: [
     // A ordem importa: excesso de requisições é recusado antes de qualquer

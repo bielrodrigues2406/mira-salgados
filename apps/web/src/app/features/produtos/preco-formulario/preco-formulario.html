@@ -1,0 +1,88 @@
+<form class="formulario" [attr.aria-labelledby]="id + '-titulo'" [formRoot]="formulario">
+  <h3 class="texto-titulo" [id]="id + '-titulo'">Novo preço</h3>
+
+  <fieldset class="grupo">
+    <legend class="texto-rotulo">Preparo</legend>
+    <div class="preparos">
+      @for (opcao of preparos; track opcao.valor) {
+        <label class="opcao-preparo">
+          <input
+            type="radio"
+            class="somente-leitor-de-tela"
+            [value]="opcao.valor"
+            [formField]="formulario.preparo"
+          />
+          <ms-icone [nome]="opcao.icone" [tamanho]="14" />
+          <span>{{ opcao.rotulo }}</span>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="grupo">
+    <legend class="texto-rotulo">Unidade de venda</legend>
+    <div class="segmentado">
+      @for (opcao of unidades; track opcao.valor) {
+        <label class="opcao-segmento">
+          <input
+            type="radio"
+            class="somente-leitor-de-tela"
+            [value]="opcao.valor"
+            [formField]="formulario.unidadeVenda"
+          />
+          <span>{{ opcao.rotulo }}</span>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-valor'">Preço</label>
+    <div class="campo-controle">
+      <span class="campo-prefixo" aria-hidden="true">R$</span>
+      <input
+        #campoPreco
+        class="campo-entrada campo-entrada-com-prefixo numerico valor"
+        inputmode="decimal"
+        autocomplete="off"
+        placeholder="0,00"
+        [id]="id + '-valor'"
+        [formField]="formulario.preco"
+        [attr.aria-invalid]="formulario.preco().touched() && formulario.preco().invalid()"
+        [attr.aria-describedby]="id + '-valor-erro ' + id + '-substitui'"
+      />
+    </div>
+    <ms-erros-do-campo [id]="id + '-valor-erro'" [estado]="formulario.preco()" />
+  </div>
+
+  <div [id]="id + '-substitui'" aria-live="polite">
+    @if (substituido(); as atual) {
+      <div class="aviso numerico">
+        <ms-icone class="aviso-icone" nome="informacao" />
+        <span>
+          Substitui o preço vigente de <strong>{{ combinacao() }}</strong> ({{
+            atual.precoCentavos | moeda
+          }}). O valor anterior fica no histórico e não altera pedidos já criados.
+        </span>
+      </div>
+    }
+  </div>
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  <div class="acoes">
+    <button
+      type="submit"
+      class="botao botao-primario salvar"
+      [disabled]="formulario().submitting()"
+    >
+      {{ formulario().submitting() ? 'Salvando…' : 'Salvar preço' }}
+    </button>
+    <button type="button" class="botao botao-secundario" (click)="cancelar.emit()">Cancelar</button>
+  </div>
+</form>

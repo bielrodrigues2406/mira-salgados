@@ -1,0 +1,130 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.novo {
+  padding: 0 16px 0 12px;
+}
+
+.novo[aria-expanded='true'] {
+  background: var(--tint-acao);
+  color: var(--cor-acao);
+}
+
+.busca {
+  position: relative;
+}
+
+.busca .campo-entrada:disabled {
+  border-color: var(--cor-borda);
+  background: var(--tint-neutro);
+  color: var(--cor-texto-secundario);
+  cursor: not-allowed;
+}
+
+.lista-e-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resumo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.alternar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--alvo-toque);
+  font-size: 12px;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+}
+
+.alternar-caixa {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--cor-acao);
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-cartao);
+}
+
+.item + .item {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.item.editando {
+  padding: 14px;
+  background: var(--cor-fundo);
+}
+
+.item-botao {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-height: var(--alvo-toque);
+  padding: 14px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item-botao:hover {
+  background: var(--cor-fundo);
+}
+
+.item-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-nome {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.item-detalhe {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--cor-texto-secundario);
+}
+
+.item-detalhe ms-icone {
+  flex-shrink: 0;
+}
+
+.item-endereco {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

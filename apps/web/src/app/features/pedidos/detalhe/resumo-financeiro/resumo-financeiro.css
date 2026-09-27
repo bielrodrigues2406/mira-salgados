@@ -1,0 +1,82 @@
+.resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linhas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.linha dt,
+.linha dd {
+  margin: 0;
+}
+
+.linha dd {
+  font-weight: 600;
+}
+
+.total {
+  padding-top: 8px;
+  border-top: 1px solid var(--cor-borda);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.total dd {
+  font-weight: 700;
+}
+
+.com-icone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progresso {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.barra {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--raio-pilula);
+  background: var(--tint-neutro);
+}
+
+.barra-preenchida {
+  height: 100%;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-positivo);
+}
+
+.saldo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--tint-negativo-borda);
+  border-radius: var(--raio-controle);
+  background: var(--tint-negativo);
+  color: var(--cor-negativo);
+  font-weight: 600;
+}
+
+.saldo-valor {
+  font-size: 16px;
+  font-weight: 700;
+}

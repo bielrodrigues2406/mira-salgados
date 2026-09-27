@@ -17,6 +17,7 @@ function produtor(nome: string, ativo = true): Produtor {
     id: `id-${nome}`,
     nome,
     ativo,
+    produtosPadrao: [],
     criadoEm: '2026-10-01T10:00:00.000Z',
     atualizadoEm: '2026-10-01T10:00:00.000Z',
   };

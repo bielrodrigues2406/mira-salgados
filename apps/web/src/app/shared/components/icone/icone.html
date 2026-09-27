@@ -13,7 +13,7 @@
   @for (forma of formas(); track $index) {
     @switch (forma.tipo) {
       @case ('path') {
-        <svg:path [attr.d]="forma.d" />
+        <svg:path [attr.d]="forma.d" [attr.fill]="forma.preenchido ? 'currentColor' : null" />
       }
       @case ('circle') {
         <svg:circle [attr.cx]="forma.cx" [attr.cy]="forma.cy" [attr.r]="forma.r" />

@@ -1,0 +1,18 @@
+<a class="link-voltar" routerLink="/pedidos">
+  <ms-icone nome="chevronEsquerda" />
+  <span>Pedidos</span>
+</a>
+
+<div class="cabecalho">
+  <h1 class="texto-display">Novo pedido</h1>
+  <p class="descricao">O pedido começa como rascunho. Os itens entram na tela seguinte.</p>
+</div>
+
+<section class="cartao" aria-label="Dados do pedido">
+  <ms-pedido-formulario
+    [inicial]="inicial"
+    rotuloSalvar="Criar e adicionar itens"
+    [salvar]="criar"
+    (cancelar)="cancelar()"
+  />
+</section>

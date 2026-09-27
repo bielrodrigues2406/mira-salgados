@@ -60,8 +60,8 @@ cronológico/consolidado navegam entre as pranchas.
 
 Decididos em 27/09/2026; o registro está em
 [`docs/analise-critica.md`](../docs/analise-critica.md#decisões-de-domínio). A
-taxa de entrega ficou à parte da divisão entre produtores (item 3), diferente
-da proposta original do protótipo.
+taxa de entrega saiu do sistema (item 3): entrega ou retirada é só informação
+logística, e o protótipo ainda mostra a taxa e o entregador.
 
 1. **Fiado como pagamento.** Por `totalPago = soma(pagamento.valor)`, um pedido
    todo em FIADO fica "PAGO" com saldo zero, e o cliente some da lista de

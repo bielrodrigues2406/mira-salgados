@@ -1,0 +1,136 @@
+<div class="cabecalho">
+  <div class="cabecalho-linha">
+    <h1 class="texto-display">Pedidos</h1>
+    <a class="botao botao-primario novo" routerLink="/pedidos/novo">
+      <ms-icone nome="mais" />
+      <span>Novo pedido</span>
+    </a>
+  </div>
+  @if (quantidadeHoje() !== null && quantidadeHoje()! > 0) {
+    <span class="vencem-hoje numerico">
+      <ms-icone nome="relogio" />
+      <span>
+        {{ quantidadeHoje() }}
+        {{ quantidadeHoje() === 1 ? 'encomenda vence hoje' : 'encomendas vencem hoje' }}
+      </span>
+    </span>
+  }
+</div>
+
+<div class="controles">
+  <div class="busca-e-filtro">
+    <div class="busca">
+      <label class="somente-leitor-de-tela" for="busca-pedidos">Buscar por cliente ou número</label>
+      <span class="campo-icone"><ms-icone nome="busca" /></span>
+      <input
+        #campoBusca
+        id="busca-pedidos"
+        class="campo-entrada campo-entrada-com-icone"
+        type="search"
+        autocomplete="off"
+        placeholder="Buscar cliente ou número"
+        [value]="termo()"
+        (input)="aoDigitarBusca(campoBusca.value)"
+      />
+    </div>
+    <button
+      type="button"
+      class="botao botao-secundario filtros"
+      [attr.aria-expanded]="filtrosAbertos()"
+      aria-controls="filtros-status"
+      (click)="filtrosAbertos.set(!filtrosAbertos())"
+    >
+      <ms-icone nome="filtro" />
+      <span>Filtros</span>
+      @if (statusFiltrados().length > 0) {
+        <span class="contador numerico">{{ statusFiltrados().length }}</span>
+      }
+    </button>
+  </div>
+  @if (filtrosAbertos()) {
+    <div id="filtros-status" class="opcoes" role="group" aria-label="Filtrar por estado do pedido">
+      <button
+        type="button"
+        class="opcao"
+        [attr.aria-pressed]="statusFiltrados().length === 0"
+        (click)="alternarFiltro(null)"
+      >
+        @if (statusFiltrados().length === 0) {
+          <ms-icone nome="confirmado" />
+        }
+        <span>Todos</span>
+      </button>
+      @for (opcao of opcoesDeStatus; track opcao.status) {
+        <button
+          type="button"
+          class="opcao"
+          [attr.aria-pressed]="statusFiltrados().includes(opcao.status)"
+          (click)="alternarFiltro(opcao.status)"
+        >
+          @if (statusFiltrados().includes(opcao.status)) {
+            <ms-icone nome="confirmado" />
+          }
+          <span>{{ opcao.rotulo }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando encomendas" [quantidade]="4" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar os pedidos" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar os pedidos"
+      [erro]="erro()"
+      (tentarNovamente)="tentarNovamente()"
+    />
+  }
+  @case ('vazio') {
+    @if (filtrando()) {
+      <ms-estado-vazio icone="busca" titulo="Nenhuma encomenda encontrada">
+        Nenhum pedido corresponde à busca e aos filtros selecionados.
+        <button estadoAcao type="button" class="botao botao-secundario" (click)="limparFiltros()">
+          Limpar busca e filtros
+        </button>
+      </ms-estado-vazio>
+    } @else {
+      <ms-estado-vazio icone="pedidos" titulo="Nenhum pedido ainda">
+        Registre a primeira encomenda para acompanhar a produção e os pagamentos.
+        <a estadoAcao class="botao botao-secundario" routerLink="/pedidos/novo">Novo pedido</a>
+      </ms-estado-vazio>
+    }
+  }
+  @case ('pronto') {
+    @for (secao of secoes; track secao.chave) {
+      @if (secao.itens().length > 0) {
+        <section class="secao" [attr.aria-labelledby]="'secao-' + secao.chave">
+          <div class="secao-titulo">
+            @if (secao.destaque) {
+              <span class="secao-marca" aria-hidden="true"></span>
+            }
+            <h2
+              class="texto-rotulo"
+              [id]="'secao-' + secao.chave"
+              [class.destaque]="secao.destaque"
+            >
+              {{ secao.titulo }}
+            </h2>
+            <span class="texto-legenda numerico">{{ secao.meta()?.total }}</span>
+          </div>
+          @for (pedido of secao.itens(); track pedido.id) {
+            <ms-cartao-pedido [pedido]="pedido" [hoje]="hoje" />
+          }
+          @if (secao.meta(); as meta) {
+            <ms-paginacao [meta]="meta" (paginaMudou)="secao.pagina.set($event)" />
+          }
+        </section>
+      }
+    }
+  }
+}

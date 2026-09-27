@@ -1,0 +1,71 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.grupo legend {
+  padding: 0 0 6px;
+}
+
+.segmentado {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-controle);
+  background: var(--cor-cartao);
+}
+
+.opcao-segmento {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--alvo-toque);
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opcao-segmento:has(:checked) {
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+}
+
+.opcao-segmento:has(:focus-visible) {
+  outline: 2px solid var(--cor-acao);
+  outline-offset: 2px;
+}
+
+.duas-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.area {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  resize: vertical;
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.salvar {
+  flex-grow: 1;
+}
