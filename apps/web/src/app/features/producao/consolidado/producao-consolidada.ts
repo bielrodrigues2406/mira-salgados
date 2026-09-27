@@ -6,7 +6,7 @@ import {
   APARENCIA_DO_PREPARO,
   ChipPreparo,
 } from '../../../shared/components/chip-preparo/chip-preparo';
-import { composicao, contagem, listaDePedidos, numero } from '../textos';
+import { composicao, contagem, listaDePedidos, numero } from '../../../shared/utils/textos';
 
 /** Modo consolidado: volume por produto, preparo e produtor, sem divisão por pedido. */
 @Component({

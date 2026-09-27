@@ -1,0 +1,21 @@
+<button type="button" class="seta" aria-label="Dia anterior" (click)="mover(-1)">
+  <ms-icone nome="chevronEsquerda" />
+</button>
+<label class="data" [for]="id">
+  <ms-icone nome="calendario" />
+  <span class="numerico" aria-hidden="true">{{ texto() }}</span>
+  <span class="somente-leitor-de-tela">{{ rotulo() }}</span>
+  <input
+    #campo
+    type="date"
+    class="data-entrada"
+    required
+    [id]="id"
+    [value]="data()"
+    (click)="abrirCalendario(campo)"
+    (change)="escolher(campo.value)"
+  />
+</label>
+<button type="button" class="seta" aria-label="Próximo dia" (click)="mover(1)">
+  <ms-icone nome="chevronDireita" />
+</button>

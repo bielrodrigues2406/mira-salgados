@@ -1,19 +1,8 @@
-import type { Route, Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 
 import { autenticadoGuard, visitanteGuard } from './core/guards/auth.guards';
 
 const TITULO = 'Mira Salgados';
-
-// Destino da navegação ainda sem módulo: a rota existe para que o layout e a
-// navegação sejam validados desde já, e cada entrada é trocada pelo módulo real.
-function emBreve(path: string, titulo: string): Route {
-  return {
-    path,
-    title: `${titulo} · ${TITULO}`,
-    data: { titulo },
-    loadComponent: () => import('./features/em-breve/em-breve').then((m) => m.EmBreve),
-  };
-}
 
 export const routes: Routes = [
   {
@@ -66,7 +55,19 @@ export const routes: Routes = [
         title: `Produtores · ${TITULO}`,
         loadComponent: () => import('./features/produtores/produtores').then((m) => m.Produtores),
       },
-      emBreve('relatorios', 'Relatórios'),
+      {
+        path: 'relatorios',
+        loadComponent: () => import('./features/relatorios/relatorios').then((m) => m.Relatorios),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'acerto' },
+          {
+            path: 'acerto',
+            title: `Acerto diário · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/relatorios/acerto/acerto-diario').then((m) => m.AcertoDiario),
+          },
+        ],
+      },
     ],
   },
   { path: '**', redirectTo: '' },

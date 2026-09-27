@@ -1,5 +1,7 @@
 import {
+  dataCompleta,
   dataCurta,
+  dataDoCalendario,
   momentoCurto,
   dataPorExtenso,
   hoje,
@@ -38,5 +40,16 @@ describe('datas de entrega', () => {
 describe('momentoCurto', () => {
   it('mostra dia, mês e hora no fuso do aparelho', () => {
     expect(momentoCurto(new Date(2026, 8, 29, 14, 12).toISOString())).toBe('29 set, 14:12');
+  });
+
+  it('escreve a data completa do seletor', () => {
+    expect(dataCompleta('2026-10-02')).toBe('Sex, 2 de outubro de 2026');
+  });
+
+  it('aceita só datas que existem no calendário', () => {
+    expect(dataDoCalendario('2026-10-02')).toBe('2026-10-02');
+    expect(dataDoCalendario('2026-02-30')).toBeUndefined();
+    expect(dataDoCalendario('02/10/2026')).toBeUndefined();
+    expect(dataDoCalendario(undefined)).toBeUndefined();
   });
 });

@@ -6,7 +6,7 @@ import { Chip } from '../../../shared/components/chip/chip';
 import { ChipPreparo } from '../../../shared/components/chip-preparo/chip-preparo';
 import { ChipStatus } from '../../../shared/components/chip-status/chip-status';
 import { Icone } from '../../../shared/components/icone/icone';
-import { contagem, numero, rotuloDaVenda } from '../textos';
+import { contagem, numero, rotuloDaVenda } from '../../../shared/utils/textos';
 
 /** Modo cronológico: uma faixa por horário, com os pedidos e o que fazer em cada um. */
 @Component({

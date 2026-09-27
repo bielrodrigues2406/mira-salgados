@@ -1,0 +1,249 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sintese {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 14px;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-comando);
+  color: var(--sobre-comando);
+}
+
+.sintese-titulo,
+.grupo-titulo {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sintese-titulo {
+  color: var(--sobre-comando-secundario);
+}
+
+.sintese-numeros {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  margin: 0;
+}
+
+.sintese-numero {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sintese-numero + .sintese-numero {
+  padding-left: 14px;
+  border-left: 1px solid var(--sobre-comando-borda);
+}
+
+.sintese-numero dt,
+.sintese-legenda {
+  color: var(--sobre-comando-secundario);
+  font-size: 12px;
+}
+
+.sintese-numero dd {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+  letter-spacing: -0.02em;
+}
+
+.sintese-legenda {
+  padding-top: 12px;
+  border-top: 1px solid var(--sobre-comando-borda);
+}
+
+.caixa {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.barra-caixa {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+  overflow: hidden;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-borda);
+}
+
+.barra-parte {
+  flex-basis: 0;
+}
+
+.em-caixa {
+  background: var(--cor-positivo);
+}
+
+.em-fiado {
+  background: var(--cor-atencao);
+}
+
+.sem-pagamento {
+  background: var(--tint-neutro-borda);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+.grupo-titulo {
+  padding-bottom: 4px;
+  color: var(--cor-texto-secundario);
+}
+
+.formas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.forma {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.forma + .forma {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.forma-icone {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-controle);
+  background: var(--cor-fundo);
+  color: var(--cor-acao);
+}
+
+.forma-icone.atencao {
+  border-color: var(--tint-atencao-borda);
+  background: var(--tint-atencao);
+  color: var(--cor-atencao);
+}
+
+.forma-icone.neutra {
+  color: var(--cor-texto-secundario);
+}
+
+.forma-nome {
+  flex-grow: 1;
+  font-weight: 500;
+}
+
+.forma-textos {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.forma-valor {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.valor-fiado {
+  color: var(--cor-atencao);
+}
+
+.valor-sem-pagamento {
+  color: var(--cor-texto-secundario);
+}
+
+.total-em-caixa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid var(--tint-positivo-borda);
+  border-radius: var(--raio-controle);
+  background: var(--tint-positivo);
+  color: var(--cor-positivo);
+}
+
+.total-em-caixa-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.total-em-caixa-valor {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.divisao-cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.divisao-titulo {
+  color: var(--cor-texto);
+}
+
+.produtores {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 1024px) {
+  .produtores {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    align-items: start;
+  }
+}
+
+.conferencia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+}
+
+.conferencia-linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.conferencia-linha span:first-child {
+  color: var(--cor-texto-secundario);
+}
+
+.conferencia-linha span:last-child {
+  font-weight: 600;
+}
+
+.conferencia-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+  color: var(--cor-positivo);
+  font-size: 12px;
+  font-weight: 500;
+}

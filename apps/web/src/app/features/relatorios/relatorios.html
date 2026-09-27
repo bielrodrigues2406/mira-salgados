@@ -1,0 +1,11 @@
+<h1 class="texto-display">Relatórios</h1>
+
+<nav class="abas" aria-label="Relatórios">
+  @for (aba of abas; track aba.rota) {
+    <a class="aba" [routerLink]="aba.rota" routerLinkActive="ativa" ariaCurrentWhenActive="page">
+      {{ aba.rotulo }}
+    </a>
+  }
+</nav>
+
+<router-outlet />
