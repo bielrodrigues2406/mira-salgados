@@ -1,0 +1,54 @@
+<article class="cartao-produtor" [attr.aria-labelledby]="idTitulo">
+  <div class="corpo">
+    <div class="identificacao">
+      <span class="avatar" aria-hidden="true">{{ iniciais() }}</span>
+      <div class="nome">
+        <h3 [id]="idTitulo">{{ parte().produtor.nome }}</h3>
+        <span class="texto-legenda numerico">{{ resumo() }}</span>
+      </div>
+      <div class="participacao">
+        <span class="participacao-valor numerico">{{ participacao() }}</span>
+        <span class="rotulo-pequeno">Participação</span>
+      </div>
+    </div>
+    <div class="barra" role="img" [attr.aria-label]="'Participação de ' + participacao()">
+      <div class="barra-preenchida" [style.width.%]="parte().participacaoDecimos / 10"></div>
+    </div>
+    <ul class="itens">
+      @for (linha of parte().itens; track linha.produto.id + linha.preparo) {
+        <li class="linha">
+          <div class="linha-textos">
+            <span class="linha-produto">{{ linha.produto.nome }}</span>
+            <span class="linha-detalhe">
+              <ms-chip-preparo [preparo]="linha.preparo" />
+              <span class="texto-legenda numerico">{{
+                composicao(linha.centos, linha.avulsas)
+              }}</span>
+            </span>
+          </div>
+          <span class="linha-valor numerico">{{ linha.valorCentavos | moeda }}</span>
+        </li>
+      }
+    </ul>
+    @if (parte().descontoCentavos > 0) {
+      <div class="linha-total desconto">
+        <span>Parte dos descontos</span>
+        <span class="numerico">− {{ parte().descontoCentavos | moeda }}</span>
+      </div>
+    }
+    <div class="linha-total">
+      <span>Valor produzido</span>
+      <span class="valor-produzido numerico">{{ parte().valorProduzidoCentavos | moeda }}</span>
+    </div>
+  </div>
+  <dl class="divisao">
+    <div class="divisao-parte a-receber">
+      <dt class="rotulo-pequeno">A receber do caixa</dt>
+      <dd class="numerico">{{ parte().aReceberCentavos | moeda }}</dd>
+    </div>
+    <div class="divisao-parte pendente">
+      <dt class="rotulo-pequeno">Pendente</dt>
+      <dd class="numerico">{{ parte().pendenteCentavos | moeda }}</dd>
+    </div>
+  </dl>
+</article>

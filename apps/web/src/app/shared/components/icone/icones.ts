@@ -68,7 +68,6 @@ export const ICONES = {
   alerta: [c(12, 12, 9), p('M12 8v4M12 16h.01')],
   chevronAbaixo: [p('m6 9 6 6 6-6')],
   chevronAcima: [p('m18 15-6-6-6 6')],
-  construcao: [p('M2 20h20M5 20V8l7-5 7 5v12'), p('M9 20v-6h6v6')],
   mais: [p('M12 5v14M5 12h14')],
   editar: [
     p(

@@ -34,3 +34,28 @@ export function listaDePedidos(numeros: readonly number[]): string {
   if (marcados.length === 0) return `pedido ${ultimo}`;
   return `pedidos ${marcados.join(', ')} e ${ultimo}`;
 }
+
+/** Décimos de ponto percentual para texto: 568 é "56,8%". */
+export function percentualDeDecimos(decimos: number): string {
+  return `${String(Math.floor(decimos / 10))},${String(decimos % 10)}%`;
+}
+
+/**
+ * Percentuais inteiros que somam 100, pelo maior resto, para legendas de
+ * barras: arredondar cada um separadamente pode dar 99 ou 101.
+ */
+export function percentuaisInteiros(valores: readonly number[]): number[] {
+  const total = valores.reduce((soma, valor) => soma + valor, 0);
+  if (total <= 0) return valores.map(() => 0);
+  const partes = valores.map((valor, indice) => {
+    const exato = (valor * 100) / total;
+    return { indice, piso: Math.floor(exato), resto: exato - Math.floor(exato) };
+  });
+  let sobra = 100 - partes.reduce((soma, parte) => soma + parte.piso, 0);
+  for (const parte of [...partes].sort((a, b) => b.resto - a.resto || a.indice - b.indice)) {
+    if (sobra <= 0) break;
+    parte.piso += 1;
+    sobra -= 1;
+  }
+  return partes.map((parte) => parte.piso);
+}

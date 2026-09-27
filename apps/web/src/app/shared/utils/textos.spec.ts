@@ -1,6 +1,14 @@
-import { composicao, contagem, listaDePedidos, numero, rotuloDaVenda } from './textos';
+import {
+  composicao,
+  contagem,
+  listaDePedidos,
+  numero,
+  percentuaisInteiros,
+  percentualDeDecimos,
+  rotuloDaVenda,
+} from './textos';
 
-describe('textos da produção', () => {
+describe('textos de quantidades', () => {
   it('separa milhares como no Brasil', () => {
     expect(numero(1570)).toBe('1.570');
     expect(contagem(1, 'encomenda', 'encomendas')).toBe('1 encomenda');
@@ -26,5 +34,17 @@ describe('textos da produção', () => {
     expect(listaDePedidos([1042, 1043])).toBe('pedidos #1042 e #1043');
     expect(listaDePedidos([1, 2, 3])).toBe('pedidos #1, #2 e #3');
     expect(listaDePedidos([])).toBe('');
+  });
+
+  it('mostra participação em décimos com vírgula', () => {
+    expect(percentualDeDecimos(568)).toBe('56,8%');
+    expect(percentualDeDecimos(1000)).toBe('100,0%');
+    expect(percentualDeDecimos(5)).toBe('0,5%');
+  });
+
+  it('arredonda percentuais de barra para somar 100', () => {
+    expect(percentuaisInteiros([62200, 39000, 40500])).toEqual([44, 27, 29]);
+    expect(percentuaisInteiros([1, 1, 1])).toEqual([34, 33, 33]);
+    expect(percentuaisInteiros([0, 0])).toEqual([0, 0]);
   });
 });
