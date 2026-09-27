@@ -1,0 +1,68 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fechar {
+  margin-right: -10px;
+  color: var(--cor-texto-secundario);
+}
+
+.selecao {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A6472' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+}
+
+.alerta-atencao {
+  border-color: var(--tint-atencao-borda);
+  background: var(--tint-atencao);
+  color: var(--cor-texto);
+}
+
+.alerta-atencao a {
+  font-weight: 600;
+}
+
+.opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.opcao-caixa {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--cor-acao);
+}
+
+.opcao-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.opcao-rotulo {
+  font-weight: 600;
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.salvar {
+  flex-grow: 1;
+}

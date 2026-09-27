@@ -1,0 +1,72 @@
+<div class="cabecalho">
+  <h1 class="texto-display">Produtos</h1>
+  <button
+    type="button"
+    class="botao botao-primario novo"
+    [attr.aria-expanded]="formularioAberto()"
+    (click)="abrirFormulario()"
+  >
+    <ms-icone nome="mais" />
+    <span>Novo produto</span>
+  </button>
+</div>
+
+<a class="atalho" routerLink="/produtores">
+  <span class="atalho-icone"><ms-icone nome="produtor" [tamanho]="20" /></span>
+  <span class="atalho-textos">
+    <span class="atalho-titulo">Produtores</span>
+    <span class="texto-legenda numerico">{{ resumoProdutores() }}</span>
+  </span>
+  <ms-icone class="atalho-seta" nome="chevronDireita" />
+</a>
+
+<p class="somente-leitor-de-tela" role="status">{{ aviso() }}</p>
+
+@if (formularioAberto()) {
+  <section class="cartao">
+    <ms-produto-formulario
+      titulo="Novo produto"
+      [produtores]="opcoesDeProdutor()"
+      [salvar]="criar"
+      (cancelar)="formularioAberto.set(false)"
+    />
+  </section>
+}
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando produtos" [quantidade]="3" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar os produtos" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar os produtos"
+      [erro]="produtos.error()"
+      (tentarNovamente)="produtos.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="produtos" titulo="Nenhum produto cadastrado">
+      Cadastre os salgados com o produtor padrão e os preços de cada preparo.
+      <button estadoAcao type="button" class="botao botao-secundario" (click)="abrirFormulario()">
+        Cadastrar produto
+      </button>
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    <div class="lista">
+      @for (produto of itens(); track produto.id) {
+        <ms-produto-cartao
+          [produto]="produto"
+          [produtores]="opcoesDeProdutor()"
+          (alterado)="concluir($event)"
+        />
+      }
+    </div>
+    @if (meta(); as meta) {
+      <ms-paginacao [meta]="meta" (paginaMudou)="irParaPagina($event)" />
+    }
+  }
+}
