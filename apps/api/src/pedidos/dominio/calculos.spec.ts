@@ -6,7 +6,7 @@ import { resumoFinanceiro, statusDoPagamento, subtotalItem } from './calculos.js
 const c = (valor: number): Centavos => centavos(valor);
 
 // Pedido #1043 do protótipo: 3 centos de coxinha a R$ 95,00, kibe, esfiha e
-// risole a um cento cada, desconto de R$ 20,00 e retirada.
+// risole a um cento cada, com desconto de R$ 20,00.
 const ITENS = [
   { quantidade: 3, precoUnitario: c(9500) },
   { quantidade: 1, precoUnitario: c(9000) },
@@ -20,8 +20,8 @@ describe('cálculos do pedido', () => {
     expect(subtotalItem({ quantidade: 250, precoUnitario: c(120) })).toBe(30000);
   });
 
-  it('aplica desconto e taxa de entrega ao subtotal', () => {
-    const resumo = resumoFinanceiro(ITENS, c(2000), c(0), [
+  it('aplica o desconto ao subtotal', () => {
+    const resumo = resumoFinanceiro(ITENS, c(2000), [
       { forma: 'PIX', valor: c(20000) },
       { forma: 'DINHEIRO', valor: c(10000) },
     ]);
@@ -29,7 +29,6 @@ describe('cálculos do pedido', () => {
     expect(resumo).toEqual({
       subtotal: 56000,
       desconto: 2000,
-      taxaEntrega: 0,
       total: 54000,
       totalPago: 30000,
       totalFiado: 0,
@@ -38,15 +37,15 @@ describe('cálculos do pedido', () => {
     });
   });
 
-  it('soma a taxa de entrega ao total', () => {
-    const resumo = resumoFinanceiro([{ quantidade: 2, precoUnitario: c(9500) }], c(0), c(1200), []);
+  it('não soma nada por ser entrega: o total é o valor dos itens menos o desconto', () => {
+    const resumo = resumoFinanceiro([{ quantidade: 2, precoUnitario: c(9500) }], c(0), []);
 
-    expect(resumo.total).toBe(20200);
+    expect(resumo.total).toBe(19000);
     expect(resumo.statusPagamento).toBe('PENDENTE');
   });
 
   it('não soma o fiado ao pago nem o abate do saldo (D1)', () => {
-    const resumo = resumoFinanceiro(ITENS, c(0), c(0), [{ forma: 'FIADO', valor: c(56000) }]);
+    const resumo = resumoFinanceiro(ITENS, c(0), [{ forma: 'FIADO', valor: c(56000) }]);
 
     expect(resumo.totalPago).toBe(0);
     expect(resumo.totalFiado).toBe(56000);
@@ -55,7 +54,7 @@ describe('cálculos do pedido', () => {
   });
 
   it('quita com dinheiro e PIX mesmo havendo fiado registrado', () => {
-    const resumo = resumoFinanceiro([{ quantidade: 1, precoUnitario: c(9000) }], c(0), c(0), [
+    const resumo = resumoFinanceiro([{ quantidade: 1, precoUnitario: c(9000) }], c(0), [
       { forma: 'FIADO', valor: c(9000) },
       { forma: 'DINHEIRO', valor: c(9000) },
     ]);
@@ -65,7 +64,7 @@ describe('cálculos do pedido', () => {
   });
 
   it('não produz saldo negativo quando o pago supera o total', () => {
-    const resumo = resumoFinanceiro([{ quantidade: 1, precoUnitario: c(9000) }], c(1000), c(0), [
+    const resumo = resumoFinanceiro([{ quantidade: 1, precoUnitario: c(9000) }], c(1000), [
       { forma: 'PIX', valor: c(9000) },
     ]);
 
@@ -73,8 +72,8 @@ describe('cálculos do pedido', () => {
     expect(resumo.statusPagamento).toBe('PAGO');
   });
 
-  it('pedido sem itens tem total igual à taxa', () => {
-    expect(resumoFinanceiro([], c(0), c(800), []).total).toBe(800);
+  it('pedido sem itens tem total zero', () => {
+    expect(resumoFinanceiro([], c(0), []).total).toBe(0);
   });
 
   it.each([

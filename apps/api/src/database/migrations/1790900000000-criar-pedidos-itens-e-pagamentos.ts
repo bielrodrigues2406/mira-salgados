@@ -10,8 +10,8 @@ export class CriarPedidosItensEPagamentos1790900000000 implements MigrationInter
     await queryRunner.query(`CREATE TYPE tipo_entrega AS ENUM ('RETIRADA', 'ENTREGA')`);
     await queryRunner.query(`CREATE TYPE forma_pagamento AS ENUM ('DINHEIRO', 'PIX', 'FIADO')`);
 
-    // O entregador é um dos produtores: a taxa de entrega é paga a ele no
-    // acerto do dia (decisão D3), e só quem participa do acerto pode recebê-la.
+    // Entrega ou retirada é só informação logística: não há taxa nem registro
+    // de quem entregou (decisão D3, revista em 27/09/2026).
     await queryRunner.query(`
       CREATE TABLE pedidos (
         id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -20,9 +20,7 @@ export class CriarPedidosItensEPagamentos1790900000000 implements MigrationInter
         usuario_id uuid NOT NULL,
         status status_pedido NOT NULL DEFAULT 'RASCUNHO',
         tipo_entrega tipo_entrega NOT NULL,
-        taxa_entrega numeric(10,2) NOT NULL DEFAULT 0,
         desconto numeric(10,2) NOT NULL DEFAULT 0,
-        entregador_id uuid,
         observacao varchar(500),
         data_entrega date NOT NULL,
         horario_entrega time,
@@ -32,11 +30,7 @@ export class CriarPedidosItensEPagamentos1790900000000 implements MigrationInter
         CONSTRAINT uq_pedidos_numero UNIQUE (numero),
         CONSTRAINT fk_pedidos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes (id),
         CONSTRAINT fk_pedidos_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id),
-        CONSTRAINT fk_pedidos_entregador FOREIGN KEY (entregador_id) REFERENCES produtores (id),
-        CONSTRAINT ck_pedidos_taxa_nao_negativa CHECK (taxa_entrega >= 0),
         CONSTRAINT ck_pedidos_desconto_nao_negativo CHECK (desconto >= 0),
-        CONSTRAINT ck_pedidos_retirada_sem_entrega
-          CHECK (tipo_entrega = 'ENTREGA' OR (taxa_entrega = 0 AND entregador_id IS NULL)),
         CONSTRAINT ck_pedidos_observacao_preenchida CHECK (btrim(observacao) <> '')
       )
     `);
@@ -48,7 +42,6 @@ export class CriarPedidosItensEPagamentos1790900000000 implements MigrationInter
     await queryRunner.query(
       'CREATE INDEX ix_pedidos_cliente_status ON pedidos (cliente_id, status)',
     );
-    await queryRunner.query('CREATE INDEX ix_pedidos_entregador_id ON pedidos (entregador_id)');
 
     await queryRunner.query(`
       CREATE TABLE itens_pedido (

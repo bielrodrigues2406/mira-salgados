@@ -12,15 +12,16 @@ import {
 
 import { DataDoCalendario } from '../../common/validation/data.js';
 import { comoEnum } from '../../common/validation/enum.js';
+import { Opcional } from '../../common/validation/opcional.js';
 import { ApararOuNulo } from '../../common/validation/transforms.js';
 import { TIPOS_ENTREGA, type TipoEntrega } from '../dominio/enums.js';
 import { VALOR_MAXIMO_CENTAVOS } from './limites.js';
-import { Opcional } from '../../common/validation/opcional.js';
 
 export class CriarPedidoDto {
   @IsUUID()
   clienteId: string;
 
+  /** Só logística: entrega ou retirada não alteram valores. */
   @IsEnum(comoEnum(TIPOS_ENTREGA))
   tipoEntrega: TipoEntrega;
 
@@ -36,17 +37,7 @@ export class CriarPedidoDto {
   @IsInt()
   @Min(0)
   @Max(VALOR_MAXIMO_CENTAVOS)
-  taxaEntregaCentavos?: number;
-
-  @Opcional()
-  @IsInt()
-  @Min(0)
-  @Max(VALOR_MAXIMO_CENTAVOS)
   descontoCentavos?: number;
-
-  @IsOptional()
-  @IsUUID()
-  entregadorId?: string | null;
 
   @IsOptional()
   @ApararOuNulo()

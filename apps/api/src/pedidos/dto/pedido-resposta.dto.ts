@@ -25,7 +25,6 @@ export function horarioCurto(horario: string | null): string | null {
 export class ResumoFinanceiroDto {
   subtotalCentavos: number;
   descontoCentavos: number;
-  taxaEntregaCentavos: number;
   totalCentavos: number;
   totalPagoCentavos: number;
   totalFiadoCentavos: number;
@@ -35,7 +34,6 @@ export class ResumoFinanceiroDto {
     return Object.assign(new ResumoFinanceiroDto(), {
       subtotalCentavos: resumo.subtotal,
       descontoCentavos: resumo.desconto,
-      taxaEntregaCentavos: resumo.taxaEntrega,
       totalCentavos: resumo.total,
       totalPagoCentavos: resumo.totalPago,
       totalFiadoCentavos: resumo.totalFiado,
@@ -109,7 +107,6 @@ export class PedidoDetalheDto {
   horarioEntrega: string | null;
   observacao: string | null;
   cliente: Referencia & { telefone: string | null; endereco: string | null; ativo: boolean };
-  entregador: Referencia | null;
   registradoPor: Referencia;
   resumo: ResumoFinanceiroDto;
   itens: ItemPedidoDto[];
@@ -122,7 +119,7 @@ export class PedidoDetalheDto {
   atualizadoEm: string;
 
   static de({ pedido, itens, pagamentos }: PedidoAgregado): PedidoDetalheDto {
-    const { cliente, entregador, usuario } = pedido;
+    const { cliente, usuario } = pedido;
     if (!cliente || !usuario) throw new Error('Pedido sem relações carregadas.');
     const resumo = resumir(pedido, itens, pagamentos);
     return Object.assign(new PedidoDetalheDto(), {
@@ -141,7 +138,6 @@ export class PedidoDetalheDto {
         endereco: cliente.endereco,
         ativo: cliente.ativo,
       },
-      entregador: entregador ? { id: entregador.id, nome: entregador.nome } : null,
       registradoPor: { id: usuario.id, nome: usuario.nome },
       resumo: ResumoFinanceiroDto.de(resumo),
       itens: itens.map((item) => ItemPedidoDto.de(item)),

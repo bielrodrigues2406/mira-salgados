@@ -112,7 +112,7 @@ export class SaldoDevedorService {
       .addSelect('pedido.data_entrega', 'data_entrega')
       .addSelect(
         `COALESCE((SELECT SUM(item.quantidade * item.preco_unitario) FROM itens_pedido item
-          WHERE item.pedido_id = pedido.id), 0) - pedido.desconto + pedido.taxa_entrega`,
+          WHERE item.pedido_id = pedido.id), 0) - pedido.desconto`,
         'total',
       )
       .addSelect(

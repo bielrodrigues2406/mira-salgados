@@ -20,7 +20,6 @@ export interface PagamentoParaCalculo {
 export interface ResumoFinanceiro {
   subtotal: Centavos;
   desconto: Centavos;
-  taxaEntrega: Centavos;
   total: Centavos;
   /** Só DINHEIRO e PIX (decisão D1). */
   totalPago: Centavos;
@@ -47,14 +46,17 @@ export function statusDoPagamento(total: Centavos, totalPago: Centavos): StatusP
 export interface TotaisDoPedido {
   subtotal: Centavos;
   desconto: Centavos;
-  taxaEntrega: Centavos;
   totalPago: Centavos;
   totalFiado: Centavos;
 }
 
-/** Deriva total, saldo e estado de pagamento de somas já feitas (em memória ou no banco). */
+/**
+ * Deriva total, saldo e estado de pagamento de somas já feitas (em memória ou
+ * no banco). Diferença em relação à especificação: não há taxa de entrega, que
+ * a família decidiu não controlar no sistema (decisão D3 revista).
+ */
 export function resumoDeTotais(totais: TotaisDoPedido): ResumoFinanceiro {
-  const total = somar(subtrair(totais.subtotal, totais.desconto), totais.taxaEntrega);
+  const total = subtrair(totais.subtotal, totais.desconto);
   const saldo = subtrair(total, totais.totalPago);
   return {
     ...totais,
@@ -67,7 +69,6 @@ export function resumoDeTotais(totais: TotaisDoPedido): ResumoFinanceiro {
 export function resumoFinanceiro(
   itens: readonly ItemParaCalculo[],
   desconto: Centavos,
-  taxaEntrega: Centavos,
   pagamentos: readonly PagamentoParaCalculo[],
 ): ResumoFinanceiro {
   const liquidos = pagamentos.filter((pagamento) => FORMAS_LIQUIDAS.includes(pagamento.forma));
@@ -75,7 +76,6 @@ export function resumoFinanceiro(
   return resumoDeTotais({
     subtotal: somar(...itens.map(subtotalItem)),
     desconto,
-    taxaEntrega,
     totalPago: somar(...liquidos.map((pagamento) => pagamento.valor)),
     totalFiado: somar(...fiados.map((pagamento) => pagamento.valor)),
   });

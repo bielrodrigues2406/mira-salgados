@@ -21,11 +21,11 @@ export function pagamentosAtivos(pagamentos: readonly Pagamento[]): Pagamento[] 
 }
 
 export function resumir(
-  pedido: Pick<Pedido, 'desconto' | 'taxaEntrega'>,
+  pedido: Pick<Pedido, 'desconto'>,
   itens: readonly ItemPedido[],
   pagamentos: readonly Pagamento[],
 ): ResumoFinanceiro {
-  return resumoFinanceiro(itens, pedido.desconto, pedido.taxaEntrega, pagamentosAtivos(pagamentos));
+  return resumoFinanceiro(itens, pedido.desconto, pagamentosAtivos(pagamentos));
 }
 
 export function garantirEditavel(pedido: Pedido): void {
@@ -83,7 +83,7 @@ export class AgregadoPedidoService {
   async carregar(manager: EntityManager, id: string): Promise<PedidoAgregado> {
     const pedido = await manager.getRepository(Pedido).findOne({
       where: { id },
-      relations: { cliente: true, entregador: true, usuario: true },
+      relations: { cliente: true, usuario: true },
     });
     if (!pedido) throw new NotFoundError('Pedido');
     return { pedido, ...(await this.itensEPagamentos(manager, id)) };
