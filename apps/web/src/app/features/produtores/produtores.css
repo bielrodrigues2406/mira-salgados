@@ -4,25 +4,6 @@
   gap: 16px;
 }
 
-.voltar {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 4px;
-  min-height: var(--alvo-toque);
-  margin: -8px 0 -8px -8px;
-  padding: 0 8px;
-  border-radius: var(--raio-controle);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--cor-acao);
-  text-decoration: none;
-}
-
-.voltar:hover {
-  background: var(--tint-acao);
-}
-
 .cabecalho {
   display: flex;
   flex-direction: column;
@@ -174,7 +155,7 @@
 }
 
 @media (min-width: 768px) {
-  .voltar {
+  .link-voltar {
     display: none;
   }
 }
