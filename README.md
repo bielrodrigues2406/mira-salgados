@@ -29,6 +29,17 @@ npm install
 docker compose up -d db
 ```
 
+API (a partir da raiz):
+
+```sh
+cp apps/api/.env.example apps/api/.env              # ajuste DATABASE_URL
+cp apps/api/.env.test.example apps/api/.env.test    # banco *_test dos testes
+npm run migration:run -w @mira/api
+npm run start:dev -w @mira/api                      # http://localhost:3000/api/v1
+npm test -w @mira/api                               # testes unitários
+npm run test:integration -w @mira/api               # testes contra o PostgreSQL
+```
+
 ## Scripts da raiz
 
 | Script              | O que faz                                          |

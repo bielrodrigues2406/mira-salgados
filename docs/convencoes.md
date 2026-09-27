@@ -13,9 +13,10 @@ inglês, porque é assim que aparece na documentação das ferramentas.
 | Entidades, campos, enums e DTOs de domínio | Português | `Pedido`, `dataEntrega`, `StatusPedido`, `CriarPedidoDto`     |
 | Métodos de regra de negócio                | Português | `aplicarTransicaoDeStatus`, `calcularAcerto`                  |
 | Módulos, pastas e rotas de domínio         | Português | `pedidos/`, `/api/v1/clientes`                                |
-| Erros de domínio e seus códigos            | Português | `RegraDeNegocioError`, `TRANSICAO_DE_STATUS_INVALIDA`         |
+| Códigos de erro de domínio                 | Português | `TRANSICAO_DE_STATUS_INVALIDA`, `PEDIDO_SEM_ITENS`            |
 | Sufixos de framework                       | Inglês    | `Controller`, `Service`, `Module`, `Dto`, `Guard`             |
 | Infraestrutura genérica                    | Inglês    | `config/`, `AllExceptionsFilter`, `JwtAuthGuard`, `@Public()` |
+| Categorias de erro                         | Inglês    | `BusinessRuleError`, `NotFoundError`, `ConflictError`         |
 | Códigos de erro de infraestrutura          | Inglês    | `VALIDATION_FAILED`, `UNAUTHORIZED`, `RATE_LIMITED`           |
 | Paginação e variáveis de ambiente          | Inglês    | `page`, `pageSize`, `DATABASE_URL`, `JWT_ACCESS_SECRET`       |
 | Texto em linguagem natural                 | Português | comentários, mensagens ao usuário, logs, documentação         |
