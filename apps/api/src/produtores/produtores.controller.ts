@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 import { CurrentUser, type UsuarioAutenticado } from '../common/auth/usuario-autenticado.js';
 import { Paginated } from '../common/pagination/pagination.js';
@@ -45,6 +55,15 @@ export class ProdutoresController {
     @CurrentUser() usuario: UsuarioAutenticado,
   ): Promise<ProdutorRespostaDto> {
     return this.resposta(await this.produtores.atualizar(id, dados, usuario.id));
+  }
+
+  /** Desativação lógica, como no contrato; equivale a PATCH { ativo: false }. */
+  @Delete(':id')
+  async desativar(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<ProdutorRespostaDto> {
+    return this.resposta(await this.produtores.atualizar(id, { ativo: false }, usuario.id));
   }
 
   private async resposta(produtor: Produtor): Promise<ProdutorRespostaDto> {

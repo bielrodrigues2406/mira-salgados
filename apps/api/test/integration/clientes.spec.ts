@@ -63,7 +63,17 @@ describe('clientes', () => {
       ativo: true,
     });
     expect(Object.keys(cliente).sort()).toEqual(
-      ['ativo', 'atualizadoEm', 'criadoEm', 'endereco', 'id', 'nome', 'telefone'].sort(),
+      [
+        'ativo',
+        'atualizadoEm',
+        'criadoEm',
+        'endereco',
+        'id',
+        'nome',
+        'saldoDevedorCentavos',
+        'telefone',
+        'temFiado',
+      ].sort(),
     );
   });
 
@@ -152,6 +162,16 @@ describe('clientes', () => {
     expect(logs.map((log) => log.acao)).toEqual(['CRIACAO', 'ATUALIZACAO', 'DESATIVACAO']);
     expect(logs[1]?.dadosAntes).toMatchObject({ telefone: '11996407781' });
     expect(logs.every((log) => log.usuarioId === api.usuarioId)).toBe(true);
+  });
+
+  it('desativa com DELETE e recusa null em campos obrigatórios', async () => {
+    const cliente = await criar({ nome: 'Roberto Lima' });
+
+    const nulo = await api.patch(`/clientes/${cliente.id}`, { nome: null, ativo: null });
+    const desativado = await api.delete(`/clientes/${cliente.id}`).expect(200);
+
+    expect(nulo.status).toBe(400);
+    expect(dadosDe<Cliente>(desativado).ativo).toBe(false);
   });
 
   it('responde 404 para cliente inexistente', async () => {

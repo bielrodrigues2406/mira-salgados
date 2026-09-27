@@ -51,6 +51,15 @@ export class ProdutosController {
     return ProdutoRespostaDto.de(await this.produtos.atualizar(id, dados, usuario.id));
   }
 
+  /** Desativação lógica, como no contrato; equivale a PATCH { ativo: false }. */
+  @Delete(':id')
+  async desativar(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<ProdutoRespostaDto> {
+    return ProdutoRespostaDto.de(await this.produtos.atualizar(id, { ativo: false }, usuario.id));
+  }
+
   /** Histórico completo, do mais recente para o mais antigo. */
   @Get(':id/precos')
   async historico(
