@@ -10,21 +10,21 @@ o backend NestJS e o frontend Angular descritos no Prompt 2 ainda não existem.
 
 ## Pranchas
 
-| Grupo | Prancha | Arquivo |
-| --- | --- | --- |
-| Pedidos e produção | Autenticação, com erro de credencial | `Login.dc.html` |
-| | Autenticação com cadastro expandido | `LoginCadastro.dc.html` |
-| | Pedidos (entrada), busca e filtros funcionais | `Main.dc.html` |
-| | Detalhe do pedido | `PedidoDetalhe.dc.html` |
-| | Produção do dia, modo cronológico | `ProducaoCronologica.dc.html` |
-| | Produção do dia, modo consolidado | `ProducaoConsolidada.dc.html` |
-| Cadastros e relatórios | Clientes, com formulário em contexto | `Clientes.dc.html` |
-| | Produtos e precificação | `Produtos.dc.html` |
-| | Produtores | `Produtores.dc.html` |
-| | Relatórios, acerto diário | `RelatorioAcerto.dc.html` |
-| Estados | Carregando (esqueleto), vazio, erro | `Estado*.dc.html` |
-| Desktop | Pedidos com navegação lateral | `PedidosDesktop.dc.html` |
-| Sistema | Cor, tipografia, forma, ícones, chips, controles | `Fundamentos.dc.html` |
+| Grupo                  | Prancha                                          | Arquivo                       |
+| ---------------------- | ------------------------------------------------ | ----------------------------- |
+| Pedidos e produção     | Autenticação, com erro de credencial             | `Login.dc.html`               |
+|                        | Autenticação com cadastro expandido              | `LoginCadastro.dc.html`       |
+|                        | Pedidos (entrada), busca e filtros funcionais    | `Main.dc.html`                |
+|                        | Detalhe do pedido                                | `PedidoDetalhe.dc.html`       |
+|                        | Produção do dia, modo cronológico                | `ProducaoCronologica.dc.html` |
+|                        | Produção do dia, modo consolidado                | `ProducaoConsolidada.dc.html` |
+| Cadastros e relatórios | Clientes, com formulário em contexto             | `Clientes.dc.html`            |
+|                        | Produtos e precificação                          | `Produtos.dc.html`            |
+|                        | Produtores                                       | `Produtores.dc.html`          |
+|                        | Relatórios, acerto diário                        | `RelatorioAcerto.dc.html`     |
+| Estados                | Carregando (esqueleto), vazio, erro              | `Estado*.dc.html`             |
+| Desktop                | Pedidos com navegação lateral                    | `PedidosDesktop.dc.html`      |
+| Sistema                | Cor, tipografia, forma, ícones, chips, controles | `Fundamentos.dc.html`         |
 
 No modo Play, a barra inferior, os cartões de pedido e o controle
 cronológico/consolidado navegam entre as pranchas.
@@ -49,12 +49,12 @@ cronológico/consolidado navegam entre as pranchas.
 
 ## Restrições de contraste encontradas na paleta
 
-| Par | Razão | Regra adotada |
-| --- | --- | --- |
-| `#C79A2E` sobre branco | 2,6:1 | Nunca como texto; só preenchimento e faixa |
-| `#8E97A3` sobre branco | 2,9:1 | Só placeholder, desabilitado e decoração |
-| `#E3E6EA` sobre branco | 1,3:1 | Só estrutura; controles usam `#8A94A0` |
-| `#15803D` sobre tint `#EEF7F1` | 4,6:1 | Tint clareado para passar de 4,5:1 |
+| Par                            | Razão | Regra adotada                              |
+| ------------------------------ | ----- | ------------------------------------------ |
+| `#C79A2E` sobre branco         | 2,6:1 | Nunca como texto; só preenchimento e faixa |
+| `#8E97A3` sobre branco         | 2,9:1 | Só placeholder, desabilitado e decoração   |
+| `#E3E6EA` sobre branco         | 1,3:1 | Só estrutura; controles usam `#8A94A0`     |
+| `#15803D` sobre tint `#EEF7F1` | 4,6:1 | Tint clareado para passar de 4,5:1         |
 
 ## Pontos da especificação que pedem decisão
 
