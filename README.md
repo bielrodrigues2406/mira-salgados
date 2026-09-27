@@ -40,6 +40,17 @@ npm test -w @mira/api                               # testes unitários
 npm run test:integration -w @mira/api               # testes contra o PostgreSQL
 ```
 
+Web (com a API rodando):
+
+```sh
+npm start -w @mira/web                              # http://localhost:4200
+npm test -w @mira/web                               # testes unitários (Vitest)
+npm run build -w @mira/web                          # build de produção
+```
+
+Para criar as primeiras contas, suba a API com `AUTH_PUBLIC_SIGNUP_ENABLED=true`,
+crie as contas pela tela de login e desligue a variável em seguida.
+
 ## Scripts da raiz
 
 | Script              | O que faz                                          |

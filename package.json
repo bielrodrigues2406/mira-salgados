@@ -43,6 +43,10 @@
     "typescript-eslint": "^8.70.1"
   },
   "allowScripts": {
-    "argon2": false
+    "argon2": false,
+    "esbuild@0.28.2": true,
+    "@parcel/watcher": false,
+    "lmdb": false,
+    "msgpackr-extract": false
   }
 }

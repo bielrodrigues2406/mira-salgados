@@ -1,0 +1,221 @@
+<div class="tela">
+  <div class="conteudo">
+    <section class="cartao-login" aria-labelledby="titulo-login">
+      <div class="marca">
+        <span class="marca-simbolo" aria-hidden="true">M</span>
+        <div class="marca-textos">
+          <h1 id="titulo-login" class="marca-nome">Mira Salgados</h1>
+          <span class="texto-legenda">Gestão de encomendas</span>
+        </div>
+      </div>
+
+      <form class="formulario" [formRoot]="formularioLogin">
+        <div class="campo">
+          <label class="texto-rotulo" for="login-email">E-mail</label>
+          <div class="campo-controle">
+            <span class="campo-icone"><ms-icone nome="email" /></span>
+            <input
+              id="login-email"
+              class="campo-entrada campo-entrada-com-icone"
+              type="email"
+              autocomplete="username"
+              placeholder="nome@exemplo.com"
+              [formField]="formularioLogin.email"
+              [attr.aria-invalid]="
+                formularioLogin.email().touched() && formularioLogin.email().invalid()
+              "
+              aria-describedby="login-email-erro"
+            />
+          </div>
+          <span id="login-email-erro">
+            @if (formularioLogin.email().touched()) {
+              @for (falha of formularioLogin.email().errors(); track falha.kind) {
+                <span class="campo-erro"><ms-icone nome="alerta" />{{ falha.message }}</span>
+              }
+            }
+          </span>
+        </div>
+
+        <div class="campo">
+          <label class="texto-rotulo" for="login-senha">Senha</label>
+          <div class="campo-controle">
+            <span class="campo-icone"><ms-icone nome="cadeado" /></span>
+            <input
+              id="login-senha"
+              class="campo-entrada campo-entrada-com-icone campo-entrada-senha"
+              [type]="senhaVisivel() ? 'text' : 'password'"
+              autocomplete="current-password"
+              placeholder="Sua senha"
+              [formField]="formularioLogin.senha"
+              [attr.aria-invalid]="
+                formularioLogin.senha().touched() && formularioLogin.senha().invalid()
+              "
+              aria-describedby="login-senha-erro"
+            />
+            <button
+              type="button"
+              class="alternar-senha"
+              [attr.aria-label]="senhaVisivel() ? 'Ocultar senha' : 'Mostrar senha'"
+              [attr.aria-pressed]="senhaVisivel()"
+              (click)="alternarSenha()"
+            >
+              <ms-icone [nome]="senhaVisivel() ? 'olhoFechado' : 'olho'" />
+            </button>
+          </div>
+          <span id="login-senha-erro">
+            @if (formularioLogin.senha().touched()) {
+              @for (falha of formularioLogin.senha().errors(); track falha.kind) {
+                <span class="campo-erro"><ms-icone nome="alerta" />{{ falha.message }}</span>
+              }
+            }
+          </span>
+        </div>
+
+        @if (erro(); as mensagem) {
+          <div class="alerta alerta-negativo" role="alert">
+            <ms-icone nome="alerta" [tamanho]="20" />
+            <div class="alerta-textos">
+              <span class="alerta-titulo">{{ mensagem }}</span>
+            </div>
+          </div>
+        }
+
+        <button
+          type="submit"
+          class="botao botao-primario botao-largo"
+          [disabled]="formularioLogin().submitting()"
+        >
+          {{ formularioLogin().submitting() ? 'Entrando…' : 'Entrar' }}
+        </button>
+      </form>
+
+      @if (registroPublico()) {
+        <div class="cadastro">
+          <button
+            type="button"
+            class="botao botao-terciario alternar-cadastro"
+            [attr.aria-expanded]="cadastroAberto()"
+            aria-controls="painel-cadastro"
+            (click)="alternarCadastro()"
+          >
+            <span>Primeiro acesso? <strong>Criar conta</strong></span>
+            <ms-icone [nome]="cadastroAberto() ? 'chevronAcima' : 'chevronAbaixo'" />
+          </button>
+
+          @if (cadastroAberto()) {
+            <form
+              id="painel-cadastro"
+              class="formulario painel-cadastro"
+              [formRoot]="formularioCadastro"
+              aria-labelledby="titulo-cadastro"
+            >
+              <div class="painel-titulo">
+                <h2 id="titulo-cadastro" class="texto-titulo">Nova conta</h2>
+                <span class="texto-legenda"
+                  >Acesso para quem registra encomendas e pagamentos.</span
+                >
+              </div>
+
+              <div class="campo">
+                <label class="texto-rotulo" for="cadastro-nome">Nome completo</label>
+                <input
+                  id="cadastro-nome"
+                  class="campo-entrada"
+                  type="text"
+                  autocomplete="name"
+                  [formField]="formularioCadastro.nome"
+                  [attr.aria-invalid]="
+                    formularioCadastro.nome().touched() && formularioCadastro.nome().invalid()
+                  "
+                />
+                @if (formularioCadastro.nome().touched()) {
+                  @for (falha of formularioCadastro.nome().errors(); track falha.kind) {
+                    <span class="campo-erro"><ms-icone nome="alerta" />{{ falha.message }}</span>
+                  }
+                }
+              </div>
+
+              <div class="campo">
+                <label class="texto-rotulo" for="cadastro-email">E-mail</label>
+                <input
+                  id="cadastro-email"
+                  class="campo-entrada"
+                  type="email"
+                  autocomplete="email"
+                  [formField]="formularioCadastro.email"
+                  [attr.aria-invalid]="
+                    formularioCadastro.email().touched() && formularioCadastro.email().invalid()
+                  "
+                />
+                @if (formularioCadastro.email().touched()) {
+                  @for (falha of formularioCadastro.email().errors(); track falha.kind) {
+                    <span class="campo-erro"><ms-icone nome="alerta" />{{ falha.message }}</span>
+                  }
+                }
+              </div>
+
+              <div class="campo">
+                <label class="texto-rotulo" for="cadastro-senha">Senha</label>
+                <input
+                  id="cadastro-senha"
+                  class="campo-entrada"
+                  type="password"
+                  autocomplete="new-password"
+                  aria-describedby="cadastro-senha-ajuda"
+                  [formField]="formularioCadastro.senha"
+                  [attr.aria-invalid]="
+                    formularioCadastro.senha().touched() && formularioCadastro.senha().invalid()
+                  "
+                />
+                <span id="cadastro-senha-ajuda" class="campo-ajuda"
+                  >Use ao menos 12 caracteres.</span
+                >
+                @if (formularioCadastro.senha().touched()) {
+                  @for (falha of formularioCadastro.senha().errors(); track falha.kind) {
+                    <span class="campo-erro"><ms-icone nome="alerta" />{{ falha.message }}</span>
+                  }
+                }
+              </div>
+
+              <div class="campo">
+                <label class="texto-rotulo" for="cadastro-confirmacao">Confirmar senha</label>
+                <input
+                  id="cadastro-confirmacao"
+                  class="campo-entrada"
+                  type="password"
+                  autocomplete="new-password"
+                  [formField]="formularioCadastro.confirmacao"
+                  [attr.aria-invalid]="
+                    formularioCadastro.confirmacao().touched() &&
+                    formularioCadastro.confirmacao().invalid()
+                  "
+                />
+                @if (formularioCadastro.confirmacao().touched()) {
+                  @for (falha of formularioCadastro.confirmacao().errors(); track falha.kind) {
+                    <span class="campo-erro"><ms-icone nome="alerta" />{{ falha.message }}</span>
+                  }
+                }
+              </div>
+
+              @if (erroCadastro(); as mensagem) {
+                <div class="alerta alerta-negativo" role="alert">
+                  <ms-icone nome="alerta" [tamanho]="20" />
+                  <span class="alerta-titulo">{{ mensagem }}</span>
+                </div>
+              }
+
+              <button
+                type="submit"
+                class="botao botao-secundario botao-largo"
+                [disabled]="formularioCadastro().submitting()"
+              >
+                {{ formularioCadastro().submitting() ? 'Criando conta…' : 'Criar conta' }}
+              </button>
+            </form>
+          }
+        </div>
+      }
+    </section>
+    <p class="rodape">Acesso restrito à equipe Mira Salgados</p>
+  </div>
+</div>
