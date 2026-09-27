@@ -1,20 +1,21 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
 
 import { Aparar } from '../../common/validation/transforms.js';
+import { Opcional } from '../../common/validation/opcional.js';
 
 export class AtualizarProdutoDto {
-  @IsOptional()
+  @Opcional()
   @Aparar()
   @IsString()
   @IsNotEmpty()
   @MaxLength(80)
   nome?: string;
 
-  @IsOptional()
+  @Opcional()
   @IsUUID()
   produtorPadraoId?: string;
 
-  @IsOptional()
+  @Opcional()
   @IsBoolean()
   ativo?: boolean;
 }

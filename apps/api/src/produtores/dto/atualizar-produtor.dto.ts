@@ -1,18 +1,19 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 import { Aparar } from '../../common/validation/transforms.js';
+import { Opcional } from '../../common/validation/opcional.js';
 
 // Desativar é uma atualização de "ativo": o produtor continua referenciado por
 // pedidos e acertos antigos, então nunca é excluído.
 export class AtualizarProdutorDto {
-  @IsOptional()
+  @Opcional()
   @Aparar()
   @IsString()
   @IsNotEmpty()
   @MaxLength(80)
   nome?: string;
 
-  @IsOptional()
+  @Opcional()
   @IsBoolean()
   ativo?: boolean;
 }
