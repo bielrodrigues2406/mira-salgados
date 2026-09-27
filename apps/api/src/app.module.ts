@@ -19,6 +19,7 @@ import { HealthModule } from './health/health.module.js';
 import { PedidosModule } from './pedidos/pedidos.module.js';
 import { ProdutoresModule } from './produtores/produtores.module.js';
 import { ProdutosModule } from './produtos/produtos.module.js';
+import { RelatoriosModule } from './relatorios/relatorios.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
 
 @Module({
@@ -53,6 +54,7 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     ClientesModule,
     ProdutosModule,
     PedidosModule,
+    RelatoriosModule,
   ],
   providers: [
     // A ordem importa: excesso de requisições é recusado antes de qualquer

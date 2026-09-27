@@ -1,0 +1,163 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 14px;
+  border-radius: var(--raio-cartao);
+  background: var(--cor-comando);
+  color: var(--sobre-comando);
+}
+
+.total-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.total-rotulo {
+  color: var(--sobre-comando-secundario);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.total-valor {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.total-numero {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 56px;
+  letter-spacing: -0.03em;
+}
+
+.total-unidade,
+.total-legenda {
+  color: var(--sobre-comando-secundario);
+}
+
+.total-legenda {
+  font-size: 12px;
+}
+
+.preparos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--sobre-comando-borda);
+}
+
+.preparo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.preparo:first-child {
+  padding-left: 0;
+}
+
+.preparo + .preparo {
+  border-left: 1px solid var(--sobre-comando-borda);
+}
+
+.preparo dt {
+  max-width: 100%;
+}
+
+.preparo-numero {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.02em;
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.grupo-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-cartao);
+}
+
+.linha-textos {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.linha-nome {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linha-produto {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.01em;
+}
+
+.linha-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.linha-quantidade {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.quantidade {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 36px;
+  letter-spacing: -0.02em;
+}
+
+.unidades {
+  color: var(--cor-texto-secundario);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

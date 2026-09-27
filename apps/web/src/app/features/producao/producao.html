@@ -1,0 +1,95 @@
+<div class="cabecalho">
+  <h1 class="texto-display">Produção do dia</h1>
+  <div class="dia">
+    <a
+      class="botao botao-terciario botao-icone"
+      aria-label="Dia anterior"
+      [routerLink]="[]"
+      [queryParams]="{ data: anterior() }"
+      queryParamsHandling="merge"
+    >
+      <ms-icone nome="chevronEsquerda" />
+    </a>
+    <span class="dia-texto" aria-live="polite">
+      <span>{{ dataPorExtenso() }}</span>
+      @if (ehHoje()) {
+        <span class="marca-hoje">Hoje</span>
+      }
+    </span>
+    @if (!ehHoje()) {
+      <a
+        class="botao botao-secundario ir-para-hoje"
+        [routerLink]="[]"
+        [queryParams]="{ data: null }"
+        queryParamsHandling="merge"
+      >
+        Hoje
+      </a>
+    }
+    <a
+      class="botao botao-terciario botao-icone"
+      aria-label="Próximo dia"
+      [routerLink]="[]"
+      [queryParams]="{ data: proximo() }"
+      queryParamsHandling="merge"
+    >
+      <ms-icone nome="chevronDireita" />
+    </a>
+  </div>
+</div>
+
+<nav class="modos" aria-label="Modo de visualização">
+  <a
+    class="modo"
+    [routerLink]="[]"
+    [queryParams]="{ modo: null }"
+    queryParamsHandling="merge"
+    [attr.aria-current]="modoAtual() === 'cronologico' ? 'page' : null"
+  >
+    <ms-icone nome="lista" [tamanho]="16" />
+    <span>Cronológico</span>
+  </a>
+  <a
+    class="modo"
+    [routerLink]="[]"
+    [queryParams]="{ modo: 'consolidado' }"
+    queryParamsHandling="merge"
+    [attr.aria-current]="modoAtual() === 'consolidado' ? 'page' : null"
+  >
+    <ms-icone nome="camadas" [tamanho]="16" />
+    <span>Consolidado</span>
+  </a>
+</nav>
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando a produção" [quantidade]="3" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar a produção" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar a produção"
+      [erro]="recurso.error()"
+      (tentarNovamente)="recurso.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="producao" titulo="Nada para produzir neste dia">
+      A produção reúne os pedidos confirmados com entrega na data. Rascunhos entram quando são
+      confirmados.
+      <a estadoAcao class="botao botao-secundario" routerLink="/pedidos">Ver pedidos</a>
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @if (producao(); as producao) {
+      @if (modoAtual() === 'consolidado') {
+        <ms-producao-consolidada [producao]="producao" />
+      } @else {
+        <p class="resumo texto-legenda numerico">{{ resumo() }}</p>
+        <ms-linha-do-tempo [faixas]="producao.faixas" />
+      }
+    }
+  }
+}

@@ -1,0 +1,92 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dia {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: -8px;
+}
+
+.dia-texto {
+  display: inline-flex;
+  flex-grow: 1;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.marca-hoje {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-temporal);
+  color: var(--cor-comando);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ir-para-hoje {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.modos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-controle);
+  background: var(--cor-cartao);
+}
+
+.modo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--alvo-toque);
+  border-radius: 4px;
+  color: var(--cor-acao);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.modo:hover {
+  background: var(--tint-acao);
+}
+
+.modo[aria-current='page'] {
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  /* No desktop as setas ficam junto da data, em vez de nas pontas da tela. */
+  .dia {
+    align-self: flex-start;
+  }
+
+  .dia-texto {
+    flex-grow: 0;
+    padding-right: 8px;
+  }
+
+  .modos {
+    align-self: flex-start;
+    min-width: 360px;
+  }
+}
