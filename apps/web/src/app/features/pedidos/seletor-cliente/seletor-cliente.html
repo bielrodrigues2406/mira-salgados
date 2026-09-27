@@ -1,0 +1,61 @@
+@if (escolhido(); as cliente) {
+  <div class="escolhido">
+    <span class="escolhido-textos">
+      <span class="nome">{{ cliente.nome }}</span>
+      <span class="texto-legenda numerico">
+        {{ cliente.telefone ? (cliente.telefone | telefone) : 'Sem telefone' }}
+      </span>
+    </span>
+    <button
+      type="button"
+      class="botao botao-terciario"
+      [attr.aria-label]="'Trocar cliente ' + cliente.nome"
+      (click)="trocar()"
+    >
+      Trocar
+    </button>
+  </div>
+} @else {
+  <div class="campo-controle">
+    <span class="campo-icone"><ms-icone nome="busca" /></span>
+    <input
+      #campo
+      class="campo-entrada campo-entrada-com-icone"
+      type="search"
+      autocomplete="off"
+      placeholder="Buscar por nome ou telefone"
+      [id]="idCampo()"
+      [attr.aria-invalid]="invalid()"
+      [attr.aria-describedby]="descricao()"
+      (input)="aoDigitar(campo.value)"
+      (blur)="touch.emit()"
+    />
+  </div>
+  @if (termo()) {
+    @if (resultados.hasValue()) {
+      @if (resultados.value().itens.length > 0) {
+        <ul class="resultados" aria-label="Clientes encontrados">
+          @for (cliente of resultados.value().itens; track cliente.id) {
+            <li>
+              <button type="button" class="resultado" (click)="escolher(cliente)">
+                <span class="nome">{{ cliente.nome }}</span>
+                <span class="texto-legenda numerico">
+                  {{ cliente.telefone ? (cliente.telefone | telefone) : 'Sem telefone' }}
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="texto-legenda aviso">
+          Nenhum cliente ativo encontrado.
+          <a routerLink="/clientes">Cadastre o cliente</a> e volte aqui.
+        </p>
+      }
+    } @else if (resultados.error()) {
+      <p class="campo-erro" role="alert">Não foi possível buscar os clientes. Tente de novo.</p>
+    } @else {
+      <p class="texto-legenda aviso" role="status">Buscando…</p>
+    }
+  }
+}

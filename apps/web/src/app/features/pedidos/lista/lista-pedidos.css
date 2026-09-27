@@ -1,0 +1,133 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cabecalho-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.novo {
+  padding: 0 16px 0 12px;
+}
+
+.vencem-hoje {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px 0 10px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-temporal);
+  color: var(--cor-comando);
+  font-weight: 600;
+}
+
+.controles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.busca-e-filtro {
+  display: flex;
+  gap: 8px;
+}
+
+.busca {
+  position: relative;
+  flex-grow: 1;
+}
+
+.filtros {
+  padding: 0 12px;
+}
+
+.filtros[aria-expanded='true'] {
+  border-color: var(--cor-acao);
+  background: var(--tint-acao);
+}
+
+.contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+  font-size: 12px;
+}
+
+.opcoes {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 0 16px;
+  overflow-x: auto;
+}
+
+.opcao {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--alvo-toque);
+  padding: 0 16px;
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-cartao);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opcao[aria-pressed='true'] {
+  border-color: var(--cor-acao);
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.secao-titulo .destaque {
+  color: var(--cor-texto);
+}
+
+.secao-marca {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--cor-temporal);
+}
+
+@media (min-width: 768px) {
+  .opcoes {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+  }
+}
