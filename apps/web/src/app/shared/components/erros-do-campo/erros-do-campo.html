@@ -1,0 +1,5 @@
+@if (estado().touched()) {
+  @for (falha of estado().errors(); track falha.kind) {
+    <span class="campo-erro"><ms-icone nome="alerta" />{{ falha.message }}</span>
+  }
+}

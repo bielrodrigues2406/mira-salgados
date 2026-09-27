@@ -1,0 +1,6 @@
+<section class="cartao estado" [attr.aria-labelledby]="idTitulo">
+  <span class="estado-icone"><ms-icone [nome]="icone()" [tamanho]="24" /></span>
+  <h2 class="texto-titulo" [id]="idTitulo">{{ titulo() }}</h2>
+  <p class="estado-texto"><ng-content /></p>
+  <div class="estado-acao"><ng-content select="[estadoAcao]" /></div>
+</section>

@@ -1,0 +1,49 @@
+:host {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border: 1px solid;
+  border-radius: var(--raio-pilula);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+:host(.compacto) {
+  height: 22px;
+  padding: 0 8px 0 6px;
+}
+
+:host(.tom-positivo) {
+  background: var(--tint-positivo);
+  border-color: var(--tint-positivo-borda);
+  color: var(--cor-positivo);
+}
+
+:host(.tom-neutro) {
+  background: var(--tint-neutro);
+  border-color: var(--tint-neutro-borda);
+  color: var(--cor-texto-secundario);
+}
+
+:host(.tom-frito) {
+  background: var(--preparo-frito-fundo);
+  border-color: var(--preparo-frito-borda);
+  color: var(--preparo-frito-texto);
+}
+
+:host(.tom-assado) {
+  background: var(--preparo-assado-fundo);
+  border-color: var(--preparo-assado-borda);
+  color: var(--preparo-assado-texto);
+}
+
+:host(.tom-congelado) {
+  background: var(--preparo-congelado-fundo);
+  border-color: var(--preparo-congelado-borda);
+  color: var(--preparo-congelado-texto);
+}

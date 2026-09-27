@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Pedidos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F5F6F8;font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:#0F2440;-webkit-font-smoothing:antialiased}
+a{color:#1E3A5F}a:hover{color:#0F2440}
+button,input,select,textarea{font:inherit;color:inherit}
+a,button,input{transition:color 150ms ease,background-color 150ms ease,border-color 150ms ease}
+:focus-visible{outline:2px solid #1E3A5F;outline-offset:2px}
+.escuro :focus-visible{outline-color:#FFFFFF}
+input::placeholder{color:#8E97A3}
+input:focus{border-color:#1E3A5F !important;box-shadow:0 0 0 3px rgba(30,58,95,0.2);outline:none}
+.num{font-variant-numeric:tabular-nums}
+.rolagem{scrollbar-width:none}.rolagem::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div style="width: 390px; height: 1640px; background: #F5F6F8; display: flex; flex-direction: column; overflow: hidden">
+
+<header class="escuro" style="height: 56px; flex-shrink: 0; box-sizing: border-box; background: #0F2440; display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 16px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 6px; background: #1E3A5F; border: 1px solid rgba(255,255,255,0.2); box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; font-weight: 700">M</span>
+<span style="color: #FFFFFF; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">Mira Salgados</span>
+</div>
+<button type="button" aria-label="Conta de Lúcia Andrade" style="width: 44px; height: 44px; border: 0; padding: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<span style="width: 32px; height: 32px; border-radius: 999px; background: rgba(255,255,255,0.12); color: #FFFFFF; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">LA</span>
+</button>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 32px">Pedidos</h1>
+<button type="button" style="height: 44px; padding: 0 16px 0 12px; border-radius: 6px; border: 0; background: #1E3A5F; color: #FFFFFF; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+<span>Novo pedido</span>
+</button>
+</div>
+<div style="display: flex">
+<span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 10px; border-radius: 999px; background: #C79A2E; color: #0F2440; font-size: 14px; font-weight: 600">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+<span><span class="num">{{contagemHoje}}</span> encomendas vencem hoje</span>
+</span>
+</div>
+</div>
+
+<a href="ProducaoConsolidada.dc.html" class="escuro" style="display: block; text-decoration: none; background: #0F2440; border-radius: 8px; padding: 14px; color: #FFFFFF">
+<div style="display: flex; align-items: center; justify-content: space-between; height: 20px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.72)">Produção de hoje por produtor</span>
+<span style="display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; color: #FFFFFF">Ver produção<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px; padding-right: 12px">
+<span style="font-size: 12px; color: rgba(255,255,255,0.72)">Mira</span>
+<span class="num" style="font-size: 28px; font-weight: 700; line-height: 34px; letter-spacing: -0.02em">900</span>
+<span style="font-size: 12px; color: rgba(255,255,255,0.72)">salgados</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 12px; border-left: 1px solid rgba(255,255,255,0.14)">
+<span style="font-size: 12px; color: rgba(255,255,255,0.72)">Célia</span>
+<span class="num" style="font-size: 28px; font-weight: 700; line-height: 34px; letter-spacing: -0.02em">450</span>
+<span style="font-size: 12px; color: rgba(255,255,255,0.72)">salgados</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.14)">
+<span style="font-size: 12px; color: rgba(255,255,255,0.72)">Rafael</span>
+<span class="num" style="font-size: 28px; font-weight: 700; line-height: 34px; letter-spacing: -0.02em">220</span>
+<span style="font-size: 12px; color: rgba(255,255,255,0.72)">salgados</span>
+</div>
+</div>
+</a>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; gap: 8px">
+<label style="flex-grow: 1; position: relative; display: block">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Buscar por cliente ou número</span>
+<span aria-hidden="true" style="position: absolute; left: 12px; top: 14px; color: #5A6472; display: flex">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+</span>
+<input type="search" placeholder="Buscar cliente ou número" value="{{busca}}" onChange="{{aoBuscar}}" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 12px 0 38px; border: 1px solid #8A94A0; border-radius: 6px; background: #FFFFFF; font-size: 14px; color: #0F2440">
+</label>
+<button type="button" onClick="{{alternarFiltros}}" aria-expanded="{{filtrosAbertos}}" style="height: 44px; padding: 0 12px; border-radius: 6px; border: 1px solid {{botaoFiltro.borda}}; background: {{botaoFiltro.fundo}}; color: #1E3A5F; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
+<span>Filtros</span>
+<sc-if value="{{filtrosAtivos}}" hint-placeholder-val="{{false}}">
+<span class="num" style="min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: #1E3A5F; color: #FFFFFF; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center">{{quantidadeFiltros}}</span>
+</sc-if>
+</button>
+</div>
+<sc-if value="{{filtrosAbertos}}" hint-placeholder-val="{{true}}">
+<div class="rolagem" role="group" aria-label="Filtrar por estado do pedido" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px">
+<sc-for list="{{chips}}" as="chip" hint-placeholder-count="5">
+<button type="button" aria-pressed="{{chip.ativo}}" onClick="{{chip.alternar}}" style="flex-shrink: 0; height: 44px; padding: 0 16px; border-radius: 999px; box-sizing: border-box; border: 1px solid {{chip.borda}}; background: {{chip.fundo}}; color: {{chip.cor}}; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer">
+<sc-if value="{{chip.ativo}}" hint-placeholder-val="{{false}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+</sc-if>
+<span>{{chip.rotulo}}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+<sc-for list="{{secoes}}" as="secao" hint-placeholder-count="3">
+<section style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px">
+<div style="display: flex; align-items: center; gap: 8px; height: 20px">
+<sc-if value="{{secao.hoje}}" hint-placeholder-val="{{true}}">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 2px; background: #C79A2E"></span>
+</sc-if>
+<h2 style="margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{secao.corTitulo}}">{{secao.titulo}}</h2>
+<span class="num" style="font-size: 12px; color: #5A6472">{{secao.contagem}}</span>
+</div>
+<sc-for list="{{secao.itens}}" as="p" hint-placeholder-count="2">
+<a href="PedidoDetalhe.dc.html" style="position: relative; display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 14px 18px; background: #FFFFFF; border: 1px solid #E3E6EA; border-radius: 8px; text-decoration: none; color: #0F2440; overflow: hidden">
+<sc-if value="{{p.hoje}}" hint-placeholder-val="{{false}}">
+<span aria-hidden="true" style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #C79A2E"></span>
+</sc-if>
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+<span class="num" style="flex-shrink: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.01em">{{p.numero}}</span>
+<span style="flex-grow: 1; min-width: 0; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.cliente}}</span>
+<span style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px 0 8px; box-sizing: border-box; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: {{p.st.fundo}}; color: {{p.st.cor}}; border: 1px solid {{p.st.borda}}">
+<sc-if value="{{p.st.rascunho}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.85.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.85z"/></svg></sc-if>
+<sc-if value="{{p.st.confirmado}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></sc-if>
+<sc-if value="{{p.st.concluido}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 7 17l-5-5M22 10l-7.5 7.5L13 16"/></svg></sc-if>
+<sc-if value="{{p.st.cancelado}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg></sc-if>
+<span>{{p.st.rotulo}}</span>
+</span>
+</div>
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 4px; min-width: 0; font-size: 12px; color: #5A6472">
+<span style="display: inline-flex; align-items: center; gap: 4px">
+<sc-if value="{{p.ehEntrega}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></sc-if>
+<sc-if value="{{p.ehRetirada}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v10h16V10"/><path d="M3 10l1.8-6h14.4L21 10z"/><path d="M10 20v-5h4v5"/></svg></sc-if>
+<span>{{p.rotuloEntrega}}</span>
+</span>
+<span class="num" style="display: inline-flex; align-items: center; gap: 4px">
+<sc-if value="{{p.hoje}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></sc-if>
+<sc-if value="{{p.outroDia}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></sc-if>
+<span>{{p.quando}}</span>
+</span>
+<sc-if value="{{p.desconto}}" hint-placeholder-val="{{false}}">
+<span style="display: inline-flex; align-items: center; gap: 4px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Desconto</span></span>
+</sc-if>
+<sc-if value="{{p.fiado}}" hint-placeholder-val="{{false}}">
+<span style="display: inline-flex; align-items: center; gap: 4px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5z"/><path d="M9 3v18M13 8h3M13 12h3"/></svg><span>Fiado</span></span>
+</sc-if>
+</div>
+<div style="flex-shrink: 0; display: flex; align-items: center; gap: 8px">
+<sc-if value="{{p.temPagamento}}" hint-placeholder-val="{{true}}">
+<span style="display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px 0 8px; box-sizing: border-box; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: {{p.pg.fundo}}; color: {{p.pg.cor}}; border: 1px solid {{p.pg.borda}}">
+<sc-if value="{{p.pg.pendente}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg></sc-if>
+<sc-if value="{{p.pg.parcial}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></sc-if>
+<sc-if value="{{p.pg.pago}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/></svg></sc-if>
+<span>{{p.pg.rotulo}}</span>
+</span>
+</sc-if>
+<span class="num" style="font-size: 16px; font-weight: 600; color: {{p.corTotal}}">{{p.total}}</span>
+</div>
+</div>
+</a>
+</sc-for>
+</section>
+</sc-for>
+
+<sc-if value="{{vazio}}" hint-placeholder-val="{{false}}">
+<div style="background: #FFFFFF; border: 1px solid #E3E6EA; border-radius: 8px; padding: 32px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+<span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 999px; background: #F5F6F8; color: #5A6472; display: flex; align-items: center; justify-content: center">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+</span>
+<h2 style="margin: 4px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">Nenhuma encomenda encontrada</h2>
+<p style="margin: 0; font-size: 14px; line-height: 20px; color: #5A6472">Nenhum pedido corresponde à busca e aos filtros selecionados.</p>
+<button type="button" onClick="{{limpar}}" style="margin-top: 8px; height: 44px; padding: 0 16px; border-radius: 6px; border: 1px solid #8A94A0; background: #FFFFFF; color: #1E3A5F; font-size: 14px; font-weight: 600; cursor: pointer">Limpar busca e filtros</button>
+</div>
+</sc-if>
+
+</main>
+
+<nav aria-label="Navegação principal" class="escuro" style="flex-shrink: 0; height: 84px; box-sizing: border-box; background: #0F2440; padding: 6px 4px 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+<a href="Main.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #FFFFFF; font-size: 12px; font-weight: 600">
+<span style="width: 52px; height: 28px; border-radius: 999px; background: rgba(199,154,46,0.24); color: #C79A2E; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg></span>
+<span>Pedidos</span>
+</a>
+<a href="ProducaoCronologica.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.46.32-.84.73-1.04a4 4 0 0 0-2.14-7.59 5 5 0 0 0-9.18 0 4 4 0 0 0-2.14 7.59c.41.2.73.58.73 1.04V20a1 1 0 0 0 1 1z"/><path d="M6 17h12"/></svg></span>
+<span>Produção</span>
+</a>
+<a href="Clientes.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+<span>Clientes</span>
+</a>
+<a href="Produtos.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.3 7 12 12l8.7-5M7.5 4.27l9 5.15"/></svg></span>
+<span>Produtos</span>
+</a>
+<a href="RelatorioAcerto.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></span>
+<span>Relatórios</span>
+</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1640}}'>
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { busca: '', filtros: [], filtrosAbertos: true };
+  }
+
+  alternarFiltro(chave) {
+    if (chave === null) {
+      this.setState({ filtros: [] });
+      return;
+    }
+    const atuais = this.state.filtros;
+    const filtros = atuais.includes(chave) ? atuais.filter((f) => f !== chave) : atuais.concat([chave]);
+    this.setState({ filtros });
+  }
+
+  renderVals() {
+    const ESTADOS = {
+      RASCUNHO: { rotulo: 'Rascunho', fundo: '#EEF0F3', cor: '#5A6472', borda: '#D5DAE0' },
+      CONFIRMADO: { rotulo: 'Confirmado', fundo: '#E9EFF6', cor: '#1E3A5F', borda: '#C9D6E5' },
+      CONCLUIDO: { rotulo: 'Concluído', fundo: '#EEF7F1', cor: '#15803D', borda: '#C4E4CF' },
+      CANCELADO: { rotulo: 'Cancelado', fundo: '#FCEDED', cor: '#B91C1C', borda: '#F2C9C9' }
+    };
+    const PAGAMENTOS = {
+      PENDENTE: { rotulo: 'Pendente', fundo: '#FCEDED', cor: '#B91C1C', borda: '#F2C9C9' },
+      PARCIAL: { rotulo: 'Parcial', fundo: '#FDF3E8', cor: '#B45309', borda: '#F3D6B8' },
+      PAGO: { rotulo: 'Pago', fundo: '#EEF7F1', cor: '#15803D', borda: '#C4E4CF' }
+    };
+    const pedidos = [
+      { numero: '#1042', cliente: 'Ana Paula Ribeiro', status: 'CONFIRMADO', pagamento: 'PAGO', entrega: 'ENTREGA', quando: '10:00', total: 'R$ 322,00', grupo: 'hoje' },
+      { numero: '#1043', cliente: 'Buffet Sabor & Arte', status: 'CONFIRMADO', pagamento: 'PARCIAL', entrega: 'RETIRADA', quando: '11:30', total: 'R$ 540,00', grupo: 'hoje', desconto: true },
+      { numero: '#1044', cliente: 'Carla Menezes', status: 'CONFIRMADO', pagamento: 'PENDENTE', entrega: 'ENTREGA', quando: '15:00', total: 'R$ 167,00', grupo: 'hoje' },
+      { numero: '#1045', cliente: 'Escola Pequeno Príncipe', status: 'CONFIRMADO', pagamento: 'PENDENTE', entrega: 'RETIRADA', quando: 'Sem horário', total: 'R$ 390,00', grupo: 'hoje', fiado: true },
+      { numero: '#1046', cliente: 'Roberto Lima', status: 'CONFIRMADO', pagamento: 'PARCIAL', entrega: 'ENTREGA', quando: 'Sáb, 3 out · 09:00', total: 'R$ 228,00', grupo: 'proximas' },
+      { numero: '#1047', cliente: 'Fernanda Castro', status: 'RASCUNHO', pagamento: 'PENDENTE', entrega: 'RETIRADA', quando: 'Dom, 4 out', total: 'R$ 95,00', grupo: 'proximas' },
+      { numero: '#1041', cliente: 'Juliana Torres', status: 'CONCLUIDO', pagamento: 'PAGO', entrega: 'ENTREGA', quando: 'Qui, 1 out · 17:00', total: 'R$ 190,00', grupo: 'anteriores' },
+      { numero: '#1040', cliente: 'Paulo Henrique Souza', status: 'CANCELADO', pagamento: null, entrega: 'RETIRADA', quando: 'Qua, 30 set', total: 'R$ 120,00', grupo: 'anteriores' }
+    ];
+
+    const { busca, filtros, filtrosAbertos } = this.state;
+    const termo = busca.trim().toLowerCase();
+    const visiveis = pedidos.filter((p) => {
+      const passaFiltro = filtros.length === 0 || filtros.includes(p.status);
+      const passaBusca = !termo || p.cliente.toLowerCase().includes(termo) || p.numero.includes(termo);
+      return passaFiltro && passaBusca;
+    });
+
+    const montarCartao = (p) => {
+      const pg = p.pagamento ? PAGAMENTOS[p.pagamento] : null;
+      return {
+        numero: p.numero,
+        cliente: p.cliente,
+        quando: p.quando,
+        total: p.total,
+        desconto: !!p.desconto,
+        fiado: !!p.fiado,
+        hoje: p.grupo === 'hoje',
+        outroDia: p.grupo !== 'hoje',
+        ehEntrega: p.entrega === 'ENTREGA',
+        ehRetirada: p.entrega === 'RETIRADA',
+        rotuloEntrega: p.entrega === 'ENTREGA' ? 'Entrega' : 'Retirada',
+        corTotal: p.status === 'CANCELADO' ? '#5A6472' : '#0F2440',
+        st: Object.assign({}, ESTADOS[p.status], {
+          rascunho: p.status === 'RASCUNHO',
+          confirmado: p.status === 'CONFIRMADO',
+          concluido: p.status === 'CONCLUIDO',
+          cancelado: p.status === 'CANCELADO'
+        }),
+        temPagamento: !!pg,
+        pg: Object.assign({}, pg || {}, {
+          pendente: p.pagamento === 'PENDENTE',
+          parcial: p.pagamento === 'PARCIAL',
+          pago: p.pagamento === 'PAGO'
+        })
+      };
+    };
+
+    const grupos = [
+      { chave: 'hoje', titulo: 'Hoje · sex, 2 out', hoje: true },
+      { chave: 'proximas', titulo: 'Próximas', hoje: false },
+      { chave: 'anteriores', titulo: 'Anteriores', hoje: false }
+    ];
+    const secoes = grupos
+      .map((g) => {
+        const itens = visiveis.filter((p) => p.grupo === g.chave).map(montarCartao);
+        return {
+          titulo: g.titulo,
+          hoje: g.hoje,
+          corTitulo: g.hoje ? '#0F2440' : '#5A6472',
+          contagem: String(itens.length),
+          itens
+        };
+      })
+      .filter((s) => s.itens.length > 0);
+
+    const opcoes = [
+      { chave: null, rotulo: 'Todos' },
+      { chave: 'RASCUNHO', rotulo: 'Rascunho' },
+      { chave: 'CONFIRMADO', rotulo: 'Confirmado' },
+      { chave: 'CONCLUIDO', rotulo: 'Concluído' },
+      { chave: 'CANCELADO', rotulo: 'Cancelado' }
+    ];
+    const chips = opcoes.map((o) => {
+      const ativo = o.chave === null ? filtros.length === 0 : filtros.includes(o.chave);
+      return {
+        rotulo: o.rotulo,
+        ativo,
+        fundo: ativo ? '#1E3A5F' : '#FFFFFF',
+        cor: ativo ? '#FFFFFF' : '#0F2440',
+        borda: ativo ? '#1E3A5F' : '#8A94A0',
+        alternar: () => this.alternarFiltro(o.chave)
+      };
+    });
+
+    return {
+      busca,
+      aoBuscar: (e) => this.setState({ busca: e.target.value }),
+      filtrosAbertos,
+      alternarFiltros: () => this.setState({ filtrosAbertos: !filtrosAbertos }),
+      filtrosAtivos: filtros.length > 0,
+      quantidadeFiltros: String(filtros.length),
+      botaoFiltro: filtrosAbertos ? { fundo: '#E9EFF6', borda: '#1E3A5F' } : { fundo: '#FFFFFF', borda: '#8A94A0' },
+      chips,
+      secoes,
+      vazio: secoes.length === 0,
+      limpar: () => this.setState({ busca: '', filtros: [] }),
+      contagemHoje: String(pedidos.filter((p) => p.grupo === 'hoje').length)
+    };
+  }
+}
+</script>
+</body>
+</html>

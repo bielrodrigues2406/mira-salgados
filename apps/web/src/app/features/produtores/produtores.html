@@ -1,0 +1,198 @@
+<a class="voltar" routerLink="/produtos">
+  <ms-icone nome="chevronEsquerda" />
+  <span>Produtos</span>
+</a>
+
+<header class="cabecalho">
+  <div class="cabecalho-linha">
+    <h1 class="texto-display">Produtores</h1>
+    <button
+      type="button"
+      class="botao botao-secundario novo"
+      [attr.aria-expanded]="formularioAberto()"
+      aria-controls="formulario-novo-produtor"
+      (click)="abrirFormulario()"
+    >
+      <ms-icone nome="mais" />
+      <span>Novo produtor</span>
+    </button>
+  </div>
+  <p class="descricao">
+    O produtor padrão é sugerido em cada item do pedido e pode ser trocado ali.
+  </p>
+</header>
+
+<p class="somente-leitor-de-tela" role="status">{{ aviso() }}</p>
+
+@if (formularioAberto()) {
+  <form
+    id="formulario-novo-produtor"
+    class="cartao formulario"
+    aria-labelledby="titulo-novo-produtor"
+    [formRoot]="formularioNovo"
+  >
+    <div class="formulario-cabecalho">
+      <h2 id="titulo-novo-produtor" class="texto-titulo">Novo produtor</h2>
+      <button
+        type="button"
+        class="botao botao-terciario botao-icone fechar"
+        aria-label="Fechar formulário"
+        (click)="fecharFormulario()"
+      >
+        <ms-icone nome="fechar" [tamanho]="20" />
+      </button>
+    </div>
+
+    <div class="campo">
+      <label class="texto-rotulo" for="novo-produtor-nome">Nome</label>
+      <input
+        #campoNovo
+        id="novo-produtor-nome"
+        class="campo-entrada"
+        autocomplete="off"
+        placeholder="Como a família chama"
+        [formField]="formularioNovo.nome"
+        [attr.aria-invalid]="formularioNovo.nome().touched() && formularioNovo.nome().invalid()"
+        aria-describedby="novo-produtor-nome-erro"
+      />
+      <ms-erros-do-campo id="novo-produtor-nome-erro" [estado]="formularioNovo.nome()" />
+    </div>
+
+    @if (erroNovo(); as mensagem) {
+      <div class="alerta alerta-negativo" role="alert">
+        <ms-icone nome="alerta" [tamanho]="20" />
+        <span>{{ mensagem }}</span>
+      </div>
+    }
+
+    <div class="formulario-acoes">
+      <button
+        type="submit"
+        class="botao botao-primario salvar"
+        [disabled]="formularioNovo().submitting()"
+      >
+        {{ formularioNovo().submitting() ? 'Salvando…' : 'Salvar produtor' }}
+      </button>
+      <button type="button" class="botao botao-secundario" (click)="fecharFormulario()">
+        Cancelar
+      </button>
+    </div>
+  </form>
+}
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando produtores" [comAvatar]="true" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar os produtores" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar os produtores"
+      [erro]="produtores.error()"
+      (tentarNovamente)="produtores.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="produtor" titulo="Nenhum produtor cadastrado">
+      Cadastre quem prepara os salgados para indicar o produtor padrão de cada produto.
+      <button estadoAcao type="button" class="botao botao-secundario" (click)="abrirFormulario()">
+        Cadastrar produtor
+      </button>
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    <ul class="lista" aria-label="Produtores">
+      @for (produtor of itens(); track produtor.id) {
+        <li class="item" [class.inativo]="!produtor.ativo">
+          @if (emEdicao()?.id === produtor.id) {
+            <form
+              class="edicao"
+              [attr.aria-label]="'Editar ' + produtor.nome"
+              [formRoot]="formularioEdicao"
+            >
+              <div class="campo">
+                <label class="texto-rotulo" for="edicao-produtor-nome">Nome</label>
+                <input
+                  #campoEdicao
+                  id="edicao-produtor-nome"
+                  class="campo-entrada"
+                  autocomplete="off"
+                  [formField]="formularioEdicao.nome"
+                  [attr.aria-invalid]="
+                    formularioEdicao.nome().touched() && formularioEdicao.nome().invalid()
+                  "
+                  aria-describedby="edicao-produtor-nome-erro"
+                />
+                <ms-erros-do-campo
+                  id="edicao-produtor-nome-erro"
+                  [estado]="formularioEdicao.nome()"
+                />
+              </div>
+
+              <div class="opcao">
+                <input
+                  id="edicao-produtor-ativo"
+                  type="checkbox"
+                  class="opcao-caixa"
+                  [formField]="formularioEdicao.ativo"
+                  aria-describedby="edicao-produtor-ativo-ajuda"
+                />
+                <span class="opcao-textos">
+                  <label class="opcao-rotulo" for="edicao-produtor-ativo">Produtor ativo</label>
+                  <span id="edicao-produtor-ativo-ajuda" class="campo-ajuda">
+                    Inativos deixam de ser sugeridos em novos pedidos, mas continuam no histórico.
+                  </span>
+                </span>
+              </div>
+
+              @if (erroEdicao(); as mensagem) {
+                <div class="alerta alerta-negativo" role="alert">
+                  <ms-icone nome="alerta" [tamanho]="20" />
+                  <span>{{ mensagem }}</span>
+                </div>
+              }
+
+              <div class="formulario-acoes">
+                <button
+                  type="submit"
+                  class="botao botao-primario salvar"
+                  [disabled]="formularioEdicao().submitting()"
+                >
+                  {{ formularioEdicao().submitting() ? 'Salvando…' : 'Salvar alterações' }}
+                </button>
+                <button type="button" class="botao botao-secundario" (click)="cancelarEdicao()">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          } @else {
+            <span class="avatar" aria-hidden="true">{{ iniciais(produtor.nome) }}</span>
+            <div class="item-textos">
+              <div class="item-linha">
+                <span class="item-nome">{{ produtor.nome }}</span>
+                @if (produtor.ativo) {
+                  <ms-chip tom="positivo" icone="confirmado" [compacto]="true">Ativo</ms-chip>
+                } @else {
+                  <ms-chip tom="neutro" icone="pausado" [compacto]="true">Inativo</ms-chip>
+                }
+              </div>
+            </div>
+            <button
+              type="button"
+              class="botao botao-terciario botao-icone editar"
+              [attr.aria-label]="'Editar ' + produtor.nome"
+              (click)="editar(produtor)"
+            >
+              <ms-icone nome="editar" />
+            </button>
+          }
+        </li>
+      }
+    </ul>
+    @if (meta(); as meta) {
+      <ms-paginacao [meta]="meta" (paginaMudou)="irParaPagina($event)" />
+    }
+  }
+}

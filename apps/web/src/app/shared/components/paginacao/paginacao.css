@@ -1,0 +1,13 @@
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.posicao {
+  min-width: 120px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--cor-texto-secundario);
+}

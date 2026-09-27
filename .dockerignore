@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/coverage
+**/.angular
+**/out-tsc
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+.git
+.husky
+design
+docs
+database
