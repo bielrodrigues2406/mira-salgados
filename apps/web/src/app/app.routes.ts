@@ -30,7 +30,11 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'pedidos' },
       emBreve('pedidos', 'Pedidos'),
       emBreve('producao', 'Produção do dia'),
-      emBreve('clientes', 'Clientes'),
+      {
+        path: 'clientes',
+        title: `Clientes · ${TITULO}`,
+        loadComponent: () => import('./features/clientes/clientes').then((m) => m.Clientes),
+      },
       emBreve('produtos', 'Produtos'),
       {
         path: 'produtores',

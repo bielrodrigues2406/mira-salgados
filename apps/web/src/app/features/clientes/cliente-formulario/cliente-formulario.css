@@ -1,0 +1,50 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formulario-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fechar {
+  margin-right: -10px;
+  color: var(--cor-texto-secundario);
+}
+
+.opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.opcao-caixa {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--cor-acao);
+}
+
+.opcao-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.opcao-rotulo {
+  font-weight: 600;
+}
+
+.formulario-acoes {
+  display: flex;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.salvar {
+  flex-grow: 1;
+}
