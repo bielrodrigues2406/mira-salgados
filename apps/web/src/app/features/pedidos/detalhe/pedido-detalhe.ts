@@ -137,9 +137,7 @@ export class PedidoDetalhe {
       tipoEntrega: pedido.tipoEntrega,
       dataEntrega: pedido.dataEntrega,
       horarioEntrega: pedido.horarioEntrega,
-      taxaEntregaCentavos: pedido.resumo.taxaEntregaCentavos,
       descontoCentavos: pedido.resumo.descontoCentavos,
-      entregadorId: pedido.entregador?.id ?? null,
       observacao: pedido.observacao,
     };
   });

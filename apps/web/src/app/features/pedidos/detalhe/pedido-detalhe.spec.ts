@@ -27,12 +27,10 @@ function pedido(dados: Partial<Pedido> = {}): Pedido {
       endereco: null,
       ativo: true,
     },
-    entregador: null,
     registradoPor: { id: 'u1', nome: 'Lúcia Andrade' },
     resumo: {
       subtotalCentavos: 28500,
       descontoCentavos: 0,
-      taxaEntregaCentavos: 0,
       totalCentavos: 28500,
       totalPagoCentavos: 0,
       totalFiadoCentavos: 0,

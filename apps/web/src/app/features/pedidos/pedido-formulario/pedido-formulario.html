@@ -64,47 +64,6 @@
     </div>
   </div>
 
-  @if (ehEntrega()) {
-    <div class="duas-colunas">
-      <div class="campo">
-        <label class="texto-rotulo" [for]="id + '-taxa'">Taxa de entrega</label>
-        <div class="campo-controle">
-          <span class="campo-prefixo" aria-hidden="true">R$</span>
-          <input
-            class="campo-entrada campo-entrada-com-prefixo numerico"
-            inputmode="decimal"
-            autocomplete="off"
-            placeholder="0,00"
-            [id]="id + '-taxa'"
-            [formField]="formulario.taxaEntrega"
-            [attr.aria-invalid]="
-              formulario.taxaEntrega().touched() && formulario.taxaEntrega().invalid()
-            "
-            [attr.aria-describedby]="id + '-taxa-erro'"
-          />
-        </div>
-        <ms-erros-do-campo [id]="id + '-taxa-erro'" [estado]="formulario.taxaEntrega()" />
-      </div>
-      <div class="campo">
-        <label class="texto-rotulo" [for]="id + '-entregador'">Entregador</label>
-        <select
-          class="campo-entrada campo-selecao"
-          [id]="id + '-entregador'"
-          [formField]="formulario.entregadorId"
-          [attr.aria-describedby]="id + '-entregador-ajuda'"
-        >
-          <option value="">Definir depois</option>
-          @for (entregador of entregadores(); track entregador.id) {
-            <option [value]="entregador.id">{{ entregador.nome }}</option>
-          }
-        </select>
-        <span class="campo-ajuda" [id]="id + '-entregador-ajuda'">
-          Recebe a taxa no acerto; obrigatório para concluir.
-        </span>
-      </div>
-    </div>
-  }
-
   <div class="campo">
     <label class="texto-rotulo" [for]="id + '-desconto'">Desconto</label>
     <div class="campo-controle">

@@ -24,9 +24,6 @@
           <span class="meta">
             <ms-icone [nome]="pedido.tipoEntrega === 'ENTREGA' ? 'entrega' : 'retirada'" />
             {{ pedido.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada' }}
-            @if (pedido.entregador; as entregador) {
-              · {{ entregador.nome }}
-            }
           </span>
           <span class="meta numerico"><ms-icone nome="calendario" />{{ dataDaEntrega() }}</span>
         </div>
@@ -118,7 +115,6 @@
             <ms-pedido-formulario
               [inicial]="dados"
               [clienteInicial]="pedido.cliente"
-              [entregadores]="produtores()"
               rotuloSalvar="Salvar dados"
               [salvar]="salvarDados"
               (cancelar)="editando.set(false)"

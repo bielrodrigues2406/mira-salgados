@@ -37,7 +37,6 @@ export interface PedidoResumo {
 export interface ResumoFinanceiro {
   subtotalCentavos: number;
   descontoCentavos: number;
-  taxaEntregaCentavos: number;
   totalCentavos: number;
   /** Só dinheiro e PIX; o fiado não quita. */
   totalPagoCentavos: number;
@@ -78,7 +77,6 @@ export interface PedidoDetalhe {
   horarioEntrega: string | null;
   observacao: string | null;
   cliente: Referencia & { telefone: string | null; endereco: string | null; ativo: boolean };
-  entregador: Referencia | null;
   registradoPor: Referencia;
   resumo: ResumoFinanceiro;
   itens: ItemPedido[];
@@ -94,9 +92,7 @@ export interface DadosPedido {
   tipoEntrega: TipoEntrega;
   dataEntrega: string;
   horarioEntrega: string | null;
-  taxaEntregaCentavos: number;
   descontoCentavos: number;
-  entregadorId: string | null;
   observacao: string | null;
 }
 
