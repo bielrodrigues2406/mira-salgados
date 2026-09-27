@@ -37,12 +37,23 @@ Pontos com resolução técnica adotada, sem decisão pendente:
 
 ## Desempenho e índices
 
-| Tabela           | Índice                               | Consulta atendida        |
-| ---------------- | ------------------------------------ | ------------------------ |
-| `refresh_tokens` | único em `token_hash`                | Renovação de sessão      |
-| `refresh_tokens` | `family_id`                          | Revogação da família     |
-| `logs_auditoria` | `(entidade, entidade_id, criado_em)` | Histórico de um registro |
-| `logs_auditoria` | `criado_em`                          | Filtro por intervalo     |
+| Tabela           | Índice                                                          | Consulta atendida                     |
+| ---------------- | --------------------------------------------------------------- | ------------------------------------- |
+| `refresh_tokens` | único em `token_hash`                                           | Renovação de sessão                   |
+| `refresh_tokens` | `family_id`                                                     | Revogação da família                  |
+| `logs_auditoria` | `(entidade, entidade_id, criado_em)`                            | Histórico de um registro              |
+| `logs_auditoria` | `criado_em`                                                     | Filtro por intervalo                  |
+| `produtores`     | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa  |
+| `clientes`       | GIN trigram em `lower(immutable_unaccent(nome))`                | Busca por trecho do nome, sem acentos |
+| `clientes`       | GIN trigram em `telefone`                                       | Busca por trecho do telefone          |
+| `produtos`       | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa  |
+| `produtos`       | `produtor_padrao_id`                                            | Produtos de um produtor, desativação  |
+| `precos_produto` | único parcial em `(produto_id, preparo, unidade_venda)` vigente | Um preço vigente por combinação       |
+| `precos_produto` | `(produto_id, vigente_desde DESC)`                              | Histórico de preços de um produto     |
+
+A busca de clientes foi conferida com `EXPLAIN`: nome e telefone usam os dois
+índices trigram num `BitmapOr`. Decisões dos cadastros no
+[ADR 0010](adr/0010-cadastros-busca-e-precos.md).
 
 Os índices dos relatórios (pedidos por data de entrega e status, itens por
 produtor, pagamentos por pedido) serão definidos junto com as consultas.
