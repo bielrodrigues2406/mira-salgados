@@ -1,0 +1,52 @@
+<section class="total" aria-labelledby="titulo-total-do-dia">
+  <div class="total-principal">
+    <h2 id="titulo-total-do-dia" class="total-rotulo">Total do dia</h2>
+    <div class="total-valor">
+      <span class="total-numero numerico">{{ numero(producao().unidades) }}</span>
+      <span class="total-unidade">salgados</span>
+    </div>
+    <span class="total-legenda numerico">
+      {{ contagem(producao().quantidadePedidos, 'encomenda', 'encomendas') }}
+      · {{ contagem(producao().quantidadeProdutores, 'produtor', 'produtores') }}
+    </span>
+  </div>
+  <dl class="preparos">
+    @for (parte of producao().porPreparo; track parte.preparo) {
+      <div class="preparo">
+        <dt><ms-chip-preparo [preparo]="parte.preparo" /></dt>
+        <dd class="preparo-numero numerico">{{ numero(parte.unidades) }}</dd>
+      </div>
+    }
+  </dl>
+</section>
+
+@for (grupo of producao().consolidado; track grupo.preparo) {
+  <section class="grupo" [attr.aria-labelledby]="'grupo-' + grupo.preparo">
+    <div class="grupo-titulo">
+      <h2 class="texto-rotulo" [id]="'grupo-' + grupo.preparo">
+        {{ aparencia[grupo.preparo].rotulo }}
+      </h2>
+      <span class="texto-legenda numerico">
+        {{ contagem(grupo.unidades, 'unidade', 'unidades') }}
+      </span>
+    </div>
+    @for (linha of grupo.linhas; track linha.produto.id + linha.produtor.id) {
+      <article class="linha">
+        <div class="linha-textos">
+          <div class="linha-nome">
+            <h3 class="linha-produto">{{ linha.produto.nome }}</h3>
+            <span class="texto-legenda numerico">{{ detalhe(linha) }}</span>
+          </div>
+          <div class="linha-chips">
+            <ms-chip-preparo [preparo]="grupo.preparo" />
+            <ms-chip tom="positivo" icone="produtor">{{ linha.produtor.nome }}</ms-chip>
+          </div>
+        </div>
+        <div class="linha-quantidade">
+          <span class="quantidade numerico">{{ numero(linha.unidades) }}</span>
+          <span class="unidades">{{ linha.unidades === 1 ? 'unidade' : 'unidades' }}</span>
+        </div>
+      </article>
+    }
+  </section>
+}
