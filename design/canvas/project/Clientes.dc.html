@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Clientes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F5F6F8;font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:#0F2440;-webkit-font-smoothing:antialiased}
+a{color:#1E3A5F}a:hover{color:#0F2440}
+button,input,select,textarea{font:inherit;color:inherit}
+a,button,input{transition:color 150ms ease,background-color 150ms ease,border-color 150ms ease}
+:focus-visible{outline:2px solid #1E3A5F;outline-offset:2px}
+.escuro :focus-visible{outline-color:#FFFFFF}
+input::placeholder{color:#8E97A3}
+input:focus{border-color:#1E3A5F !important;box-shadow:0 0 0 3px rgba(30,58,95,0.2);outline:none}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 390px; height: 1420px; background: #F5F6F8; display: flex; flex-direction: column; overflow: hidden">
+
+<header class="escuro" style="height: 56px; flex-shrink: 0; box-sizing: border-box; background: #0F2440; display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 16px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 6px; background: #1E3A5F; border: 1px solid rgba(255,255,255,0.2); box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; font-weight: 700">M</span>
+<span style="color: #FFFFFF; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">Mira Salgados</span>
+</div>
+<button type="button" aria-label="Conta de Lúcia Andrade" style="width: 44px; height: 44px; border: 0; padding: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<span style="width: 32px; height: 32px; border-radius: 999px; background: rgba(255,255,255,0.12); color: #FFFFFF; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">LA</span>
+</button>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 32px">Clientes</h1>
+<button type="button" onClick="{{abrirFormulario}}" aria-expanded="{{formularioAberto}}" style="height: 44px; padding: 0 16px 0 12px; border-radius: 6px; border: 0; background: {{botaoNovo.fundo}}; color: {{botaoNovo.cor}}; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+<span>Novo cliente</span>
+</button>
+</div>
+
+<sc-if value="{{formularioAberto}}" hint-placeholder-val="{{true}}">
+<form aria-labelledby="titulo-form" onSubmit="{{aoEnviar}}" style="background: #FFFFFF; border: 1px solid #E3E6EA; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<h2 id="titulo-form" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">Novo cliente</h2>
+<button type="button" onClick="{{fecharFormulario}}" aria-label="Fechar formulário" style="width: 44px; height: 44px; margin-right: -10px; border: 0; border-radius: 6px; background: transparent; color: #5A6472; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6472">Nome</span>
+<input type="text" autocomplete="off" placeholder="Nome ou empresa" value="{{nome}}" onChange="{{aoMudarNome}}" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #1E3A5F; border-radius: 6px; background: #FFFFFF; font-size: 14px; color: #0F2440; box-shadow: 0 0 0 3px rgba(30,58,95,0.2)">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6472">Telefone</span>
+<input type="tel" inputmode="tel" placeholder="(00) 00000-0000" class="num" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #8A94A0; border-radius: 6px; background: #FFFFFF; font-size: 14px; color: #0F2440">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6472">Endereço</span>
+<input type="text" placeholder="Rua, número e bairro" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #8A94A0; border-radius: 6px; background: #FFFFFF; font-size: 14px; color: #0F2440">
+<span style="font-size: 12px; color: #5A6472">Opcional para quem só faz retirada.</span>
+</label>
+<div style="display: flex; gap: 10px; padding-top: 2px">
+<button type="submit" style="flex-grow: 1; height: 44px; border-radius: 6px; border: 0; background: #1E3A5F; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer">Salvar cliente</button>
+<button type="button" onClick="{{fecharFormulario}}" style="height: 44px; padding: 0 16px; border-radius: 6px; border: 1px solid #8A94A0; background: #FFFFFF; color: #1E3A5F; font-size: 14px; font-weight: 600; cursor: pointer">Cancelar</button>
+</div>
+</form>
+</sc-if>
+
+<label style="position: relative; display: block">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Buscar cliente</span>
+<span aria-hidden="true" style="position: absolute; left: 12px; top: 14px; color: #5A6472; display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+<input type="search" placeholder="Buscar por nome ou telefone" value="{{busca}}" onChange="{{aoBuscar}}" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 12px 0 38px; border: 1px solid #8A94A0; border-radius: 6px; background: #FFFFFF; font-size: 14px; color: #0F2440">
+</label>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<p class="num" style="margin: 0; font-size: 12px; color: #5A6472">{{resumo}}</p>
+<sc-if value="{{temResultados}}" hint-placeholder-val="{{true}}">
+<ul style="margin: 0; padding: 0; list-style: none; background: #FFFFFF; border: 1px solid #E3E6EA; border-radius: 8px; overflow: hidden">
+<sc-for list="{{clientes}}" as="c" hint-placeholder-count="7">
+<li style="border-top: {{c.divisoria}}">
+<button type="button" style="width: 100%; min-height: 44px; box-sizing: border-box; padding: 14px; border: 0; background: transparent; text-align: left; display: flex; align-items: flex-start; gap: 12px; cursor: pointer">
+<span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 14px; font-weight: 600">{{c.nome}}</span>
+<span class="num" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #5A6472"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>{{c.telefone}}</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #5A6472"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-5.5 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.5 20.2 4 15 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.endereco}}</span></span>
+</span>
+<sc-if value="{{c.temSaldo}}" hint-placeholder-val="{{false}}">
+<span style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #B91C1C">Em aberto</span>
+<span class="num" style="font-size: 16px; font-weight: 700; color: #B91C1C">{{c.saldo}}</span>
+<sc-if value="{{c.temFiado}}" hint-placeholder-val="{{false}}">
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #5A6472"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5z"/><path d="M9 3v18M13 8h3M13 12h3"/></svg>Fiado</span>
+</sc-if>
+</span>
+</sc-if>
+</button>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{semResultados}}" hint-placeholder-val="{{false}}">
+<div style="background: #FFFFFF; border: 1px solid #E3E6EA; border-radius: 8px; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600">Nenhum cliente encontrado</h2>
+<p style="margin: 0; font-size: 14px; line-height: 20px; color: #5A6472">Confira a grafia ou cadastre um novo cliente.</p>
+<button type="button" onClick="{{abrirFormulario}}" style="margin-top: 8px; height: 44px; padding: 0 16px; border-radius: 6px; border: 1px solid #8A94A0; background: #FFFFFF; color: #1E3A5F; font-size: 14px; font-weight: 600; cursor: pointer">Cadastrar cliente</button>
+</div>
+</sc-if>
+</div>
+
+</main>
+
+<nav aria-label="Navegação principal" class="escuro" style="flex-shrink: 0; height: 84px; box-sizing: border-box; background: #0F2440; padding: 6px 4px 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg></span>
+<span>Pedidos</span>
+</a>
+<a href="ProducaoCronologica.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.46.32-.84.73-1.04a4 4 0 0 0-2.14-7.59 5 5 0 0 0-9.18 0 4 4 0 0 0-2.14 7.59c.41.2.73.58.73 1.04V20a1 1 0 0 0 1 1z"/><path d="M6 17h12"/></svg></span>
+<span>Produção</span>
+</a>
+<a href="Clientes.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #FFFFFF; font-size: 12px; font-weight: 600">
+<span style="width: 52px; height: 28px; border-radius: 999px; background: rgba(199,154,46,0.24); color: #C79A2E; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+<span>Clientes</span>
+</a>
+<a href="Produtos.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.3 7 12 12l8.7-5M7.5 4.27l9 5.15"/></svg></span>
+<span>Produtos</span>
+</a>
+<a href="RelatorioAcerto.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500">
+<span style="width: 52px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></span>
+<span>Relatórios</span>
+</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1420}}'>
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { formularioAberto: true, busca: '', nome: 'Marcelo Antunes' };
+  }
+
+  renderVals() {
+    const todos = [
+      { nome: 'Ana Paula Ribeiro', telefone: '(11) 99134-2280', endereco: 'Rua Tupi, 88 — Pinheiros', saldo: null },
+      { nome: 'Buffet Sabor & Arte', telefone: '(11) 97412-3308', endereco: 'Rua das Acácias, 214 — Vila Mariana', saldo: 'R$ 325,00' },
+      { nome: 'Carla Menezes', telefone: '(11) 98820-1147', endereco: 'Av. Brasil, 1.020, ap. 52 — Jardins', saldo: 'R$ 167,00' },
+      { nome: 'Escola Pequeno Príncipe', telefone: '(11) 3021-4455', endereco: 'Rua Harmonia, 510 — Vila Madalena', saldo: 'R$ 390,00', fiado: true },
+      { nome: 'Fernanda Castro', telefone: '(11) 99702-6613', endereco: 'Sem endereço cadastrado', saldo: null },
+      { nome: 'Juliana Torres', telefone: '(11) 98155-0932', endereco: 'Rua Cardeal Arcoverde, 1.745 — Pinheiros', saldo: null },
+      { nome: 'Roberto Lima', telefone: '(11) 99640-7781', endereco: 'Rua Apinajés, 300 — Perdizes', saldo: 'R$ 128,00' }
+    ];
+    const { formularioAberto, busca, nome } = this.state;
+    const termo = busca.trim().toLowerCase();
+    const digitos = termo.replace(/\D/g, '');
+    const filtrados = todos.filter((c) => {
+      if (!termo) return true;
+      const porNome = c.nome.toLowerCase().includes(termo);
+      const porTelefone = digitos.length > 0 && c.telefone.replace(/\D/g, '').includes(digitos);
+      return porNome || porTelefone;
+    });
+    const comSaldo = todos.filter((c) => c.saldo).length;
+    return {
+      formularioAberto,
+      abrirFormulario: () => this.setState({ formularioAberto: true }),
+      fecharFormulario: () => this.setState({ formularioAberto: false }),
+      aoEnviar: (e) => e.preventDefault(),
+      botaoNovo: formularioAberto ? { fundo: '#E9EFF6', cor: '#1E3A5F' } : { fundo: '#1E3A5F', cor: '#FFFFFF' },
+      nome,
+      aoMudarNome: (e) => this.setState({ nome: e.target.value }),
+      busca,
+      aoBuscar: (e) => this.setState({ busca: e.target.value }),
+      resumo: termo
+        ? `${filtrados.length} de ${todos.length} clientes`
+        : `${todos.length} clientes · ${comSaldo} com saldo em aberto`,
+      temResultados: filtrados.length > 0,
+      semResultados: filtrados.length === 0,
+      clientes: filtrados.map((c, indice) => ({
+        nome: c.nome,
+        telefone: c.telefone,
+        endereco: c.endereco,
+        saldo: c.saldo || '',
+        temSaldo: !!c.saldo,
+        temFiado: !!c.fiado,
+        divisoria: indice === 0 ? '0' : '1px solid #E3E6EA'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>
