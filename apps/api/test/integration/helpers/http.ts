@@ -27,6 +27,11 @@ export function metaDe(resposta: Response): MetaDePaginacao | undefined {
   return (resposta.body as { meta?: MetaDePaginacao }).meta;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- asserção do corpo, só em testes
+export function resumoDe<T>(resposta: Response): T {
+  return (resposta.body as { resumo: T }).resumo;
+}
+
 export interface ClienteHttp {
   usuarioId: string;
   get(caminho: string): Test;

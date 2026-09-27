@@ -21,4 +21,14 @@ describe('wrapInEnvelope', () => {
       meta: { page: 2, pageSize: 20, total: 45, totalPages: 3 },
     });
   });
+
+  it('leva o resumo da coleção inteira ao lado da paginação, mesmo depois de map', () => {
+    const pagina = new Paginated([1, 2], 2, 1, 20, { totalEmAbertoCentavos: 900 });
+
+    expect(wrapInEnvelope(pagina.map(String))).toEqual({
+      data: ['1', '2'],
+      meta: { page: 1, pageSize: 20, total: 2, totalPages: 1 },
+      resumo: { totalEmAbertoCentavos: 900 },
+    });
+  });
 });
