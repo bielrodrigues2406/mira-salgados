@@ -16,8 +16,8 @@ import type { FormValueControl } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 
 import { ClientesService } from '../../../core/services/clientes.service';
-import { Icone } from '../../../shared/components/icone/icone';
-import { TelefonePipe } from '../../../shared/pipes/telefone.pipe';
+import { TelefonePipe } from '../../pipes/telefone.pipe';
+import { Icone } from '../icone/icone';
 
 export interface ClienteEscolhido {
   id: string;
@@ -29,8 +29,8 @@ const ESPERA_DA_BUSCA_MS = 250;
 const RESULTADOS = 6;
 
 /**
- * Escolha de cliente ativo por busca, ligada ao formulário como um campo
- * comum ([formField]): o valor é o id do cliente escolhido.
+ * Escolha de cliente por busca, ligada ao formulário como um campo comum
+ * ([formField]) ou por [(value)]: o valor é o id do cliente escolhido.
  */
 @Component({
   selector: 'ms-seletor-cliente',
@@ -50,6 +50,8 @@ export class SeletorCliente implements FormValueControl<string> {
   readonly descricao = input<string>();
   /** Cliente já escolhido ao abrir, na edição de um pedido. */
   readonly inicial = input<ClienteEscolhido | null>(null);
+  /** Pedidos novos só aceitam cliente ativo; relatórios buscam também os desativados. */
+  readonly somenteAtivos = input(true);
 
   protected readonly escolhido = linkedSignal(() => this.inicial());
   protected readonly termo = signal('');
@@ -58,7 +60,9 @@ export class SeletorCliente implements FormValueControl<string> {
 
   protected readonly resultados = this.clientes.listar(() => {
     const busca = this.termo();
-    return busca ? { page: 1, pageSize: RESULTADOS, busca, ativo: true } : undefined;
+    return busca
+      ? { page: 1, pageSize: RESULTADOS, busca, ativo: this.somenteAtivos() ? true : undefined }
+      : undefined;
   });
 
   constructor() {

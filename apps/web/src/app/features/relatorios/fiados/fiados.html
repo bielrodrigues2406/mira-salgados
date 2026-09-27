@@ -1,3 +1,14 @@
+<div class="campo filtro">
+  <label class="texto-rotulo" for="filtro-cliente">Cliente</label>
+  <ms-seletor-cliente
+    idCampo="filtro-cliente"
+    [somenteAtivos]="false"
+    [inicial]="clienteFiltrado()"
+    [value]="clienteId() ?? ''"
+    (valueChange)="filtrar($event)"
+  />
+</div>
+
 @switch (estado()) {
   @case ('carregando') {
     <ms-lista-esqueleto rotulo="Carregando os fiados" [quantidade]="4" [comAvatar]="true" />
@@ -13,9 +24,19 @@
     />
   }
   @case ('vazio') {
-    <ms-estado-vazio icone="fiado" titulo="Nenhum fiado em aberto">
-      Quando um pedido confirmado tiver fiado registrado e saldo a receber, o cliente aparece aqui.
-    </ms-estado-vazio>
+    @if (clienteId()) {
+      <ms-estado-vazio icone="fiado" titulo="Nenhum fiado em aberto para este cliente">
+        Os pedidos dele estão quitados ou não têm fiado registrado.
+        <button estadoAcao type="button" class="botao botao-secundario" (click)="filtrar('')">
+          Ver todos os clientes
+        </button>
+      </ms-estado-vazio>
+    } @else {
+      <ms-estado-vazio icone="fiado" titulo="Nenhum fiado em aberto">
+        Quando um pedido confirmado tiver fiado registrado e saldo a receber, o cliente aparece
+        aqui.
+      </ms-estado-vazio>
+    }
   }
   @case ('pronto') {
     @if (resultado(); as resultado) {
