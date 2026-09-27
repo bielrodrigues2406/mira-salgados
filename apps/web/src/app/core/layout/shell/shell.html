@@ -1,0 +1,100 @@
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<aside class="lateral">
+  <div class="marca">
+    <span class="marca-simbolo" aria-hidden="true">M</span>
+    <span class="marca-textos">
+      <span class="marca-nome">Mira Salgados</span>
+      <span class="marca-descricao">Gestão de encomendas</span>
+    </span>
+  </div>
+
+  <nav class="lateral-navegacao" aria-label="Navegação principal">
+    @for (destino of destinos; track destino.rota) {
+      <a
+        class="lateral-item"
+        [routerLink]="destino.rota"
+        routerLinkActive="ativo"
+        ariaCurrentWhenActive="page"
+      >
+        <ms-icone class="lateral-icone" [nome]="destino.icone" [tamanho]="20" />
+        <span>{{ destino.rotulo }}</span>
+      </a>
+    }
+    <span class="lateral-grupo">Cadastros</span>
+    @for (destino of cadastros; track destino.rota) {
+      <a
+        class="lateral-item"
+        [routerLink]="destino.rota"
+        routerLinkActive="ativo"
+        ariaCurrentWhenActive="page"
+      >
+        <ms-icone class="lateral-icone" [nome]="destino.icone" [tamanho]="20" />
+        <span>{{ destino.rotulo }}</span>
+      </a>
+    }
+  </nav>
+
+  @if (usuario(); as usuario) {
+    <div class="lateral-usuario">
+      <span class="avatar" aria-hidden="true">{{ iniciais() }}</span>
+      <span class="lateral-usuario-textos">
+        <span class="lateral-usuario-nome">{{ usuario.nome }}</span>
+        <span class="lateral-usuario-email">{{ usuario.email }}</span>
+      </span>
+      <button type="button" class="botao-sair" aria-label="Sair" (click)="sair()">
+        <ms-icone nome="sair" [tamanho]="20" />
+      </button>
+    </div>
+  }
+</aside>
+
+<header class="topo">
+  <div class="marca">
+    <span class="marca-simbolo marca-simbolo-pequeno" aria-hidden="true">M</span>
+    <span class="marca-nome">Mira Salgados</span>
+  </div>
+  @if (usuario(); as usuario) {
+    <div class="conta">
+      <button
+        type="button"
+        class="conta-botao"
+        [attr.aria-label]="'Conta de ' + usuario.nome"
+        aria-haspopup="true"
+        [attr.aria-expanded]="menuAberto()"
+        aria-controls="menu-conta"
+        (click)="alternarMenu()"
+      >
+        <span class="avatar avatar-pequeno" aria-hidden="true">{{ iniciais() }}</span>
+      </button>
+      @if (menuAberto()) {
+        <div id="menu-conta" class="conta-menu">
+          <span class="conta-nome">{{ usuario.nome }}</span>
+          <span class="texto-legenda">{{ usuario.email }}</span>
+          <button type="button" class="botao botao-secundario conta-sair" (click)="sair()">
+            <ms-icone nome="sair" />
+            <span>Sair</span>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</header>
+
+<main id="conteudo" class="conteudo" tabindex="-1">
+  <router-outlet />
+</main>
+
+<nav class="inferior" aria-label="Navegação principal">
+  @for (destino of destinos; track destino.rota) {
+    <a
+      class="inferior-item"
+      [routerLink]="destino.rota"
+      routerLinkActive="ativo"
+      ariaCurrentWhenActive="page"
+    >
+      <span class="inferior-icone"><ms-icone [nome]="destino.icone" [tamanho]="20" /></span>
+      <span>{{ destino.rotulo }}</span>
+    </a>
+  }
+</nav>
