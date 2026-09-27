@@ -30,6 +30,24 @@
   color: var(--cor-texto-secundario);
 }
 
+:host(.tom-acao) {
+  background: var(--tint-acao);
+  border-color: var(--tint-acao-borda);
+  color: var(--cor-acao);
+}
+
+:host(.tom-atencao) {
+  background: var(--tint-atencao);
+  border-color: var(--tint-atencao-borda);
+  color: var(--cor-atencao);
+}
+
+:host(.tom-negativo) {
+  background: var(--tint-negativo);
+  border-color: var(--tint-negativo-borda);
+  color: var(--cor-negativo);
+}
+
 :host(.tom-frito) {
   background: var(--preparo-frito-fundo);
   border-color: var(--preparo-frito-borda);

@@ -9,7 +9,7 @@ export function paginaDe<T>(corpo: ApiEnvelope<T[]>): Pagina<T> {
   };
 }
 
-type ValorDeParametro = string | number | boolean;
+type ValorDeParametro = string | number | boolean | readonly string[];
 
 /** Parâmetros de query sem as chaves indefinidas, que o HttpParams enviaria como texto. */
 export function parametros(

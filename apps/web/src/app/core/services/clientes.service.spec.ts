@@ -13,6 +13,8 @@ const ANA: Cliente = {
   telefone: '11991342280',
   endereco: null,
   ativo: true,
+  saldoDevedorCentavos: 0,
+  temFiado: false,
   criadoEm: '2026-10-01T10:00:00.000Z',
   atualizadoEm: '2026-10-01T10:00:00.000Z',
 };

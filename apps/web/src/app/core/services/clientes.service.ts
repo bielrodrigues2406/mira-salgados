@@ -4,7 +4,13 @@ import { map, type Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import type { ApiEnvelope, Pagina } from '../models/api';
-import type { AlteracaoCliente, Cliente, ConsultaClientes, NovoCliente } from '../models/cliente';
+import type {
+  AlteracaoCliente,
+  Cliente,
+  ClienteDetalhe,
+  ConsultaClientes,
+  NovoCliente,
+} from '../models/cliente';
 import { paginaDe, parametros } from './respostas';
 
 const CLIENTES = `${environment.apiUrl}/clientes`;
@@ -23,6 +29,17 @@ export class ClientesService {
         return atual && { url: CLIENTES, params: parametros({ ...atual }) };
       },
       { parse: (corpo) => paginaDe(corpo as ApiEnvelope<Cliente[]>) },
+    );
+  }
+
+  /** Com saldo devedor consolidado e pedidos em aberto; sem id, não consulta. */
+  detalhar(id: () => string | undefined): HttpResourceRef<ClienteDetalhe | undefined> {
+    return httpResource(
+      () => {
+        const atual = id();
+        return atual ? `${CLIENTES}/${encodeURIComponent(atual)}` : undefined;
+      },
+      { parse: (corpo) => (corpo as ApiEnvelope<ClienteDetalhe>).data },
     );
   }
 
