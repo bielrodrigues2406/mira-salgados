@@ -28,6 +28,10 @@ function producao(data: string): ProducaoDoDia {
       { preparo: 'ASSADO', unidades: 50 },
       { preparo: 'CONGELADO', unidades: 0 },
     ],
+    porProdutor: [
+      { produtor: MIRA, unidades: 1200 },
+      { produtor: CELIA, unidades: 50 },
+    ],
     faixas: [
       {
         horario: '10:00',

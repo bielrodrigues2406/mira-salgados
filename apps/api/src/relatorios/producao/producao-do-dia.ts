@@ -81,6 +81,8 @@ export interface ProducaoDoDia {
   unidades: number;
   /** Os três preparos, sempre nesta ordem, mesmo quando zerados. */
   porPreparo: { preparo: Preparo; unidades: number }[];
+  /** Carga de cada produtor, da maior para a menor. */
+  porProdutor: { produtor: Referencia; unidades: number }[];
   /** Modo cronológico: por horário, e os sem horário no fim. */
   faixas: FaixaDeHorario[];
   /** Modo consolidado: só os preparos com produção. */
@@ -102,11 +104,13 @@ export function montarProducaoDoDia(linhas: readonly LinhaDeProducao[]): Produca
   const faixas: FaixaDeHorario[] = [];
   const pedidos = new Map<string, PedidoNaProducao>();
   const consolidadas = new Map<string, LinhaConsolidada & { preparo: Preparo }>();
-  const produtores = new Set<string>();
+  const produtores = new Map<string, { produtor: Referencia; unidades: number }>();
 
   for (const linha of linhas) {
     const unidades = unidadesDe(linha.unidadeVenda, linha.quantidade);
-    produtores.add(linha.produtor.id);
+    const carga = produtores.get(linha.produtor.id) ?? { produtor: linha.produtor, unidades: 0 };
+    carga.unidades += unidades;
+    produtores.set(linha.produtor.id, carga);
 
     let pedido = pedidos.get(linha.pedidoId);
     if (!pedido) {
@@ -168,6 +172,10 @@ export function montarProducaoDoDia(linhas: readonly LinhaDeProducao[]): Produca
       preparo,
       unidades: consolidado.find((grupo) => grupo.preparo === preparo)?.unidades ?? 0,
     })),
+    porProdutor: [...produtores.values()].sort(
+      (a, b) =>
+        b.unidades - a.unidades || ordemAlfabetica.compare(a.produtor.nome, b.produtor.nome),
+    ),
     faixas,
     consolidado,
   };

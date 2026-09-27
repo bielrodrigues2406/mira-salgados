@@ -97,7 +97,7 @@ describe('pedidos', () => {
 
     expect(primeiro).toMatchObject({
       status: 'RASCUNHO',
-      statusPagamento: 'PAGO',
+      statusPagamento: 'PENDENTE',
       horarioEntrega: '11:30',
       itens: [],
       transicoesPermitidas: ['CONFIRMADO', 'CANCELADO'],

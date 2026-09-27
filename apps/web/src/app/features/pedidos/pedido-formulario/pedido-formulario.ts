@@ -6,7 +6,10 @@ import { ErrosDoCampo } from '../../../shared/components/erros-do-campo/erros-do
 import { Icone } from '../../../shared/components/icone/icone';
 import { centavosDeTexto, centavosParaTexto } from '../../../shared/utils/dinheiro';
 import { idUnico } from '../../../shared/utils/id-unico';
-import { type ClienteEscolhido, SeletorCliente } from '../seletor-cliente/seletor-cliente';
+import {
+  type ClienteEscolhido,
+  SeletorCliente,
+} from '../../../shared/components/seletor-cliente/seletor-cliente';
 
 /** Grava os dados e devolve a mensagem de erro, ou null se deu certo. */
 export type SalvarPedido = (dados: DadosPedido) => Promise<string | null>;
