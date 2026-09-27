@@ -1,0 +1,144 @@
+<div class="cabecalho">
+  <h1 class="texto-display">Clientes</h1>
+  <button
+    type="button"
+    class="botao botao-primario novo"
+    [attr.aria-expanded]="formularioAberto()"
+    (click)="abrirFormulario()"
+  >
+    <ms-icone nome="mais" />
+    <span>Novo cliente</span>
+  </button>
+</div>
+
+<p class="somente-leitor-de-tela" role="status">{{ aviso() }}</p>
+
+@if (formularioAberto()) {
+  <section class="cartao">
+    <ms-cliente-formulario
+      titulo="Novo cliente"
+      [inicial]="inicialNovo()"
+      [salvar]="criar"
+      (cancelar)="fecharFormulario()"
+    />
+  </section>
+}
+
+<div class="busca">
+  <label class="somente-leitor-de-tela" for="busca-clientes">Buscar cliente</label>
+  <span class="campo-icone"><ms-icone nome="busca" /></span>
+  <input
+    #campoBusca
+    id="busca-clientes"
+    class="campo-entrada campo-entrada-com-icone"
+    type="search"
+    autocomplete="off"
+    placeholder="Buscar por nome ou telefone"
+    [value]="termo()"
+    [disabled]="estado() === 'erro' && !busca()"
+    (input)="aoDigitarBusca(campoBusca.value)"
+  />
+</div>
+
+<div class="lista-e-resumo">
+  @if (estado() === 'pronto' || estado() === 'vazio') {
+    <div class="resumo">
+      <p class="texto-legenda numerico" aria-live="polite">{{ resumo() }}</p>
+      <label class="alternar">
+        <input
+          #caixaInativos
+          type="checkbox"
+          class="alternar-caixa"
+          [checked]="mostrarInativos()"
+          (change)="alternarInativos(caixaInativos.checked)"
+        />
+        <span>Mostrar inativos</span>
+      </label>
+    </div>
+  }
+
+  @switch (estado()) {
+    @case ('carregando') {
+      <ms-lista-esqueleto rotulo="Carregando clientes" [quantidade]="5" />
+    }
+    @case ('tentando') {
+      <ms-estado-erro titulo="Não foi possível carregar os clientes" [tentando]="true" />
+    }
+    @case ('erro') {
+      <ms-estado-erro
+        titulo="Não foi possível carregar os clientes"
+        [erro]="clientes.error()"
+        (tentarNovamente)="clientes.reload()"
+      />
+    }
+    @case ('vazio') {
+      @if (busca()) {
+        <ms-estado-vazio icone="busca" titulo="Nenhum cliente encontrado">
+          Confira a grafia ou cadastre um novo cliente.
+          <button
+            estadoAcao
+            type="button"
+            class="botao botao-secundario"
+            (click)="abrirFormulario(true)"
+          >
+            Cadastrar cliente
+          </button>
+        </ms-estado-vazio>
+      } @else {
+        <ms-estado-vazio icone="clientes" titulo="Nenhum cliente cadastrado">
+          Cadastre quem encomenda para registrar pedidos e acompanhar o que está em aberto.
+          <button
+            estadoAcao
+            type="button"
+            class="botao botao-secundario"
+            (click)="abrirFormulario()"
+          >
+            Cadastrar cliente
+          </button>
+        </ms-estado-vazio>
+      }
+    }
+    @case ('pronto') {
+      <ul class="lista" aria-label="Clientes">
+        @for (cliente of itens(); track cliente.id) {
+          <li class="item" [class.editando]="emEdicao()?.id === cliente.id">
+            @if (emEdicao()?.id === cliente.id) {
+              <ms-cliente-formulario
+                [titulo]="'Editar ' + cliente.nome"
+                [inicial]="dadosEmEdicao()"
+                [edicao]="true"
+                rotuloSalvar="Salvar alterações"
+                [salvar]="atualizar"
+                (cancelar)="cancelarEdicao()"
+              />
+            } @else {
+              <button type="button" class="item-botao" (click)="editar(cliente)">
+                <span class="item-linha">
+                  <span class="item-nome">
+                    <span class="somente-leitor-de-tela">Editar </span>{{ cliente.nome }}
+                  </span>
+                  @if (!cliente.ativo) {
+                    <ms-chip tom="neutro" icone="pausado" [compacto]="true">Inativo</ms-chip>
+                  }
+                </span>
+                <span class="item-detalhe numerico">
+                  <ms-icone nome="telefone" [tamanho]="14" />
+                  {{ cliente.telefone ? (cliente.telefone | telefone) : 'Sem telefone' }}
+                </span>
+                <span class="item-detalhe">
+                  <ms-icone nome="local" [tamanho]="14" />
+                  <span class="item-endereco">{{
+                    cliente.endereco ?? 'Sem endereço cadastrado'
+                  }}</span>
+                </span>
+              </button>
+            }
+          </li>
+        }
+      </ul>
+      @if (meta(); as meta) {
+        <ms-paginacao [meta]="meta" (paginaMudou)="irParaPagina($event)" />
+      }
+    }
+  }
+</div>
