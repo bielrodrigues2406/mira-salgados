@@ -72,8 +72,17 @@ describe('cálculos do pedido', () => {
     expect(resumo.statusPagamento).toBe('PAGO');
   });
 
-  it('pedido sem itens tem total zero', () => {
-    expect(resumoFinanceiro([], c(0), []).total).toBe(0);
+  it('pedido sem itens tem total zero e segue pendente', () => {
+    const resumo = resumoFinanceiro([], c(0), []);
+
+    expect(resumo.total).toBe(0);
+    expect(resumo.statusPagamento).toBe('PENDENTE');
+  });
+
+  it('desconto integral sobre itens quita o pedido', () => {
+    expect(
+      resumoFinanceiro([{ quantidade: 1, precoUnitario: c(9000) }], c(9000), []).statusPagamento,
+    ).toBe('PAGO');
   });
 
   it.each([

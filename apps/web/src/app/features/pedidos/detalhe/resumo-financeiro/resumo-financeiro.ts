@@ -16,8 +16,9 @@ export class ResumoFinanceiro {
   protected readonly resumo = computed(() => this.pedido().resumo);
   /** Percentual recebido, arredondado para baixo: 99,6% ainda não é "100%". */
   protected readonly percentualRecebido = computed(() => {
-    const { totalCentavos, totalPagoCentavos } = this.resumo();
-    if (totalCentavos <= 0) return 100;
+    const { subtotalCentavos, totalCentavos, totalPagoCentavos } = this.resumo();
+    // Desconto integral: nada a receber. Pedido sem itens: nada recebido ainda.
+    if (totalCentavos <= 0) return subtotalCentavos > 0 ? 100 : 0;
     return Math.min(100, Math.floor((totalPagoCentavos * 100) / totalCentavos));
   });
   protected readonly quantidadeItens = computed(() => this.pedido().itens.length);
