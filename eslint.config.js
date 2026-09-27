@@ -78,7 +78,6 @@ export default defineConfig(
         'error',
         { template: 0, styles: 0, animations: 0 },
       ],
-      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       '@angular-eslint/prefer-signals': 'error',
       '@angular-eslint/prefer-output-emitter-ref': 'error',
       '@angular-eslint/prefer-inject': 'error',
