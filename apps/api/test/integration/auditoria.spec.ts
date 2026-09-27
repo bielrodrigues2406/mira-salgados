@@ -40,17 +40,21 @@ describe('auditoria', () => {
       dadosAntes: null,
       usuarioId: null,
     });
-    expect(logs[0]?.dadosDepois).toMatchObject({ email: 'lucia@exemplo.com' });
-    expect(JSON.stringify(logs[0]?.dadosDepois)).not.toMatch(/senha|argon2/i);
+    expect(logs[0]?.dadosDepois).toMatchObject({ nome: 'Lúcia Andrade', papel: 'MEMBRO' });
+    expect(JSON.stringify(logs[0]?.dadosDepois)).not.toMatch(/"senha(Hash)?"|argon2/i);
   });
 
-  it('lista os registros com paginação e filtros para usuário autenticado', async () => {
-    await criarUsuario(app);
+  async function tokenDe(papel: 'ADMIN' | 'MEMBRO'): Promise<string> {
+    const usuario = await criarUsuario(app, { papel });
     const login = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .set('X-Forwarded-For', novoIp())
-      .send({ email: 'lucia@exemplo.com', senha: SENHA_PADRAO });
-    const { accessToken } = (login.body as { data: { accessToken: string } }).data;
+      .send({ telefone: usuario.telefone, senha: SENHA_PADRAO });
+    return (login.body as { data: { accessToken: string } }).data.accessToken;
+  }
+
+  it('lista os registros com paginação e filtros para administrador', async () => {
+    const accessToken = await tokenDe('ADMIN');
 
     const resposta = await request(app.getHttpServer())
       .get('/api/v1/auditoria')
@@ -62,6 +66,17 @@ describe('auditoria', () => {
       data: [{ entidade: 'usuario', acao: 'CRIACAO' }],
       meta: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
     });
+  });
+
+  it('recusa membro com 403: o histórico mostra dados de todas as áreas', async () => {
+    const accessToken = await tokenDe('MEMBRO');
+
+    const resposta = await request(app.getHttpServer())
+      .get('/api/v1/auditoria')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(resposta.status).toBe(403);
+    expect((resposta.body as { error: { code: string } }).error.code).toBe('SOMENTE_ADMIN');
   });
 
   describe('com falha na gravação do log', () => {

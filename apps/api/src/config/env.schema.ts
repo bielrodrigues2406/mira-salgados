@@ -30,7 +30,6 @@ export const envObjectSchema = z.object({
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(300).max(3600).default(900),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(60).default(14),
   COOKIE_SECURE: z.stringbool().default(true),
-  AUTH_PUBLIC_SIGNUP_ENABLED: z.stringbool().default(false),
 });
 
 export const envSchema = envObjectSchema.superRefine((env, contexto) => {

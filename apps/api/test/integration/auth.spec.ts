@@ -25,9 +25,11 @@ describe('autenticação', () => {
     app = await createTestApp();
   });
 
+  const TELEFONE = '11987654321';
+
   beforeEach(async () => {
     await limparBanco(app);
-    await criarUsuario(app);
+    await criarUsuario(app, { telefone: TELEFONE, papel: 'ADMIN' });
   });
 
   afterAll(async () => {
@@ -39,10 +41,13 @@ describe('autenticação', () => {
   }
 
   async function login(ip = novoIp()) {
-    return http()
-      .post('/api/v1/auth/login')
-      .set('X-Forwarded-For', ip)
-      .send({ email: 'LUCIA@exemplo.com', senha: SENHA_PADRAO });
+    return (
+      http()
+        .post('/api/v1/auth/login')
+        .set('X-Forwarded-For', ip)
+        // Máscara digitada na tela é aceita: só os dígitos contam.
+        .send({ telefone: '(11) 98765-4321', senha: SENHA_PADRAO })
+    );
   }
 
   async function refresh(cookie: string | undefined) {
@@ -60,9 +65,11 @@ describe('autenticação', () => {
       expect(corpo.data.accessToken.split('.')).toHaveLength(3);
       expect(corpo.data.usuario).toMatchObject({
         nome: 'Lúcia Andrade',
-        email: 'lucia@exemplo.com',
+        telefone: TELEFONE,
+        papel: 'ADMIN',
+        trocarSenha: false,
       });
-      expect(JSON.stringify(corpo)).not.toMatch(/senha|refreshToken|tokenHash/i);
+      expect(JSON.stringify(corpo)).not.toMatch(/"senha(Hash)?"|argon2|refreshToken|tokenHash/i);
 
       const cookie = setCookies(resposta).find((c) => c.startsWith('mira_refresh='));
       expect(cookie).toBeDefined();
@@ -72,26 +79,26 @@ describe('autenticação', () => {
       expect(cookie).toMatch(/Path=\/api\/v1\/auth/);
     });
 
-    it('responde igual para e-mail inexistente e senha incorreta', async () => {
+    it('responde igual para telefone sem conta e senha incorreta', async () => {
       const senhaErrada = await http()
         .post('/api/v1/auth/login')
         .set('X-Forwarded-For', novoIp())
-        .send({ email: 'lucia@exemplo.com', senha: 'senha-incorreta' });
-      const emailInexistente = await http()
+        .send({ telefone: TELEFONE, senha: 'senha-incorreta' });
+      const semConta = await http()
         .post('/api/v1/auth/login')
         .set('X-Forwarded-For', novoIp())
-        .send({ email: 'ninguem@exemplo.com', senha: 'senha-incorreta' });
+        .send({ telefone: '11900000000', senha: 'senha-incorreta' });
 
       const semRequestId = (corpo: unknown) => {
         const { requestId: _ignorado, ...resto } = (corpo as ErrorBody).error;
         return resto;
       };
       expect(senhaErrada.status).toBe(401);
-      expect(emailInexistente.status).toBe(401);
-      expect(semRequestId(senhaErrada.body)).toEqual(semRequestId(emailInexistente.body));
+      expect(semConta.status).toBe(401);
+      expect(semRequestId(senhaErrada.body)).toEqual(semRequestId(semConta.body));
       expect(semRequestId(senhaErrada.body)).toEqual({
         code: 'CREDENCIAIS_INVALIDAS',
-        message: 'E-mail ou senha incorretos.',
+        message: 'Telefone ou senha incorretos.',
       });
       expect(cookieDeRefresh(senhaErrada)).toBeUndefined();
     });
@@ -100,7 +107,7 @@ describe('autenticação', () => {
       const resposta = await http()
         .post('/api/v1/auth/login')
         .set('X-Forwarded-For', novoIp())
-        .send({ email: 'lucia@exemplo.com', senha: SENHA_PADRAO, admin: true });
+        .send({ telefone: TELEFONE, senha: SENHA_PADRAO, admin: true });
 
       expect(resposta.status).toBe(400);
       expect((resposta.body as ErrorBody).error.code).toBe('VALIDATION_FAILED');
@@ -113,7 +120,7 @@ describe('autenticação', () => {
         const resposta = await http()
           .post('/api/v1/auth/login')
           .set('X-Forwarded-For', ip)
-          .send({ email: 'lucia@exemplo.com', senha: 'senha-incorreta' });
+          .send({ telefone: TELEFONE, senha: 'senha-incorreta' });
         status.push(resposta.status);
       }
 
@@ -198,57 +205,14 @@ describe('autenticação', () => {
     });
   });
 
-  describe('POST /auth/registro', () => {
-    const novo = { nome: 'Rafael', email: 'rafael@exemplo.com', senha: 'outra-senha-bem-longa' };
+  it('não tem cadastro público: contas são criadas só por administradores', async () => {
+    const registro = await http()
+      .post('/api/v1/auth/registro')
+      .set('X-Forwarded-For', novoIp())
+      .send({ nome: 'Intruso', telefone: '11911112222', senha: 'senha-bem-longa-123' });
+    const configuracao = await http().get('/api/v1/auth/configuracao');
 
-    it('recusa visitante anônimo com o cadastro público desligado', async () => {
-      const resposta = await http()
-        .post('/api/v1/auth/registro')
-        .set('X-Forwarded-For', novoIp())
-        .send(novo);
-
-      expect(resposta.status).toBe(401);
-    });
-
-    it('permite que um usuário autenticado cadastre outro', async () => {
-      const { accessToken } = ((await login()).body as CorpoSessao).data;
-
-      const resposta = await http()
-        .post('/api/v1/auth/registro')
-        .set('X-Forwarded-For', novoIp())
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send(novo);
-
-      expect(resposta.status).toBe(201);
-      expect((resposta.body as { data: unknown }).data).toMatchObject({
-        nome: 'Rafael',
-        email: 'rafael@exemplo.com',
-        ativo: true,
-      });
-    });
-
-    it('recusa senha curta e e-mail duplicado', async () => {
-      const { accessToken } = ((await login()).body as CorpoSessao).data;
-      const cadastrar = (corpo: object) =>
-        http()
-          .post('/api/v1/auth/registro')
-          .set('X-Forwarded-For', novoIp())
-          .set('Authorization', `Bearer ${accessToken}`)
-          .send(corpo);
-
-      const curta = await cadastrar({ ...novo, senha: 'curta' });
-      expect(curta.status).toBe(400);
-
-      const duplicado = await cadastrar({ ...novo, email: 'Lucia@Exemplo.com' });
-      expect(duplicado.status).toBe(409);
-      expect((duplicado.body as ErrorBody).error.code).toBe('EMAIL_EM_USO');
-    });
-  });
-
-  it('informa à tela de login se o cadastro público está ligado', async () => {
-    const resposta = await http().get('/api/v1/auth/configuracao');
-
-    expect(resposta.status).toBe(200);
-    expect(resposta.body).toEqual({ data: { registroPublico: false } });
+    expect(registro.status).toBe(404);
+    expect(configuracao.status).toBe(404);
   });
 });

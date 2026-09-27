@@ -1,8 +1,9 @@
 import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 import { Aparar, ApararOuNulo, SomenteDigitos } from '../../common/validation/transforms.js';
+import { TELEFONE } from '../../common/validation/telefone.js';
 
-export const TELEFONE = /^\d{10,11}$/;
+export { TELEFONE };
 
 export class CriarClienteDto {
   @Aparar()

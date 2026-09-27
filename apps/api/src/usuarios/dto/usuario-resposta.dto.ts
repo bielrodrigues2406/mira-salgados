@@ -1,9 +1,13 @@
+import type { Papel } from '../papeis.js';
 import type { Usuario } from '../usuario.entity.js';
 
 export class UsuarioRespostaDto {
   id: string;
   nome: string;
-  email: string;
+  telefone: string | null;
+  papel: Papel;
+  /** Senha provisória ainda não trocada. */
+  trocarSenha: boolean;
   ativo: boolean;
   criadoEm: string;
 
@@ -11,7 +15,9 @@ export class UsuarioRespostaDto {
     return Object.assign(new UsuarioRespostaDto(), {
       id: usuario.id,
       nome: usuario.nome,
-      email: usuario.email,
+      telefone: usuario.telefone,
+      papel: usuario.papel,
+      trocarSenha: usuario.trocarSenha,
       ativo: usuario.ativo,
       criadoEm: usuario.criadoEm.toISOString(),
     });

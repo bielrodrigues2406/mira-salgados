@@ -87,6 +87,11 @@ export class RefreshTokenService {
     await this.revokeFamilyWith(this.dataSource.manager, familyId, new Date());
   }
 
+  async familiaDe(token: string): Promise<string | null> {
+    const atual = await this.tokens.findOneBy({ tokenHash: hashRefreshToken(token) });
+    return atual?.familyId ?? null;
+  }
+
   async revokeFamilyOf(token: string): Promise<void> {
     const atual = await this.tokens.findOneBy({ tokenHash: hashRefreshToken(token) });
     if (atual) await this.revokeFamily(atual.familyId);

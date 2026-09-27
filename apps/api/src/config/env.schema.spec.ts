@@ -29,7 +29,6 @@ describe('validateEnv', () => {
       JWT_ACCESS_TTL_SECONDS: 900,
       REFRESH_TOKEN_TTL_DAYS: 14,
       COOKIE_SECURE: true,
-      AUTH_PUBLIC_SIGNUP_ENABLED: false,
     });
   });
 
@@ -43,9 +42,9 @@ describe('validateEnv', () => {
   });
 
   it('interpreta booleanos escritos como texto', () => {
-    const env = validateEnv({ ...ambienteValido, AUTH_PUBLIC_SIGNUP_ENABLED: 'true' });
+    const env = validateEnv({ ...ambienteValido, COOKIE_SECURE: 'false' });
 
-    expect(env.AUTH_PUBLIC_SIGNUP_ENABLED).toBe(true);
+    expect(env.COOKIE_SECURE).toBe(false);
   });
 
   it('falha quando DATABASE_URL está ausente', () => {
