@@ -233,7 +233,8 @@ describe('produtos e preços', () => {
 
   it('não altera preços de produto inativo', async () => {
     const produto = await novoProduto('Kibe');
-    await api.patch(`/produtos/${produto.id}`, { ativo: false }).expect(200);
+    const desativado = await api.delete(`/produtos/${produto.id}`).expect(200);
+    expect(dadosDe<Produto>(desativado).ativo).toBe(false);
 
     const resposta = await api.post(`/produtos/${produto.id}/precos`, {
       preparo: 'FRITO',

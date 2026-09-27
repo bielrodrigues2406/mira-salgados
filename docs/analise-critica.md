@@ -20,12 +20,12 @@ Ambiguidades levantadas no protótipo
 ([`design/README.md`](../design/README.md#pontos-da-especificação-que-pedem-decisão))
 e decididas pelo responsável pelo produto em 27/09/2026.
 
-| #   | Ponto                                | Decisão                     | Efeito na implementação                                                                                                                                                                                               |
-| --- | ------------------------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Fiado como pagamento                 | Fiado não quita o pedido    | `statusPagamento` e `saldoDevedor` consideram só DINHEIRO e PIX; o fiado aparece como marcador e o valor continua no saldo devedor do cliente                                                                         |
-| D2  | Base de datas do acerto              | Pedidos com entrega na data | `caixaLiquido` soma os pagamentos em DINHEIRO e PIX dos pedidos CONFIRMADO ou CONCLUIDO entregues na data, qualquer que seja a data do registro                                                                       |
-| D3  | Taxa de entrega e desconto no rateio | Taxa de entrega à parte     | A taxa sai do caixa antes da divisão e cabe a quem fez a entrega; o valor dos itens, já com o desconto, é dividido entre os produtores. Exige registrar no pedido quem fez a entrega (a definir no módulo de pedidos) |
-| D4  | Cancelamento com pagamento           | Exige estorno antes         | A transição para CANCELADO é recusada com 422 enquanto houver pagamento registrado                                                                                                                                    |
+| #   | Ponto                                | Decisão                     | Efeito na implementação                                                                                                                                                                                                                                  |
+| --- | ------------------------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Fiado como pagamento                 | Fiado não quita o pedido    | `statusPagamento` e `saldoDevedor` consideram só DINHEIRO e PIX; o fiado aparece como marcador e o valor continua no saldo devedor do cliente                                                                                                            |
+| D2  | Base de datas do acerto              | Pedidos com entrega na data | `caixaLiquido` soma os pagamentos em DINHEIRO e PIX dos pedidos CONFIRMADO ou CONCLUIDO entregues na data, qualquer que seja a data do registro                                                                                                          |
+| D3  | Taxa de entrega e desconto no rateio | Taxa de entrega à parte     | A taxa sai do caixa antes da divisão e cabe a quem fez a entrega; o valor dos itens, já com o desconto, é dividido entre os produtores. O pedido registra o entregador, que é um dos produtores, e só conclui entrega com taxa quando ele está informado |
+| D4  | Cancelamento com pagamento           | Exige estorno antes         | A transição para CANCELADO é recusada com 422 enquanto houver pagamento registrado                                                                                                                                                                       |
 
 Pontos com resolução técnica adotada, sem decisão pendente:
 
@@ -35,28 +35,52 @@ Pontos com resolução técnica adotada, sem decisão pendente:
   CONCLUIDO e CANCELADO, que são estados terminais.
 - **Saldo devedor do cliente:** soma apenas pedidos CONFIRMADO e CONCLUIDO.
 
+Pontos levantados ao implementar pedidos
+([ADR 0011](adr/0011-agregado-do-pedido.md)):
+
+| #   | Ponto                                                                              | Resolução                                                                                                                                         |
+| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | Pela fórmula, um pedido de total zero (desconto integral) fica PENDENTE            | Fica PAGO: não há nada a receber                                                                                                                  |
+| P2  | Nada impede registrar mais do que o saldo                                          | Dinheiro e PIX valem no máximo o saldo; troco não é pagamento. Fiado vale no máximo o saldo ainda não marcado como fiado                          |
+| P3  | Desconto ou remoção de item podem deixar o total abaixo do pago                    | Recusado com 422; estorna-se antes                                                                                                                |
+| P4  | Desconto maior que o valor dos itens tornaria negativa a parte dos produtores (D3) | Recusado em pedido confirmado; no rascunho o desconto pode anteceder os itens e a regra vale ao confirmar                                         |
+| P5  | O contrato prevê `DELETE` para estorno, sem dizer se apaga                         | Estorno lógico: o lançamento fica com data e autor do estorno e sai das somas                                                                     |
+| P6  | Retirada com taxa de entrega ou entregador                                         | Recusado; mudar o pedido para retirada limpa os dois                                                                                              |
+| P7  | Pedido confirmado sem nenhum item                                                  | Remover o último item de um pedido confirmado é recusado; cancela-se o pedido                                                                     |
+| P8  | `quantidade` inteira não representa "meio cento", comum em salgados                | Mantida inteira; meio cento é vendido como 50 unidades. Evolução possível: unidade MEIO_CENTO na tabela de preços, sem mudar a aritmética         |
+| P9  | `DELETE /clientes/:id`, `/produtos/:id` e `/produtores/:id` no contrato            | Implementados como desativação, equivalentes a `PATCH { ativo: false }`, com as mesmas regras (produtor padrão de produto ativo não é desativado) |
+| P10 | `GET /produtos/:id` "inclui histórico de preços"                                   | O histórico, que cresce sem limite, fica paginado em `GET /produtos/:id/precos`; o produto traz os preços vigentes                                |
+| P11 | Itens e pagamentos de um pedido sem paginação                                      | São poucos por natureza e fazem parte do agregado; paginar o detalhe só adicionaria requisições                                                   |
+
 ## Desempenho e índices
 
-| Tabela           | Índice                                                          | Consulta atendida                     |
-| ---------------- | --------------------------------------------------------------- | ------------------------------------- |
-| `refresh_tokens` | único em `token_hash`                                           | Renovação de sessão                   |
-| `refresh_tokens` | `family_id`                                                     | Revogação da família                  |
-| `logs_auditoria` | `(entidade, entidade_id, criado_em)`                            | Histórico de um registro              |
-| `logs_auditoria` | `criado_em`                                                     | Filtro por intervalo                  |
-| `produtores`     | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa  |
-| `clientes`       | GIN trigram em `lower(immutable_unaccent(nome))`                | Busca por trecho do nome, sem acentos |
-| `clientes`       | GIN trigram em `telefone`                                       | Busca por trecho do telefone          |
-| `produtos`       | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa  |
-| `produtos`       | `produtor_padrao_id`                                            | Produtos de um produtor, desativação  |
-| `precos_produto` | único parcial em `(produto_id, preparo, unidade_venda)` vigente | Um preço vigente por combinação       |
-| `precos_produto` | `(produto_id, vigente_desde DESC)`                              | Histórico de preços de um produto     |
+| Tabela           | Índice                                                          | Consulta atendida                       |
+| ---------------- | --------------------------------------------------------------- | --------------------------------------- |
+| `refresh_tokens` | único em `token_hash`                                           | Renovação de sessão                     |
+| `refresh_tokens` | `family_id`                                                     | Revogação da família                    |
+| `logs_auditoria` | `(entidade, entidade_id, criado_em)`                            | Histórico de um registro                |
+| `logs_auditoria` | `criado_em`                                                     | Filtro por intervalo                    |
+| `produtores`     | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa    |
+| `clientes`       | GIN trigram em `lower(immutable_unaccent(nome))`                | Busca por trecho do nome, sem acentos   |
+| `clientes`       | GIN trigram em `telefone`                                       | Busca por trecho do telefone            |
+| `produtos`       | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa    |
+| `produtos`       | `produtor_padrao_id`                                            | Produtos de um produtor, desativação    |
+| `precos_produto` | único parcial em `(produto_id, preparo, unidade_venda)` vigente | Um preço vigente por combinação         |
+| `precos_produto` | `(produto_id, vigente_desde DESC)`                              | Histórico de preços de um produto       |
+| `pedidos`        | `(data_entrega, status)`                                        | Lista por data, produção do dia, acerto |
+| `pedidos`        | `(cliente_id, status)`                                          | Saldo devedor e fiados do cliente       |
+| `pedidos`        | `entregador_id`                                                 | Taxas de entrega por entregador         |
+| `itens_pedido`   | `pedido_id`                                                     | Itens do pedido, somas da lista         |
+| `itens_pedido`   | `produtor_id`                                                   | Produção e acerto por produtor          |
+| `pagamentos`     | `pedido_id`                                                     | Pagamentos do pedido, somas da lista    |
 
 A busca de clientes foi conferida com `EXPLAIN`: nome e telefone usam os dois
 índices trigram num `BitmapOr`. Decisões dos cadastros no
 [ADR 0010](adr/0010-cadastros-busca-e-precos.md).
 
-Os índices dos relatórios (pedidos por data de entrega e status, itens por
-produtor, pagamentos por pedido) serão definidos junto com as consultas.
+A lista de pedidos soma itens e pagamentos da página em duas consultas
+agrupadas por pedido, em vez de uma por pedido. Os relatórios de intervalo
+(faturamento, itens vendidos) serão conferidos com `EXPLAIN` quando existirem.
 
 ## Evolução
 

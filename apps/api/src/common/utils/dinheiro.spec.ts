@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   centavos,
   centavosParaDecimal,
+  formatarReais,
   decimalParaCentavos,
   multiplicar,
   ratearCentavos,
@@ -110,5 +111,14 @@ describe('ratearInteiro', () => {
   it('é exposto com o tipo Centavos', () => {
     const partes = ratearCentavos(centavos(1000), [centavos(1), centavos(3)]);
     expect(partes).toEqual([250, 750]);
+  });
+});
+
+describe('formatarReais', () => {
+  it('formata centavos em reais com separadores brasileiros', () => {
+    expect(formatarReais(centavos(123456))).toBe('R$ 1.234,56');
+    expect(formatarReais(centavos(5))).toBe('R$ 0,05');
+    expect(formatarReais(centavos(100000000))).toBe('R$ 1.000.000,00');
+    expect(formatarReais(centavos(-2000))).toBe('-R$ 20,00');
   });
 });

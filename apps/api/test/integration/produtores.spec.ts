@@ -153,6 +153,17 @@ describe('produtores', () => {
     expect(logs[1]?.dadosDepois).toMatchObject({ nome: 'Nair Souza' });
   });
 
+  it('desativa com DELETE e recusa null no nome ou na situação', async () => {
+    const produtor = await criar('Nair');
+
+    const nulo = await api.patch(`/produtores/${produtor.id}`, { nome: null });
+    const ativoNulo = await api.patch(`/produtores/${produtor.id}`, { ativo: null });
+    const desativado = await api.delete(`/produtores/${produtor.id}`).expect(200);
+
+    expect([nulo.status, ativoNulo.status]).toEqual([400, 400]);
+    expect(dadosDe<Produtor>(desativado).ativo).toBe(false);
+  });
+
   it('não grava nem audita atualização sem mudança', async () => {
     const produtor = await criar('Rafael');
 

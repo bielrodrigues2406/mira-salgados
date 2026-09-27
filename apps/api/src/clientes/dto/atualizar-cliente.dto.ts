@@ -2,10 +2,11 @@ import { IsBoolean, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 
 
 import { Aparar, ApararOuNulo, SomenteDigitos } from '../../common/validation/transforms.js';
 import { TELEFONE } from './criar-cliente.dto.js';
+import { Opcional } from '../../common/validation/opcional.js';
 
 // null em telefone ou endereço apaga o valor; ausência mantém o atual.
 export class AtualizarClienteDto {
-  @IsOptional()
+  @Opcional()
   @Aparar()
   @IsString()
   @IsNotEmpty()
@@ -24,7 +25,7 @@ export class AtualizarClienteDto {
   @MaxLength(200)
   endereco?: string | null;
 
-  @IsOptional()
+  @Opcional()
   @IsBoolean()
   ativo?: boolean;
 }
