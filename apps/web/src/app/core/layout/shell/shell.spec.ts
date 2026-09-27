@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -6,18 +6,16 @@ import { of } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { Shell } from './shell';
 
-@Component({ template: '' })
-class Pagina {}
-
 describe('Shell', () => {
   async function abrir(url: string): Promise<HTMLElement> {
     TestBed.configureTestingModule({
       imports: [Shell],
       providers: [
+        // Rotas sem componente: o teste olha só a navegação do shell.
         provideRouter([
-          { path: 'produtos', component: Pagina },
-          { path: 'produtores', component: Pagina },
-          { path: 'clientes', component: Pagina },
+          { path: 'produtos', children: [] },
+          { path: 'produtores', children: [] },
+          { path: 'clientes', children: [] },
         ]),
         {
           provide: AuthService,
