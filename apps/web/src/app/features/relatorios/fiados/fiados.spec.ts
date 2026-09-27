@@ -5,7 +5,8 @@ import {
   type TestRequest,
 } from '@angular/common/http/testing';
 import { type ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router, withComponentInputBinding } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 
 import type { ClienteComFiado } from '../../../core/models/relatorios';
 import { Fiados } from './fiados';
@@ -84,5 +85,65 @@ describe('Fiados', () => {
     await montar([]);
 
     expect(tela.textContent).toContain('Nenhum fiado em aberto');
+  });
+
+  describe('filtro por cliente', () => {
+    const ESCOLA = '33333333-3333-4333-8333-333333333333';
+
+    async function abrir(url: string, itens: ClienteComFiado[]): Promise<RouterTestingHarness> {
+      TestBed.configureTestingModule({
+        providers: [
+          provideRouter([{ path: 'fiados', component: Fiados }], withComponentInputBinding()),
+          provideHttpClient(),
+          provideHttpClientTesting(),
+        ],
+      });
+      backend = TestBed.inject(HttpTestingController);
+      const harness = await RouterTestingHarness.create();
+      const navegacao = harness.navigateByUrl(url);
+      const requisicao: TestRequest = await vi.waitFor(() => {
+        TestBed.tick();
+        return backend.expectOne((r) => r.url === '/api/v1/relatorios/fiados');
+      });
+      expect(requisicao.request.params.get('clienteId')).toBe(ESCOLA);
+      requisicao.flush({
+        data: itens,
+        meta: { page: 1, pageSize: 20, total: itens.length, totalPages: 1 },
+        resumo: { totalEmAbertoCentavos: 39000, quantidadePedidos: itens.length },
+      });
+      await navegacao;
+      await harness.fixture.whenStable();
+      tela = harness.fixture.nativeElement as HTMLElement;
+      return harness;
+    }
+
+    it('filtra pelo cliente da URL e mostra quem está escolhido', async () => {
+      const [escola] = FIADOS;
+      if (!escola) throw new Error('Fixture vazia');
+      await abrir(`/fiados?cliente=${ESCOLA}`, [
+        { ...escola, cliente: { ...escola.cliente, id: ESCOLA } },
+      ]);
+
+      expect(tela.querySelector('ms-seletor-cliente .nome')?.textContent.trim()).toBe(
+        'Escola Pequeno Príncipe',
+      );
+      expect(tela.querySelectorAll('.cliente')).toHaveLength(1);
+    });
+
+    it('cliente sem fiado oferece voltar a todos', async () => {
+      await abrir(`/fiados?cliente=${ESCOLA}`, []);
+
+      expect(tela.textContent).toContain('Nenhum fiado em aberto para este cliente');
+      [...tela.querySelectorAll('button')]
+        .find((b) => b.textContent.includes('Ver todos'))
+        ?.click();
+      const todos = await vi.waitFor(() => {
+        TestBed.tick();
+        return backend.expectOne((r) => r.url === '/api/v1/relatorios/fiados');
+      });
+      expect(todos.request.params.has('clienteId')).toBe(false);
+      todos.flush({ data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 0 } });
+      expect(TestBed.inject(Router).url).toBe('/fiados');
+    });
   });
 });

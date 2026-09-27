@@ -62,7 +62,10 @@ export function resumoDeTotais(totais: TotaisDoPedido): ResumoFinanceiro {
     ...totais,
     total,
     saldoDevedor: saldo > 0 ? saldo : ZERO_CENTAVOS,
-    statusPagamento: statusDoPagamento(total, totais.totalPago),
+    // Sem itens ainda não há o que cobrar: o total zero do desconto integral é
+    // PAGO, o do pedido vazio continua PENDENTE.
+    statusPagamento:
+      totais.subtotal === 0 ? 'PENDENTE' : statusDoPagamento(total, totais.totalPago),
   };
 }
 

@@ -164,6 +164,10 @@ describe('produção do dia', () => {
         { preparo: 'ASSADO', unidades: 0 },
         { preparo: 'CONGELADO', unidades: 0 },
       ],
+      porProdutor: [
+        { produtor: { id: cenario.mira.id, nome: 'Mira' }, unidades: 350 },
+        { produtor: { id: cenario.celia.id, nome: 'Célia' }, unidades: 300 },
+      ],
     });
     expect(dia.faixas.map((faixa) => [faixa.horario, faixa.unidades])).toEqual([
       ['10:00', 400],

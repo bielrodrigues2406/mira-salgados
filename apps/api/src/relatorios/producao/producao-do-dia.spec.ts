@@ -78,6 +78,11 @@ describe('produção do dia', () => {
       { preparo: 'ASSADO', unidades: 270 },
       { preparo: 'CONGELADO', unidades: 600 },
     ]);
+    expect(producao.porProdutor.map((p) => [p.produtor.nome, p.unidades])).toEqual([
+      ['Mira', 900],
+      ['Célia', 450],
+      ['Rafael', 220],
+    ]);
   });
 
   it('agrupa por horário na ordem recebida, com os sem horário no fim', () => {
@@ -160,6 +165,7 @@ describe('produção do dia', () => {
         { preparo: 'ASSADO', unidades: 0 },
         { preparo: 'CONGELADO', unidades: 0 },
       ],
+      porProdutor: [],
       faixas: [],
       consolidado: [],
     });

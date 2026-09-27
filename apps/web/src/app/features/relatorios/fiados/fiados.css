@@ -4,6 +4,10 @@
   gap: 16px;
 }
 
+.filtro {
+  max-width: 420px;
+}
+
 .destaque {
   display: flex;
   flex-direction: column;

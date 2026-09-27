@@ -57,6 +57,7 @@ export class ProducaoDoDiaDto {
   quantidadeProdutores: number;
   unidades: number;
   porPreparo: { preparo: Preparo; unidades: number }[];
+  porProdutor: { produtor: ReferenciaDto; unidades: number }[];
   faixas: FaixaDeHorarioDto[];
   consolidado: GrupoDePreparoDto[];
 
@@ -68,6 +69,10 @@ export class ProducaoDoDiaDto {
       quantidadeProdutores: producao.quantidadeProdutores,
       unidades: producao.unidades,
       porPreparo: producao.porPreparo.map(({ preparo, unidades }) => ({ preparo, unidades })),
+      porProdutor: producao.porProdutor.map(({ produtor, unidades }) => ({
+        produtor: referencia(produtor),
+        unidades,
+      })),
       faixas: producao.faixas.map((faixa) =>
         Object.assign(new FaixaDeHorarioDto(), {
           horario: faixa.horario,

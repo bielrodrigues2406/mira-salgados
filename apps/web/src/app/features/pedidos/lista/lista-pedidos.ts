@@ -18,6 +18,7 @@ import { Paginacao } from '../../../shared/components/paginacao/paginacao';
 import { dataCurta, hoje, somarDias } from '../../../shared/utils/datas';
 import { type EstadoDeRecurso, estadoDeRecurso } from '../../../shared/utils/estado-de-recurso';
 import { CartaoPedido } from '../cartao-pedido/cartao-pedido';
+import { ProducaoDeHoje } from '../producao-de-hoje/producao-de-hoje';
 
 const TAMANHO_DA_SECAO = 10;
 const ESPERA_DA_BUSCA_MS = 300;
@@ -37,7 +38,16 @@ interface Secao {
 
 @Component({
   selector: 'ms-lista-pedidos',
-  imports: [CartaoPedido, EstadoErro, EstadoVazio, Icone, ListaEsqueleto, Paginacao, RouterLink],
+  imports: [
+    CartaoPedido,
+    EstadoErro,
+    EstadoVazio,
+    Icone,
+    ListaEsqueleto,
+    Paginacao,
+    ProducaoDeHoje,
+    RouterLink,
+  ],
   templateUrl: './lista-pedidos.html',
   styleUrl: './lista-pedidos.css',
 })
