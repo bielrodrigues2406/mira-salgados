@@ -26,6 +26,7 @@ export const CADASTROS: readonly Destino[] = [
 /** Só para administradores: contas de acesso e histórico de alterações. */
 export const ADMINISTRACAO: readonly Destino[] = [
   { rota: '/usuarios', rotulo: 'Usuários', icone: 'usuarios' },
+  { rota: '/alteracoes', rotulo: 'Alterações', icone: 'historico' },
 ];
 
 /**

@@ -41,6 +41,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/usuarios/usuarios').then((m) => m.Usuarios),
       },
       {
+        path: 'alteracoes',
+        title: `Alterações · ${TITULO}`,
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/alteracoes/alteracoes').then((m) => m.Alteracoes),
+      },
+      {
         path: 'pedidos',
         title: `Pedidos · ${TITULO}`,
         loadComponent: () =>
