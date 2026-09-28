@@ -29,10 +29,14 @@ export function atalhosDePeriodo(hoje: string): Atalho[] {
 }
 
 /** Por que o período não serve, ou null se serve. */
-export function erroDoPeriodo({ de, ate }: Periodo): string | null {
+export function erroDoPeriodo({ de, ate }: Periodo, maximoDeDias = MAXIMO_DE_DIAS): string | null {
   const dias = diasNoIntervalo(de, ate);
   if (dias < 1) return 'A data final precisa ser igual ou posterior à inicial.';
-  if (dias > MAXIMO_DE_DIAS) return 'Escolha um período de até um ano.';
+  if (dias > maximoDeDias) {
+    return maximoDeDias === MAXIMO_DE_DIAS
+      ? 'Escolha um período de até um ano.'
+      : `Escolha um período de até ${String(maximoDeDias)} dias.`;
+  }
   return null;
 }
 

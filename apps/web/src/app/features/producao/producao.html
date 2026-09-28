@@ -1,26 +1,42 @@
 <div class="cabecalho">
-  <h1 class="texto-display">{{ naSemana() ? 'Produção da semana' : 'Produção do dia' }}</h1>
+  <h1 class="texto-display">{{ naSemana() ? 'Produção do período' : 'Produção do dia' }}</h1>
   <div class="dia">
     <a
       class="botao botao-terciario botao-icone"
-      [attr.aria-label]="naSemana() ? 'Semana anterior' : 'Dia anterior'"
+      [attr.aria-label]="naSemana() ? 'Período anterior' : 'Dia anterior'"
       [routerLink]="[]"
-      [queryParams]="{ data: anterior() }"
+      [queryParams]="anterior()"
       queryParamsHandling="merge"
     >
       <ms-icone nome="chevronEsquerda" />
     </a>
-    <span class="dia-texto" aria-live="polite">
-      <span>{{ dataPorExtenso() }}</span>
-      @if (ehHoje() && !naSemana()) {
-        <span class="marca-hoje">Hoje</span>
-      }
-    </span>
-    @if (!ehHoje()) {
+    @if (naSemana()) {
+      <span class="dia-texto" aria-live="polite">{{ dataPorExtenso() }}</span>
+    } @else {
+      <label class="dia-texto calendario" for="producao-data">
+        <ms-icone nome="calendario" [tamanho]="16" />
+        <span aria-live="polite">{{ dataPorExtenso() }}</span>
+        @if (ehHoje()) {
+          <span class="marca-hoje">Hoje</span>
+        }
+        <span class="somente-leitor-de-tela">Escolher a data no calendário</span>
+        <input
+          #campoData
+          id="producao-data"
+          type="date"
+          class="data-entrada"
+          required
+          [value]="dia()"
+          (click)="abrirCalendario(campoData)"
+          (change)="irParaData(campoData.value)"
+        />
+      </label>
+    }
+    @if (!ehHoje() && !naSemana()) {
       <a
         class="botao botao-secundario ir-para-hoje"
         [routerLink]="[]"
-        [queryParams]="{ data: null }"
+        [queryParams]="{ data: null, ate: null }"
         queryParamsHandling="merge"
       >
         Hoje
@@ -28,9 +44,9 @@
     }
     <a
       class="botao botao-terciario botao-icone"
-      [attr.aria-label]="naSemana() ? 'Próxima semana' : 'Próximo dia'"
+      [attr.aria-label]="naSemana() ? 'Próximo período' : 'Próximo dia'"
       [routerLink]="[]"
-      [queryParams]="{ data: proximo() }"
+      [queryParams]="proximo()"
       queryParamsHandling="merge"
     >
       <ms-icone nome="chevronDireita" />
@@ -42,7 +58,7 @@
   <a
     class="modo"
     [routerLink]="[]"
-    [queryParams]="{ modo: null }"
+    [queryParams]="{ modo: null, ate: null }"
     queryParamsHandling="merge"
     [attr.aria-current]="modoAtual() === 'cronologico' ? 'page' : null"
   >
@@ -52,7 +68,7 @@
   <a
     class="modo"
     [routerLink]="[]"
-    [queryParams]="{ modo: 'consolidado' }"
+    [queryParams]="{ modo: 'consolidado', ate: null }"
     queryParamsHandling="merge"
     [attr.aria-current]="modoAtual() === 'consolidado' ? 'page' : null"
   >
@@ -67,9 +83,19 @@
     [attr.aria-current]="modoAtual() === 'semana' ? 'page' : null"
   >
     <ms-icone nome="calendario" [tamanho]="16" />
-    <span>Semana</span>
+    <span>Período</span>
   </a>
 </nav>
+
+@if (naSemana()) {
+  <ms-seletor-periodo
+    class="nao-imprimir"
+    [periodo]="periodo()"
+    [atalhosProprios]="atalhos"
+    [maximoDeDias]="maximoDeDias"
+    (periodoMudou)="mudarPeriodo($event)"
+  />
+}
 
 @if (naSemana()) {
   @switch (estadoDaSemana()) {

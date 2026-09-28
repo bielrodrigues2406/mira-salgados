@@ -22,11 +22,33 @@
           (click)="filtro.set(produtor.id)"
         >
           {{ produtor.id === meuProdutorId() ? produtor.nome + ' (você)' : produtor.nome }}
+          <span class="filtro-total numerico">{{
+            numero(totalDoProdutor().get(produtor.id) ?? 0)
+          }}</span>
         </button>
       }
     </div>
   }
 </div>
+
+@if (totaisPorSalgado().length > 0) {
+  <section class="cartao totais" aria-labelledby="titulo-totais">
+    <h2 id="titulo-totais" class="texto-rotulo">Total do período por salgado</h2>
+    <ul class="totais-lista">
+      @for (total of totaisPorSalgado(); track total.chave) {
+        <li class="total-linha">
+          <span class="total-numero numerico">{{ numero(total.unidades) }}</span>
+          <span class="total-textos">
+            <span class="total-nome">{{ total.nome }}</span>
+            @if (divisao(total); as partes) {
+              <span class="texto-legenda numerico">{{ partes }}</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  </section>
+}
 
 <ol class="dias" aria-label="Produção por dia">
   @for (dia of dias(); track dia.data) {
