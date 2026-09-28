@@ -133,3 +133,9 @@ li + li .pedido {
     align-items: start;
   }
 }
+
+.contato {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}

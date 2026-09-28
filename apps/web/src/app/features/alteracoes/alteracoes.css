@@ -1,0 +1,168 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.descricao {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.limpar {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dia-titulo {
+  margin: 0;
+}
+
+.registros {
+  margin: 0;
+  padding: 14px 16px;
+  list-style: none;
+}
+
+.registro {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+}
+
+.registro:first-child {
+  padding-top: 0;
+}
+
+.registro:last-child {
+  padding-bottom: 0;
+}
+
+.registro + .registro {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.registro-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--tint-acao);
+  color: var(--cor-acao);
+}
+
+.registro-corpo {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 2px;
+  min-width: 0;
+  /* Centraliza a primeira linha (20px) com o ícone (32px). */
+  padding-top: 6px;
+}
+
+.registro-linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.registro-titulo {
+  font-weight: 600;
+}
+
+.registro-hora {
+  flex-shrink: 0;
+}
+
+.mudancas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--raio-controle);
+  background: var(--cor-fundo);
+}
+
+.mudanca {
+  display: grid;
+  grid-template-columns: minmax(96px, 30%) 1fr;
+  gap: 8px;
+}
+
+.mudanca dt {
+  color: var(--cor-texto-secundario);
+}
+
+.mudanca dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.antes {
+  color: var(--cor-texto-secundario);
+  text-decoration: line-through;
+}
+
+.depois {
+  font-weight: 600;
+}
+
+.ver-dados,
+.abrir-pedido {
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cor-acao);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.abrir-pedido {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .filtros {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+  }
+}

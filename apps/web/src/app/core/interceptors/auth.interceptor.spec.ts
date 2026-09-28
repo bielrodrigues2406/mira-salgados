@@ -10,7 +10,9 @@ import { authInterceptor } from './auth.interceptor';
 const USUARIO = {
   id: '1',
   nome: 'Lúcia Andrade',
-  email: 'lucia@exemplo.com',
+  telefone: '11987654321',
+  papel: 'MEMBRO',
+  trocarSenha: false,
   ativo: true,
   criadoEm: '2026-10-01T00:00:00.000Z',
 };
@@ -36,7 +38,7 @@ describe('authInterceptor', () => {
     backend = TestBed.inject(HttpTestingController);
     auth = TestBed.inject(AuthService);
 
-    const login = firstValueFrom(auth.login('lucia@exemplo.com', 'senha'));
+    const login = firstValueFrom(auth.login('11987654321', 'senha'));
     backend.expectOne('/api/v1/auth/login').flush(sessao('token-antigo'));
     await login;
   });

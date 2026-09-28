@@ -1,13 +1,24 @@
-import { DESTINOS, iniciais } from './destinos';
+import { DESTINOS, INFERIORES, iniciais, MAIS } from './destinos';
 
 describe('destinos', () => {
-  it('tem os cinco destinos da navegação principal, na ordem do design', () => {
+  it('começa a navegação principal pelo Início', () => {
     expect(DESTINOS.map((destino) => destino.rotulo)).toEqual([
+      'Início',
       'Pedidos',
       'Produção',
       'Clientes',
       'Produtos',
       'Relatórios',
+    ]);
+  });
+
+  it('no celular, deixa na barra o uso diário e o resto em Mais', () => {
+    expect(INFERIORES.map((destino) => destino.rotulo)).toEqual(['Início', 'Pedidos', 'Produção']);
+    expect(MAIS.map((destino) => destino.rotulo)).toEqual([
+      'Clientes',
+      'Produtos',
+      'Relatórios',
+      'Produtores',
     ]);
   });
 

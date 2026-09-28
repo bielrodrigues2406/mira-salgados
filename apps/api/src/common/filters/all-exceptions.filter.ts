@@ -9,6 +9,7 @@ import {
   ConflictError,
   DomainError,
   ForbiddenError,
+  LimiteExcedidoError,
   NotFoundError,
 } from '../errors/domain.errors.js';
 import { ValidationFailedException } from '../validation/validation.js';
@@ -72,6 +73,7 @@ function domainStatus(error: DomainError): number {
   if (error instanceof ConflictError) return 409;
   if (error instanceof AuthenticationError) return 401;
   if (error instanceof ForbiddenError) return 403;
+  if (error instanceof LimiteExcedidoError) return 429;
   return 500;
 }
 

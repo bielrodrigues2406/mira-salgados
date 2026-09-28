@@ -1,0 +1,156 @@
+<header class="cabecalho">
+  <h1 class="texto-display">Alterações</h1>
+  <p class="descricao">Tudo o que foi criado, mudado ou removido no sistema, por quem e quando.</p>
+</header>
+
+<section class="filtros" aria-label="Filtros">
+  <div class="campo">
+    <label class="texto-rotulo" for="filtro-area">Área</label>
+    <select
+      id="filtro-area"
+      class="campo-entrada campo-selecao"
+      [value]="area()"
+      (change)="filtrar('area', campoArea.value)"
+      #campoArea
+    >
+      <option value="">Todas</option>
+      @for (opcao of areas; track opcao.entidade) {
+        <option [value]="opcao.entidade">{{ opcao.rotulo }}</option>
+      }
+    </select>
+  </div>
+  <div class="campo">
+    <label class="texto-rotulo" for="filtro-autor">Quem fez</label>
+    <select
+      id="filtro-autor"
+      class="campo-entrada campo-selecao"
+      [value]="autor()"
+      (change)="filtrar('autor', campoAutor.value)"
+      #campoAutor
+    >
+      <option value="">Todos</option>
+      @for (pessoa of pessoas(); track pessoa.id) {
+        <option [value]="pessoa.id">{{ pessoa.nome }}</option>
+      }
+    </select>
+  </div>
+  <div class="campo">
+    <label class="texto-rotulo" for="filtro-de">De</label>
+    <input
+      #campoDe
+      id="filtro-de"
+      class="campo-entrada"
+      type="date"
+      [max]="hoje"
+      [value]="de()"
+      (change)="filtrar('de', campoDe.value)"
+    />
+  </div>
+  <div class="campo">
+    <label class="texto-rotulo" for="filtro-ate">Até</label>
+    <input
+      #campoAte
+      id="filtro-ate"
+      class="campo-entrada"
+      type="date"
+      [max]="hoje"
+      [value]="ate()"
+      (change)="filtrar('ate', campoAte.value)"
+    />
+  </div>
+  @if (filtrando()) {
+    <button type="button" class="botao botao-terciario limpar" (click)="limparFiltros()">
+      Limpar filtros
+    </button>
+  }
+</section>
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando o histórico" [quantidade]="5" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar o histórico" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar o histórico"
+      [erro]="registros.error()"
+      (tentarNovamente)="registros.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="historico" titulo="Nenhuma alteração encontrada">
+      {{
+        filtrando()
+          ? 'Nada com esses filtros. Tente outra área, pessoa ou período.'
+          : 'As alterações aparecem aqui assim que alguém usa o sistema.'
+      }}
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @for (dia of dias(); track dia.data) {
+      <section class="dia" [attr.aria-labelledby]="'dia-' + dia.data">
+        <h2 class="texto-rotulo dia-titulo" [id]="'dia-' + dia.data">{{ dia.rotulo }}</h2>
+        <ol class="cartao registros">
+          @for (registro of dia.registros; track registro.id) {
+            <li class="registro">
+              <span class="registro-icone" aria-hidden="true">
+                <ms-icone [nome]="icone(registro.acao)" [tamanho]="16" />
+              </span>
+              <div class="registro-corpo">
+                <div class="registro-linha">
+                  <span class="registro-titulo">{{ titulo(registro) }}</span>
+                  <span class="texto-legenda numerico registro-hora">{{
+                    hora(registro.criadoEm)
+                  }}</span>
+                </div>
+                <span class="texto-legenda">
+                  por {{ registro.autor?.nome ?? 'sistema (sem autor)' }}
+                </span>
+                @if (mudancas(registro); as lista) {
+                  @if (lista.length > 0) {
+                    @if (detalhesVisiveis(registro)) {
+                      <dl class="mudancas">
+                        @for (mudanca of lista; track mudanca.campo) {
+                          <div class="mudanca">
+                            <dt>{{ mudanca.campo }}</dt>
+                            <dd>
+                              @if (registro.dadosAntes && registro.dadosDepois) {
+                                <span class="antes">{{ mudanca.antes ?? 'vazio' }}</span>
+                                <ms-icone nome="chevronDireita" [tamanho]="14" />
+                                <span class="depois">{{ mudanca.depois ?? 'vazio' }}</span>
+                              } @else {
+                                <span>{{ mudanca.depois ?? mudanca.antes }}</span>
+                              }
+                            </dd>
+                          </div>
+                        }
+                      </dl>
+                    }
+                    @if (!(registro.dadosAntes && registro.dadosDepois)) {
+                      <button
+                        type="button"
+                        class="ver-dados"
+                        [attr.aria-expanded]="detalhesVisiveis(registro)"
+                        (click)="alternar(registro.id)"
+                      >
+                        {{ detalhesVisiveis(registro) ? 'Ocultar dados' : 'Ver dados' }}
+                      </button>
+                    }
+                  }
+                }
+                @if (pedidoDoRegistro(registro); as pedido) {
+                  <a class="abrir-pedido" [routerLink]="['/pedidos', pedido]">Abrir pedido</a>
+                }
+              </div>
+            </li>
+          }
+        </ol>
+      </section>
+    }
+    @if (meta(); as meta) {
+      <ms-paginacao [meta]="meta" (paginaMudou)="pagina.set($event)" />
+    }
+  }
+}

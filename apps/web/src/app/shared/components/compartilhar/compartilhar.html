@@ -1,0 +1,28 @@
+<div class="acoes" role="group" aria-label="Compartilhar e exportar">
+  @if (link(); as link) {
+    <a class="botao botao-secundario acao" [href]="link" target="_blank" rel="noopener noreferrer">
+      <ms-icone nome="whatsapp" [tamanho]="16" />
+      <span>{{ rotuloWhatsApp() }}</span>
+    </a>
+  }
+  @if (gerarPlanilha()) {
+    <button
+      type="button"
+      class="botao botao-secundario acao"
+      [disabled]="preparando()"
+      (click)="baixarPlanilha()"
+    >
+      <ms-icone nome="baixar" [tamanho]="16" />
+      <span>{{ preparando() ? 'Preparando…' : 'Planilha' }}</span>
+    </button>
+  }
+  @if (imprimivel()) {
+    <button type="button" class="botao botao-secundario acao" (click)="imprimir()">
+      <ms-icone nome="imprimir" [tamanho]="16" />
+      <span>Imprimir</span>
+    </button>
+  }
+</div>
+@if (erro(); as mensagem) {
+  <p class="campo-erro" role="alert">{{ mensagem }}</p>
+}

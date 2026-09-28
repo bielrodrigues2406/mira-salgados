@@ -1,0 +1,30 @@
+# HTTPS com Caddy, para servidor com IP público (VPS) ou casa com as portas 80
+# e 443 liberadas no roteador. Suba com:
+#   docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
+
+services:
+  api:
+    environment:
+      # Caddy -> nginx -> API: dois proxies à frente.
+      TRUST_PROXY: 2
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no arquivo .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  caddy_data:
+  caddy_config:

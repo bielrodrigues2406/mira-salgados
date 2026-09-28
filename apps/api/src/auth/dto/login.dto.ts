@@ -1,14 +1,20 @@
-import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
+
+import { TELEFONE } from '../../common/validation/telefone.js';
+import { SomenteDigitos } from '../../common/validation/transforms.js';
+import { SENHA_MAXIMA } from '../../usuarios/dto/usuarios.dto.js';
 
 export class LoginDto {
-  @IsEmail()
-  @MaxLength(254)
-  email: string;
+  /** Celular com DDD; máscara e espaços são descartados. */
+  @SomenteDigitos()
+  @IsString()
+  @Matches(TELEFONE)
+  telefone: string;
 
   // Sem regra de tamanho mínimo no login: a política vale no cadastro. O teto
   // limita o custo de hashing que um corpo de requisição pode provocar.
   @IsString()
   @IsNotEmpty()
-  @MaxLength(128)
+  @MaxLength(SENHA_MAXIMA)
   senha: string;
 }

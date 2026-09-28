@@ -22,6 +22,7 @@
   }
   @case ('pronto') {
     @if (resultado(); as resultado) {
+      <ms-compartilhar [gerarPlanilha]="planilha" />
       <p class="texto-legenda numerico">{{ resumo() }}</p>
       <ol class="ranking" aria-label="Itens mais vendidos">
         @for (item of resultado.itens; track item.produto.id + item.preparo) {

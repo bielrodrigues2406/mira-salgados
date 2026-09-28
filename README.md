@@ -9,9 +9,11 @@ pagamentos e acerto de contas entre produtores.
 apps/api     API REST (NestJS 12, TypeORM, PostgreSQL 18)
 apps/web     Aplicação web (Angular 22)
 database/    Scripts de inicialização do PostgreSQL
+deploy/      Configuração do proxy HTTPS (Caddy)
 design/      Protótipo de interface e decisões de design
 docker/      Imagens de produção
-docs/        Convenções, ADRs e análise crítica da especificação
+docs/        Produção, segurança, convenções, ADRs e análise crítica
+scripts/     Backup do banco
 tools/       Regras locais de lint
 ```
 
@@ -48,8 +50,12 @@ npm test -w @mira/web                               # testes unitários (Vitest)
 npm run build -w @mira/web                          # build de produção
 ```
 
-Para criar as primeiras contas, suba a API com `AUTH_PUBLIC_SIGNUP_ENABLED=true`,
-crie as contas pela tela de login e desligue a variável em seguida.
+Não há cadastro público. Crie o primeiro administrador pela linha de comando e
+as demais contas pela tela _Usuários_:
+
+```sh
+npm run usuarios:criar-admin -w @mira/api           # nome, celular e senha
+```
 
 ## Pilha completa com Docker
 
@@ -60,7 +66,8 @@ docker compose up -d --build
 
 A aplicação fica em http://localhost:8080. O serviço `migrate` aplica as
 migrations antes de a API subir. Detalhes em
-[ADR 0009](docs/adr/0009-imagens-docker.md).
+[ADR 0009](docs/adr/0009-imagens-docker.md). Para colocar num servidor com
+HTTPS, domínio e backup, siga [docs/producao.md](docs/producao.md).
 
 ## Scripts da raiz
 
@@ -80,6 +87,8 @@ contra PostgreSQL 18, build e construção das imagens Docker.
 
 ## Documentação
 
+- [Colocar em produção](docs/producao.md)
+- [Segurança](docs/seguranca.md)
 - [Convenções de idioma, código e git](docs/convencoes.md)
 - [Decisões de arquitetura](docs/adr)
 - [Análise crítica da especificação](docs/analise-critica.md)

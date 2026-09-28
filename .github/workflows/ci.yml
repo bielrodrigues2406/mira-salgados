@@ -47,6 +47,9 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Dependências sem vulnerabilidades conhecidas
+        run: npm audit --omit=dev --audit-level=moderate
+
       - name: Formatação
         run: npm run format:check
 

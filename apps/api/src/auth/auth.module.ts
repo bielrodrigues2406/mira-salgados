@@ -7,8 +7,7 @@ import { AccessTokenService } from './access-token.service.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
-import { RegistrationGuard } from './guards/registration.guard.js';
-import { PasswordHasher } from './password-hasher.js';
+import { LimitePorTelefone } from './limite-por-telefone.js';
 import { RefreshCookie } from './refresh-cookie.js';
 import { RefreshToken } from './refresh-token.entity.js';
 import { RefreshTokenService } from './refresh-token.service.js';
@@ -22,10 +21,9 @@ import { RefreshTokenService } from './refresh-token.service.js';
     AuthService,
     AccessTokenService,
     RefreshTokenService,
-    PasswordHasher,
     RefreshCookie,
     JwtAuthGuard,
-    RegistrationGuard,
+    { provide: LimitePorTelefone, useFactory: () => new LimitePorTelefone() },
   ],
   exports: [JwtAuthGuard],
 })

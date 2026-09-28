@@ -14,6 +14,7 @@ import {
 } from './acerto-diario.js';
 
 interface ItemCru {
+  data: string;
   pedidoId: string;
   numero: number;
   desconto: string;
@@ -44,12 +45,23 @@ export class AcertoDiarioService {
    * do banco como texto e viram centavos antes de qualquer conta.
    */
   async daData(data: string): Promise<AcertoDiario> {
+    return (await this.porDia(data, data)).get(data) ?? calcularAcerto([], []);
+  }
+
+  /**
+   * Acerto de cada dia do intervalo, com as mesmas regras de daData, em duas
+   * consultas. Cada dia é calculado à parte: a divisão do caixa é proporcional
+   * ao que cada um produziu naquele dia, e somar dias não muda isso.
+   * Dias sem pedidos ficam fora do mapa.
+   */
+  async porDia(de: string, ate: string): Promise<Map<string, AcertoDiario>> {
     const itens = await this.dataSource
       .createQueryBuilder(ItemPedido, 'item')
       .innerJoin('item.pedido', 'pedido')
       .innerJoin('item.produto', 'produto')
       .innerJoin('item.produtor', 'produtor')
-      .select('pedido.id', 'pedidoId')
+      .select("to_char(pedido.dataEntrega, 'YYYY-MM-DD')", 'data')
+      .addSelect('pedido.id', 'pedidoId')
       .addSelect('pedido.numero', 'numero')
       .addSelect('pedido.desconto', 'desconto')
       .addSelect('produto.id', 'produtoId')
@@ -60,7 +72,7 @@ export class AcertoDiarioService {
       .addSelect('item.unidadeVenda', 'unidadeVenda')
       .addSelect('item.quantidade', 'quantidade')
       .addSelect('item.precoUnitario', 'precoUnitario')
-      .where('pedido.dataEntrega = :data', { data })
+      .where('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate })
       .andWhere('pedido.status IN (:...status)', { status: STATUS_EM_VIGOR })
       // Ordem estável: o desempate do rateio do desconto não pode variar.
       .orderBy('pedido.numero', 'ASC')
@@ -92,7 +104,14 @@ export class AcertoDiarioService {
             .groupBy('pagamento.pedidoId')
             .getRawMany<PagamentosCrus>();
 
-    return calcularAcerto(itens.map(paraItemDoAcerto), pagamentos.map(paraPagamentos));
+    const somas = pagamentos.map(paraPagamentos);
+    const porData = Map.groupBy(itens, (item) => item.data);
+    return new Map(
+      [...porData].map(([data, doDia]) => [
+        data,
+        calcularAcerto(doDia.map(paraItemDoAcerto), somas),
+      ]),
+    );
   }
 }
 

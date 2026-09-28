@@ -21,6 +21,8 @@ import { ListaEsqueleto } from '../../../shared/components/lista-esqueleto/lista
 import { MoedaPipe } from '../../../shared/pipes/moeda.pipe';
 import { TelefonePipe } from '../../../shared/pipes/telefone.pipe';
 import { dataCurta, hoje } from '../../../shared/utils/datas';
+import { mensagemDeConfirmacao } from '../../../shared/utils/mensagens';
+import { linkDoWhatsApp } from '../../../shared/utils/whatsapp';
 import { PedidoFormulario, type SalvarPedido } from '../pedido-formulario/pedido-formulario';
 import type { AlteracaoDoPedido } from './alteracao';
 import { ItensPedido } from './itens-pedido/itens-pedido';
@@ -179,5 +181,10 @@ export class PedidoDetalhe {
 
   protected telefoneParaLigar(pedido: Pedido): string | null {
     return pedido.cliente.telefone ? `tel:+55${pedido.cliente.telefone}` : null;
+  }
+
+  /** Resumo do pedido para o cliente; sem celular cadastrado, a pessoa escolhe o contato. */
+  protected resumoNoWhatsApp(pedido: Pedido): string {
+    return linkDoWhatsApp(mensagemDeConfirmacao(pedido), pedido.cliente.telefone);
   }
 }

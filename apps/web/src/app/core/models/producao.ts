@@ -66,3 +66,33 @@ export interface ProducaoDoDia {
   faixas: FaixaDeHorario[];
   consolidado: GrupoDePreparo[];
 }
+
+export interface SalgadoDoProdutor {
+  produto: Referencia;
+  preparo: Preparo;
+  unidades: number;
+}
+
+export interface ProdutorNoDia {
+  produtor: Referencia;
+  unidades: number;
+  /** Do mais feito para o menos feito. */
+  salgados: SalgadoDoProdutor[];
+}
+
+export interface DiaDeProducao {
+  /** AAAA-MM-DD */
+  data: string;
+  quantidadePedidos: number;
+  unidades: number;
+  /** Da maior carga para a menor. */
+  produtores: ProdutorNoDia[];
+}
+
+/** Visão da semana: todos os dias do intervalo, inclusive os vazios. */
+export interface ProducaoPorDia {
+  de: string;
+  ate: string;
+  unidades: number;
+  dias: DiaDeProducao[];
+}

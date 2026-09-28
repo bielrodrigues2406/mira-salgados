@@ -18,6 +18,8 @@ export const ACOES_AUDITORIA = [
   'TRANSICAO_STATUS',
   'EXCLUSAO',
   'ESTORNO',
+  'SENHA_REDEFINIDA',
+  'SENHA_TROCADA',
 ] as const;
 
 export type AcaoAuditoria = (typeof ACOES_AUDITORIA)[number];

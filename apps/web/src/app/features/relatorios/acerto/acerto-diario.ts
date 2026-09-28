@@ -2,14 +2,17 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { RelatoriosService } from '../../../core/services/relatorios.service';
+import { Compartilhar } from '../../../shared/components/compartilhar/compartilhar';
 import { EstadoErro } from '../../../shared/components/estado-erro/estado-erro';
 import { EstadoVazio } from '../../../shared/components/estado-vazio/estado-vazio';
 import { Icone } from '../../../shared/components/icone/icone';
 import { ListaEsqueleto } from '../../../shared/components/lista-esqueleto/lista-esqueleto';
 import { SeletorData } from '../../../shared/components/seletor-data/seletor-data';
 import { MoedaPipe } from '../../../shared/pipes/moeda.pipe';
+import { type Arquivo, csv, reaisNoCsv } from '../../../shared/utils/arquivo';
 import { dataDoCalendario, hoje } from '../../../shared/utils/datas';
 import { estadoDeRecurso } from '../../../shared/utils/estado-de-recurso';
+import { mensagemDoAcerto } from '../../../shared/utils/mensagens';
 import { contagem, listaDePedidos, percentuaisInteiros } from '../../../shared/utils/textos';
 import { CartaoProdutor } from './cartao-produtor/cartao-produtor';
 
@@ -21,6 +24,7 @@ import { CartaoProdutor } from './cartao-produtor/cartao-produtor';
   selector: 'ms-acerto-diario',
   imports: [
     CartaoProdutor,
+    Compartilhar,
     EstadoErro,
     EstadoVazio,
     Icone,
@@ -76,6 +80,45 @@ export class AcertoDiario {
     const acerto = this.acerto();
     return acerto !== undefined && acerto.somaAReceberCentavos === acerto.caixa.totalCentavos;
   });
+
+  protected readonly mensagem = computed(() => {
+    const acerto = this.acerto();
+    return acerto ? mensagemDoAcerto(acerto) : null;
+  });
+
+  /** Uma linha por produtor e as linhas do caixa, para conferir numa planilha. */
+  protected readonly planilha = (): Arquivo => {
+    const acerto = this.acerto();
+    if (!acerto) throw new Error('Acerto ainda não carregado.');
+    const produtores = acerto.produtores.map((parte) => [
+      parte.produtor.nome,
+      parte.unidades,
+      (parte.participacaoDecimos / 10).toFixed(1).replace('.', ','),
+      reaisNoCsv(parte.valorProduzidoCentavos),
+      reaisNoCsv(parte.aReceberCentavos),
+      reaisNoCsv(parte.pendenteCentavos),
+    ]);
+    return csv(
+      `acerto-${acerto.data}`,
+      [
+        'Produtor',
+        'Salgados',
+        'Participação (%)',
+        'Produzido (R$)',
+        'A receber (R$)',
+        'Pendente (R$)',
+      ],
+      [
+        ...produtores,
+        [],
+        ['Caixa: PIX', null, null, null, reaisNoCsv(acerto.caixa.pixCentavos)],
+        ['Caixa: dinheiro', null, null, null, reaisNoCsv(acerto.caixa.dinheiroCentavos)],
+        ['Fiado', null, null, null, reaisNoCsv(acerto.fiado.valorCentavos)],
+        ['Sem pagamento', null, null, null, reaisNoCsv(acerto.semPagamento.valorCentavos)],
+        ['Valor movimentado', acerto.unidades, null, reaisNoCsv(acerto.valorMovimentadoCentavos)],
+      ],
+    );
+  };
 
   protected async irPara(data: string): Promise<void> {
     await this.router.navigate([], {

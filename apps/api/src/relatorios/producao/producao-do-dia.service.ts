@@ -13,6 +13,11 @@ import {
   montarProducaoDoDia,
   type ProducaoDoDia,
 } from './producao-do-dia.js';
+import {
+  type ItemDoIntervalo,
+  montarProducaoPorDia,
+  type ProducaoPorDia,
+} from './producao-por-dia.js';
 
 interface LinhaCrua {
   pedidoId: string;
@@ -79,6 +84,54 @@ export class ProducaoDoDiaService {
 
     return montarProducaoDoDia(linhas.map(paraLinhaDeProducao));
   }
+
+  /** Carga de cada produtor por dia, no intervalo; com produtor, só a dele. */
+  async porDia(de: string, ate: string, produtorId?: string): Promise<ProducaoPorDia> {
+    const consulta = this.dataSource
+      .createQueryBuilder(ItemPedido, 'item')
+      .innerJoin('item.pedido', 'pedido')
+      .innerJoin('item.produto', 'produto')
+      .innerJoin('item.produtor', 'produtor')
+      .select("to_char(pedido.dataEntrega, 'YYYY-MM-DD')", 'data')
+      .addSelect('pedido.id', 'pedidoId')
+      .addSelect('produto.id', 'produtoId')
+      .addSelect('produto.nome', 'produtoNome')
+      .addSelect('produtor.id', 'produtorId')
+      .addSelect('produtor.nome', 'produtorNome')
+      .addSelect('item.preparo', 'preparo')
+      .addSelect('item.unidadeVenda', 'unidadeVenda')
+      .addSelect('item.quantidade', 'quantidade')
+      .where('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate })
+      .andWhere('pedido.status IN (:...status)', { status: STATUS_EM_VIGOR });
+    if (produtorId) consulta.andWhere('item.produtorId = :produtorId', { produtorId });
+
+    const itens = await consulta.getRawMany<ItemCru>();
+    return montarProducaoPorDia(de, ate, itens.map(paraItemDoIntervalo));
+  }
+}
+
+interface ItemCru {
+  data: string;
+  pedidoId: string;
+  produtoId: string;
+  produtoNome: string;
+  produtorId: string;
+  produtorNome: string;
+  preparo: Preparo;
+  unidadeVenda: UnidadeVenda;
+  quantidade: number;
+}
+
+function paraItemDoIntervalo(item: ItemCru): ItemDoIntervalo {
+  return {
+    data: item.data,
+    pedidoId: item.pedidoId,
+    produto: { id: item.produtoId, nome: item.produtoNome },
+    produtor: { id: item.produtorId, nome: item.produtorNome },
+    preparo: item.preparo,
+    unidadeVenda: item.unidadeVenda,
+    quantidade: item.quantidade,
+  };
 }
 
 function paraLinhaDeProducao(linha: LinhaCrua): LinhaDeProducao {

@@ -44,3 +44,14 @@
     padding: 0;
   }
 }
+
+/* Na impressão, a aba aberta vira o título do relatório. */
+@media print {
+  .aba:not(.ativa) {
+    display: none;
+  }
+
+  .abas {
+    border: 0;
+  }
+}

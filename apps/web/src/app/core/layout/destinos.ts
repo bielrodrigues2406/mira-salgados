@@ -8,19 +8,35 @@ export interface Destino {
   relacionadas?: readonly string[];
 }
 
-/** Os cinco destinos da navegação principal, na ordem do design. */
+/** Navegação principal do desktop, na barra lateral. */
 export const DESTINOS: readonly Destino[] = [
+  { rota: '/inicio', rotulo: 'Início', icone: 'inicio' },
   { rota: '/pedidos', rotulo: 'Pedidos', icone: 'pedidos' },
   { rota: '/producao', rotulo: 'Produção', icone: 'producao' },
   { rota: '/clientes', rotulo: 'Clientes', icone: 'clientes' },
-  { rota: '/produtos', rotulo: 'Produtos', icone: 'produtos', relacionadas: ['/produtores'] },
+  { rota: '/produtos', rotulo: 'Produtos', icone: 'produtos' },
   { rota: '/relatorios', rotulo: 'Relatórios', icone: 'relatorios' },
 ];
 
-/** Cadastros de baixa frequência: no desktop, grupo próprio; no celular, a partir de Produtos. */
+/** Cadastros de baixa frequência, em grupo próprio na barra lateral. */
 export const CADASTROS: readonly Destino[] = [
   { rota: '/produtores', rotulo: 'Produtores', icone: 'produtor' },
 ];
+
+/** Só para administradores: contas de acesso e histórico de alterações. */
+export const ADMINISTRACAO: readonly Destino[] = [
+  { rota: '/usuarios', rotulo: 'Usuários', icone: 'usuarios' },
+  { rota: '/alteracoes', rotulo: 'Alterações', icone: 'historico' },
+];
+
+/**
+ * Barra inferior do celular: só o que se usa todo dia, ao alcance do polegar.
+ * O resto fica em "Mais".
+ */
+export const INFERIORES: readonly Destino[] = DESTINOS.slice(0, 3);
+
+/** O que abre em "Mais" no celular, fora os itens de administração. */
+export const MAIS: readonly Destino[] = [...DESTINOS.slice(3), ...CADASTROS];
 
 // Segmentação por grafema: "É" digitado como "E" + acento combinante continua
 // sendo uma letra só.
