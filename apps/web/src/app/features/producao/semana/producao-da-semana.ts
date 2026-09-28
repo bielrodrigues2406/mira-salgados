@@ -1,4 +1,4 @@
-import { Component, computed, input, linkedSignal } from '@angular/core';
+import { Component, computed, input, model } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import type {
@@ -56,18 +56,18 @@ export class ProducaoDaSemana {
   });
 
   /**
-   * null é "todos". Começa no produtor da conta, se ele tiver produção no
-   * período; ao trocar de período, a escolha feita continua valendo enquanto
-   * o produtor escolhido tiver produção.
+   * Produtor escolhido no filtro, guardado pela tela de fora para sobreviver à
+   * troca de período: undefined é "ainda não escolheu", null é "todos".
    */
-  protected readonly filtro = linkedSignal<{ meu: string | null; ids: string[] }, string | null>({
-    source: () => ({ meu: this.meuProdutorId(), ids: this.produtores().map(({ id }) => id) }),
-    computation: ({ meu, ids }, anterior) => {
-      if (anterior && (anterior.value === null || ids.includes(anterior.value))) {
-        return anterior.value;
-      }
-      return meu && ids.includes(meu) ? meu : null;
-    },
+  readonly escolha = model<string | null | undefined>(undefined);
+
+  /** Sem escolha, começa no produtor da conta, se ele tiver produção no período. */
+  protected readonly filtro = computed((): string | null => {
+    const escolha = this.escolha();
+    const ids = this.produtores().map(({ id }) => id);
+    if (escolha !== undefined && (escolha === null || ids.includes(escolha))) return escolha;
+    const meu = this.meuProdutorId();
+    return meu && ids.includes(meu) ? meu : null;
   });
 
   protected readonly dias = computed(() => {

@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import type { Periodo } from '../../core/models/relatorios';
@@ -105,6 +105,8 @@ export class Producao {
     this.naSemana() ? this.periodo() : undefined,
   );
   protected readonly estadoDaSemana = estadoDeRecurso(this.semana, () => false);
+  /** Produtor escolhido no período; fica aqui para não se perder quando o período recarrega. */
+  protected readonly produtorDoPeriodo = signal<string | null | undefined>(undefined);
   protected readonly producao = computed(() =>
     this.recurso.hasValue() ? this.recurso.value() : undefined,
   );

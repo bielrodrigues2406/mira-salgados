@@ -10,7 +10,7 @@
         type="button"
         class="filtro"
         [attr.aria-pressed]="filtro() === null"
-        (click)="filtro.set(null)"
+        (click)="escolha.set(null)"
       >
         Todos
       </button>
@@ -19,7 +19,7 @@
           type="button"
           class="filtro"
           [attr.aria-pressed]="filtro() === produtor.id"
-          (click)="filtro.set(produtor.id)"
+          (click)="escolha.set(produtor.id)"
         >
           {{ produtor.id === meuProdutorId() ? produtor.nome + ' (você)' : produtor.nome }}
           <span class="filtro-total numerico">{{
