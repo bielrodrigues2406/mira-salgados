@@ -1,0 +1,6 @@
+# HTTPS automático (Let's Encrypt) à frente do nginx da pilha. Precisa das
+# portas 80 e 443 abertas para a internet apontando para esta máquina.
+{$DOMINIO} {
+	encode zstd gzip
+	reverse_proxy web:80
+}

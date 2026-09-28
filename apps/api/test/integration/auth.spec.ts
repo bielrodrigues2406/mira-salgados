@@ -129,6 +129,26 @@ describe('autenticação', () => {
     });
   });
 
+  it('bloqueia o telefone depois de 10 falhas, mesmo trocando de IP', async () => {
+    const alvo = '11955554444';
+    await criarUsuario(app, { telefone: alvo });
+    for (let tentativa = 0; tentativa < 10; tentativa++) {
+      await http()
+        .post('/api/v1/auth/login')
+        .set('X-Forwarded-For', novoIp())
+        .send({ telefone: alvo, senha: 'senha-incorreta' })
+        .expect(401);
+    }
+
+    const comASenhaCerta = await http()
+      .post('/api/v1/auth/login')
+      .set('X-Forwarded-For', novoIp())
+      .send({ telefone: alvo, senha: SENHA_PADRAO });
+
+    expect(comASenhaCerta.status).toBe(429);
+    expect((comASenhaCerta.body as ErrorBody).error.code).toBe('MUITAS_TENTATIVAS');
+  });
+
   describe('POST /auth/refresh', () => {
     it('troca o refresh token por um novo e emite novo access token', async () => {
       const primeiro = cookieDeRefresh(await login());

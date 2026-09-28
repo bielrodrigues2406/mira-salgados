@@ -31,3 +31,6 @@ export class AuthenticationError extends DomainError {}
 
 /** Autenticado, mas sem permissão para a operação (HTTP 403). */
 export class ForbiddenError extends DomainError {}
+
+/** Tentativas demais num intervalo curto (HTTP 429). */
+export class LimiteExcedidoError extends DomainError {}

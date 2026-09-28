@@ -4,6 +4,7 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AuthenticationError } from '../common/errors/domain.errors.js';
 import type { Usuario } from '../usuarios/usuario.entity.js';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
+import { LimitePorTelefone } from './limite-por-telefone.js';
 import { AccessTokenService } from './access-token.service.js';
 import { PasswordHasher } from '../usuarios/password-hasher.js';
 import { type RefreshTokenEmitido, RefreshTokenService } from './refresh-token.service.js';
@@ -33,14 +34,17 @@ export class AuthService {
     private readonly hasher: PasswordHasher,
     private readonly accessTokens: AccessTokenService,
     private readonly refreshTokens: RefreshTokenService,
+    private readonly limitePorTelefone: LimitePorTelefone,
     @InjectPinoLogger(AuthService.name)
     private readonly logger: PinoLogger,
   ) {}
 
   async login(telefone: string, senha: string): Promise<SessaoEmitida> {
+    this.limitePorTelefone.verificar(telefone);
     const usuario = await this.usuarios.buscarAtivoComSenha(telefone);
     const senhaConfere = await this.hasher.verify(usuario?.senhaHash, senha);
     if (!usuario || !senhaConfere) {
+      this.limitePorTelefone.registrarFalha(telefone);
       this.logger.warn(
         { evento: 'login_recusado' },
         'Tentativa de login com credenciais inválidas',
@@ -48,6 +52,7 @@ export class AuthService {
       throw credenciaisInvalidas();
     }
 
+    this.limitePorTelefone.limpar(telefone);
     if (this.hasher.needsRehash(usuario.senhaHash)) {
       await this.usuarios.atualizarSenhaHash(usuario.id, await this.hasher.hash(senha));
     }

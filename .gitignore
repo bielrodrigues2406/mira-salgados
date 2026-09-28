@@ -22,3 +22,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 *.swp
+
+# Cópias de segurança do banco
+backups/

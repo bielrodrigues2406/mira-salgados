@@ -97,4 +97,39 @@ describe('validateEnv', () => {
     expect(mensagem).not.toContain('senha-super-secreta');
     expect(mensagem).not.toContain('segredo-curto');
   });
+
+  describe('em produção', () => {
+    const producao = {
+      ...ambienteValido,
+      NODE_ENV: 'production',
+      CORS_ORIGINS: 'https://mira.exemplo.com',
+      JWT_ACCESS_SECRET: 'Qm9vZ2llV29vZ2llLXNlZ3JlZG8tZm9ydGUtZGUtdmVyZGFkZQ',
+    };
+
+    it('aceita https, segredo gerado e cookie Secure', () => {
+      expect(validateEnv(producao).NODE_ENV).toBe('production');
+    });
+
+    it('aceita localhost para testar a pilha na própria máquina', () => {
+      expect(() =>
+        validateEnv({ ...producao, CORS_ORIGINS: 'http://localhost:8080' }),
+      ).not.toThrow();
+    });
+
+    it('recusa origem http que não seja local', () => {
+      expect(mensagemDeErro({ ...producao, CORS_ORIGINS: 'http://mira.exemplo.com' })).toContain(
+        'CORS_ORIGINS',
+      );
+    });
+
+    it('recusa segredo de baixa variedade, mesmo longo', () => {
+      expect(mensagemDeErro({ ...producao, JWT_ACCESS_SECRET: 'ab'.repeat(32) })).toContain(
+        'JWT_ACCESS_SECRET',
+      );
+    });
+
+    it('recusa cookie sem Secure', () => {
+      expect(mensagemDeErro({ ...producao, COOKIE_SECURE: 'false' })).toContain('COOKIE_SECURE');
+    });
+  });
 });

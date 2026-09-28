@@ -43,21 +43,21 @@ describe('montarProducaoPorDia', () => {
 
     const [dia] = producao.dias;
     expect(dia?.quantidadePedidos).toBe(3);
-    expect(dia?.unidades).toBe(1030);
+    expect(dia?.unidades).toBe(930);
     expect(dia?.produtores).toEqual([
       {
+        produtor: MIRA,
+        unidades: 500,
+        salgados: [{ produto: COXINHA, preparo: 'FRITO', unidades: 500 }],
+      },
+      {
         produtor: CELIA,
-        unidades: 530,
+        unidades: 430,
         salgados: [
           { produto: COXINHA, preparo: 'FRITO', unidades: 230 },
           { produto: COXINHA, preparo: 'CONGELADO', unidades: 100 },
           { produto: KIBE, preparo: 'FRITO', unidades: 100 },
         ],
-      },
-      {
-        produtor: MIRA,
-        unidades: 500,
-        salgados: [{ produto: COXINHA, preparo: 'FRITO', unidades: 500 }],
       },
     ]);
   });

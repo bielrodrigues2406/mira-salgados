@@ -1,5 +1,7 @@
 # ADR 0006 — Autenticação e sessão
 
+> Login por e-mail e cadastro público foram substituídos pela [ADR 0013](0013-contas-por-telefone-e-papeis.md): contas entram pelo celular e só administradores criam contas. Sessão, tokens e cookie seguem como descritos aqui.
+
 ## Decisão
 
 **Senha.** Argon2id com 64 MiB, 3 iterações e paralelismo 1. Hashes antigos com
