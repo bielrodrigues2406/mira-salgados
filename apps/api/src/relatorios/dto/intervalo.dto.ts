@@ -37,3 +37,19 @@ export class FiltroFiadosDto extends PaginationQueryDto {
   @IsUUID()
   clienteId?: string;
 }
+
+/** Um mês cobre a visão da semana com folga; mais que isso é relatório de período. */
+export const MAXIMO_DE_DIAS_DA_SEMANA = 31;
+
+export class FiltroProducaoPorDiaDto {
+  @DataDoCalendario()
+  de: string;
+
+  @DataDoCalendario()
+  @FimDoIntervalo('de', MAXIMO_DE_DIAS_DA_SEMANA)
+  ate: string;
+
+  @IsOptional()
+  @IsUUID()
+  produtorId?: string;
+}

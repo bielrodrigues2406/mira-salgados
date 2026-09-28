@@ -1,0 +1,20 @@
+# HTTPS pelo Cloudflare Tunnel, para hospedar em casa sem abrir portas no
+# roteador (funciona mesmo com CGNAT). O túnel é criado no painel da Cloudflare
+# apontando para http://web:80. Suba com:
+#   docker compose -f docker-compose.yml -f docker-compose.tunel.yml up -d --build
+
+services:
+  api:
+    environment:
+      # cloudflared -> nginx -> API: dois proxies à frente.
+      TRUST_PROXY: 2
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.9.3
+    restart: unless-stopped
+    command: ['tunnel', '--no-autoupdate', 'run']
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?defina CLOUDFLARE_TUNNEL_TOKEN no arquivo .env}
+    depends_on:
+      web:
+        condition: service_healthy

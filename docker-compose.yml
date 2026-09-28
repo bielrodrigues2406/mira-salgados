@@ -57,10 +57,9 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: *database-url
       CORS_ORIGINS: ${WEB_ORIGIN:-http://localhost:8080}
-      TRUST_PROXY: 1
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no arquivo .env}
       COOKIE_SECURE: 'true'
-      AUTH_PUBLIC_SIGNUP_ENABLED: ${AUTH_PUBLIC_SIGNUP_ENABLED:-false}
     depends_on:
       migrate:
         condition: service_completed_successfully

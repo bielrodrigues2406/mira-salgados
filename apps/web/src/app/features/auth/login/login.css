@@ -95,34 +95,12 @@
   min-height: 48px;
 }
 
-.cadastro {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--cor-borda);
-}
-
-.alternar-cadastro {
-  align-self: center;
-  font-weight: 500;
-}
-
-.painel-cadastro {
-  padding: 16px;
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-controle);
-  background: var(--cor-fundo);
-}
-
-.painel-titulo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .rodape {
   color: var(--sobre-comando-secundario);
   font-size: 12px;
+  text-align: center;
+}
+
+.ajuda-acesso {
   text-align: center;
 }

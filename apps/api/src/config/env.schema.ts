@@ -30,15 +30,40 @@ export const envObjectSchema = z.object({
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(300).max(3600).default(900),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(60).default(14),
   COOKIE_SECURE: z.stringbool().default(true),
-  AUTH_PUBLIC_SIGNUP_ENABLED: z.stringbool().default(false),
 });
 
+/** Origem local, que os navegadores tratam como segura mesmo em http. */
+const ORIGEM_LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+/** Um segredo gerado de verdade tem muitos caracteres diferentes; "aaaa..." ou "123123..." não. */
+const CARACTERES_DISTINTOS_MINIMOS = 16;
+
+// Regras que só valem em produção: em desenvolvimento e nos testes, http e
+// segredos simples são aceitos para não atrapalhar.
 export const envSchema = envObjectSchema.superRefine((env, contexto) => {
-  if (env.NODE_ENV === 'production' && !env.COOKIE_SECURE) {
+  if (env.NODE_ENV !== 'production') return;
+  if (!env.COOKIE_SECURE) {
     contexto.addIssue({
       code: 'custom',
       path: ['COOKIE_SECURE'],
       message: 'Em produção o cookie de sessão precisa ser Secure.',
+    });
+  }
+  const inseguras = env.CORS_ORIGINS.filter(
+    (origem) => !origem.startsWith('https://') && !ORIGEM_LOCAL.test(origem),
+  );
+  if (inseguras.length > 0) {
+    contexto.addIssue({
+      code: 'custom',
+      path: ['CORS_ORIGINS'],
+      message:
+        'Em produção as origens precisam ser https:// (ou localhost, para testar na máquina).',
+    });
+  }
+  if (new Set(env.JWT_ACCESS_SECRET).size < CARACTERES_DISTINTOS_MINIMOS) {
+    contexto.addIssue({
+      code: 'custom',
+      path: ['JWT_ACCESS_SECRET'],
+      message: 'Segredo fraco para produção: gere um com `openssl rand -base64 48`.',
     });
   }
 });

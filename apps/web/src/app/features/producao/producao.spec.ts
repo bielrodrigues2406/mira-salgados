@@ -8,7 +8,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
-import type { ProducaoDoDia } from '../../core/models/producao';
+import type { ProducaoDoDia, ProducaoPorDia } from '../../core/models/producao';
 import { hoje, somarDias } from '../../shared/utils/datas';
 import { Producao } from './producao';
 
@@ -257,5 +257,98 @@ describe('Producao', () => {
 
     expect(texto()).toContain('Nada para produzir neste dia');
     expect(link('Ver pedidos').getAttribute('href')).toBe('/pedidos');
+  });
+
+  describe('modo semana', () => {
+    function semana(de: string): ProducaoPorDia {
+      const dias = Array.from({ length: 7 }, (_, indice) => ({
+        data: somarDias(de, indice),
+        quantidadePedidos: 0,
+        unidades: 0,
+        produtores: [] as ProducaoPorDia['dias'][number]['produtores'],
+      }));
+      dias[1] = {
+        data: somarDias(de, 1),
+        quantidadePedidos: 2,
+        unidades: 550,
+        produtores: [
+          {
+            produtor: MIRA,
+            unidades: 500,
+            salgados: [
+              { produto: COXINHA, preparo: 'FRITO', unidades: 300 },
+              { produto: COXINHA, preparo: 'CONGELADO', unidades: 200 },
+            ],
+          },
+          {
+            produtor: CELIA,
+            unidades: 50,
+            salgados: [{ produto: ESFIHA, preparo: 'ASSADO', unidades: 50 }],
+          },
+        ],
+      };
+      return { de, ate: somarDias(de, 6), unidades: 550, dias };
+    }
+
+    async function abrirSemana(): Promise<void> {
+      TestBed.configureTestingModule({
+        providers: [
+          provideRouter([{ path: 'producao', component: Producao }], withComponentInputBinding()),
+          provideHttpClient(),
+          provideHttpClientTesting(),
+        ],
+      });
+      backend = TestBed.inject(HttpTestingController);
+      harness = await RouterTestingHarness.create();
+      const navegacao = harness.navigateByUrl('/producao?modo=semana', Producao);
+      const requisicao = await vi.waitFor(() => {
+        TestBed.tick();
+        return backend.expectOne(
+          '/api/v1/relatorios/producao-por-dia?de=' + hoje() + '&ate=' + somarDias(hoje(), 6),
+        );
+      });
+      requisicao.flush({ data: semana(hoje()) });
+      await navegacao;
+      await harness.fixture.whenStable();
+      const rota = harness.routeNativeElement;
+      if (!rota) throw new Error('A rota não renderizou.');
+      tela = rota;
+    }
+
+    it('mostra os sete dias com a carga de cada produtor por salgado', async () => {
+      await abrirSemana();
+
+      expect(tela.querySelector('h1')?.textContent).toContain('Produção da semana');
+      expect(link('Semana').getAttribute('aria-current')).toBe('page');
+      expect(tela.querySelectorAll('li.dia')).toHaveLength(7);
+      expect(tela.querySelectorAll('li.dia.vazio')).toHaveLength(6);
+      expect(textos('.carga-nome')).toEqual(['Mira', 'Célia']);
+      expect(textos('.carga-total')).toEqual(['500', '50']);
+      expect(textos('.salgado')).toEqual([
+        '300 Coxinha de frango',
+        '200 Coxinha de frango (congelado)',
+        '50 Esfiha de carne (assado)',
+      ]);
+      expect(link('Próxima semana').getAttribute('href')).toBe(
+        `/producao?modo=semana&data=${somarDias(hoje(), 7)}`,
+      );
+      expect(link('Ver pedidos do dia').getAttribute('href')).toBe(
+        `/producao?data=${somarDias(hoje(), 1)}`,
+      );
+    });
+
+    it('filtra um produtor e recalcula os totais', async () => {
+      await abrirSemana();
+
+      const celia = [...tela.querySelectorAll<HTMLButtonElement>('.filtro')].find(
+        (botao) => botao.textContent.trim() === 'Célia',
+      );
+      celia?.click();
+      await harness.fixture.whenStable();
+
+      expect(textos('.carga-nome')).toEqual(['Célia']);
+      expect(textos('.dia-total')).toEqual(['50']);
+      expect(texto()).toContain('50 salgados em 7 dias');
+    });
   });
 });

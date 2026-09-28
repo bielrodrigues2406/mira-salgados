@@ -23,6 +23,7 @@
   }
   @case ('pronto') {
     @if (acerto(); as acerto) {
+      <ms-compartilhar [mensagem]="mensagem()" [gerarPlanilha]="planilha" />
       <section class="sintese" aria-labelledby="titulo-sintese">
         <h2 id="titulo-sintese" class="sintese-titulo">Síntese do dia</h2>
         <dl class="sintese-numeros">

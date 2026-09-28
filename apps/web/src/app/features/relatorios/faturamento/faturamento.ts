@@ -3,11 +3,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import type { Periodo } from '../../../core/models/relatorios';
 import { RelatoriosService } from '../../../core/services/relatorios.service';
+import { Compartilhar } from '../../../shared/components/compartilhar/compartilhar';
 import { EstadoErro } from '../../../shared/components/estado-erro/estado-erro';
 import { EstadoVazio } from '../../../shared/components/estado-vazio/estado-vazio';
 import { ListaEsqueleto } from '../../../shared/components/lista-esqueleto/lista-esqueleto';
 import { MoedaPipe } from '../../../shared/pipes/moeda.pipe';
 import { dataCurta, hoje } from '../../../shared/utils/datas';
+import { type Arquivo, csv, reaisNoCsv } from '../../../shared/utils/arquivo';
 import { estadoDeRecurso } from '../../../shared/utils/estado-de-recurso';
 import { contagem } from '../../../shared/utils/textos';
 import { periodoDaUrl } from '../periodo';
@@ -16,7 +18,15 @@ import { SeletorPeriodo } from '../seletor-periodo/seletor-periodo';
 /** Faturamento por período: métricas sintéticas e o faturamento de cada dia. */
 @Component({
   selector: 'ms-faturamento',
-  imports: [EstadoErro, EstadoVazio, ListaEsqueleto, MoedaPipe, RouterLink, SeletorPeriodo],
+  imports: [
+    Compartilhar,
+    EstadoErro,
+    EstadoVazio,
+    ListaEsqueleto,
+    MoedaPipe,
+    RouterLink,
+    SeletorPeriodo,
+  ],
   templateUrl: './faturamento.html',
   styleUrl: './faturamento.css',
 })
@@ -53,6 +63,21 @@ export class Faturamento {
       encomendas: contagem(dia.quantidadePedidos, 'encomenda', 'encomendas'),
     }));
   });
+
+  /** Uma linha por dia com pedidos. */
+  protected readonly planilha = (): Arquivo => {
+    const faturamento = this.faturamento();
+    if (!faturamento) throw new Error('Faturamento ainda não carregado.');
+    return csv(
+      `faturamento-${faturamento.de}-a-${faturamento.ate}`,
+      ['Data', 'Encomendas', 'Faturamento (R$)'],
+      faturamento.porDia.map((dia) => [
+        dia.data,
+        dia.quantidadePedidos,
+        reaisNoCsv(dia.faturamentoCentavos),
+      ]),
+    );
+  };
 
   protected async mudarPeriodo({ de, ate }: Periodo): Promise<void> {
     await this.router.navigate([], {

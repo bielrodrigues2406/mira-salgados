@@ -37,6 +37,7 @@
   }
   @case ('pronto') {
     @if (resultado(); as resultado) {
+      <ms-compartilhar [gerarPlanilha]="planilha" />
       <p class="texto-legenda numerico">
         {{ resumo() }} · {{ resultado.resumo.valorCentavos | moeda }} em itens, antes dos descontos
       </p>

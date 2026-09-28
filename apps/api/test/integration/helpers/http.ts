@@ -1,6 +1,7 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request, { type Response, type Test } from 'supertest';
 
+import type { Papel } from '../../../src/usuarios/papeis.js';
 import { criarUsuario, novoIp, SENHA_PADRAO } from './auth.js';
 
 export interface CorpoDeErro {
@@ -41,13 +42,16 @@ export interface ClienteHttp {
 }
 
 /** Cria um usuário, entra pela API e devolve requisições já autenticadas. */
-export async function clienteAutenticado(app: NestExpressApplication): Promise<ClienteHttp> {
-  const usuario = await criarUsuario(app, { email: `usuario-${crypto.randomUUID()}@exemplo.com` });
+export async function clienteAutenticado(
+  app: NestExpressApplication,
+  papel: Papel = 'MEMBRO',
+): Promise<ClienteHttp> {
+  const usuario = await criarUsuario(app, { papel });
   const servidor = app.getHttpServer();
   const login = await request(servidor)
     .post('/api/v1/auth/login')
     .set('X-Forwarded-For', novoIp())
-    .send({ email: usuario.email, senha: SENHA_PADRAO })
+    .send({ telefone: usuario.telefone, senha: SENHA_PADRAO })
     .expect(200);
   const { accessToken } = dadosDe<{ accessToken: string }>(login);
   const autorizacao = `Bearer ${accessToken}`;

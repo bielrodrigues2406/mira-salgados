@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { EntityManager, Repository } from 'typeorm';
+import { DataSource, type EntityManager, type Repository } from 'typeorm';
 
 import { Paginated } from '../common/pagination/pagination.js';
 import type { FiltroAuditoriaDto } from './dto/filtro-auditoria.dto.js';
 import { type AcaoAuditoria, LogAuditoria } from './log-auditoria.entity.js';
+import { idsCitados, nomesCitados } from './referencias.js';
 import { sanitizarSnapshot } from './sanitizar-snapshot.js';
 
 export interface RegistroAuditoria {
@@ -16,11 +17,19 @@ export interface RegistroAuditoria {
   usuarioId: string | null;
 }
 
+/** Registro com o nome de quem fez e os nomes dos ids que ele cita. */
+export interface LogLegivel {
+  log: LogAuditoria;
+  autor: { id: string; nome: string } | null;
+  referencias: Record<string, string>;
+}
+
 @Injectable()
 export class AuditoriaService {
   constructor(
     @InjectRepository(LogAuditoria)
     private readonly logs: Repository<LogAuditoria>,
+    private readonly dataSource: DataSource,
   ) {}
 
   // Recebe o EntityManager da transação da operação auditada. Gravar o log numa
@@ -38,9 +47,10 @@ export class AuditoriaService {
     await manager.save(log);
   }
 
-  async listar(filtro: FiltroAuditoriaDto): Promise<Paginated<LogAuditoria>> {
+  async listar(filtro: FiltroAuditoriaDto): Promise<Paginated<LogLegivel>> {
     const consulta = this.logs
       .createQueryBuilder('log')
+      .leftJoinAndSelect('log.usuario', 'usuario')
       .orderBy('log.criadoEm', 'DESC')
       .addOrderBy('log.id', 'DESC')
       .skip(filtro.skip)
@@ -51,10 +61,28 @@ export class AuditoriaService {
     if (filtro.entidadeId) {
       consulta.andWhere('log.entidadeId = :entidadeId', { entidadeId: filtro.entidadeId });
     }
+    if (filtro.acao) consulta.andWhere('log.acao = :acao', { acao: filtro.acao });
+    if (filtro.usuarioId) {
+      consulta.andWhere('log.usuarioId = :usuarioId', { usuarioId: filtro.usuarioId });
+    }
     if (filtro.de) consulta.andWhere('log.criadoEm >= :de', { de: filtro.de });
     if (filtro.ate) consulta.andWhere('log.criadoEm < :ate', { ate: filtro.ate });
 
     const [itens, total] = await consulta.getManyAndCount();
-    return Paginated.of(itens, total, filtro);
+    const nomes = await nomesCitados(this.dataSource, itens);
+    return Paginated.of(
+      itens.map((log) => ({
+        log,
+        autor: log.usuario ? { id: log.usuario.id, nome: log.usuario.nome } : null,
+        referencias: Object.fromEntries(
+          idsCitados(log).flatMap(([, id]) => {
+            const nome = nomes.get(id);
+            return nome ? [[id, nome]] : [];
+          }),
+        ),
+      })),
+      total,
+      filtro,
+    );
   }
 }

@@ -8,7 +8,9 @@ import { Login } from './login';
 const USUARIO = {
   id: '1',
   nome: 'Lúcia Andrade',
-  email: 'lucia@exemplo.com',
+  telefone: '11987654321',
+  papel: 'MEMBRO',
+  trocarSenha: false,
   ativo: true,
   criadoEm: '2026-10-01T00:00:00.000Z',
 };
@@ -18,7 +20,7 @@ describe('Login', () => {
   let backend: HttpTestingController;
   let tela: HTMLElement;
 
-  async function montar(registroPublico = false): Promise<void> {
+  async function montar(): Promise<void> {
     TestBed.configureTestingModule({
       imports: [Login],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
@@ -27,7 +29,6 @@ describe('Login', () => {
     fixture = TestBed.createComponent(Login);
     tela = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
-    backend.expectOne('/api/v1/auth/configuracao').flush({ data: { registroPublico } });
     await fixture.whenStable();
   }
 
@@ -55,32 +56,70 @@ describe('Login', () => {
     enviar();
     await fixture.whenStable();
 
-    expect(tela.textContent).toContain('Informe o e-mail.');
+    expect(tela.textContent).toContain('Informe o celular.');
     expect(tela.textContent).toContain('Informe a senha.');
     backend.expectNone('/api/v1/auth/login');
   });
 
-  it('entra e segue para os pedidos com credenciais válidas', async () => {
+  it('entra e segue para o início com credenciais válidas', async () => {
     await montar();
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
 
-    preencher('#login-email', 'lucia@exemplo.com');
+    preencher('#login-telefone', '(11) 98765-4321');
     preencher('#login-senha', 'senha-correta');
     enviar();
     await fixture.whenStable();
 
-    backend.expectOne('/api/v1/auth/login').flush({
+    const requisicao = backend.expectOne('/api/v1/auth/login');
+    expect(requisicao.request.body).toEqual({
+      telefone: '(11) 98765-4321',
+      senha: 'senha-correta',
+    });
+    requisicao.flush({
       data: { accessToken: 't', tokenType: 'Bearer', expiresIn: 900, usuario: USUARIO },
     });
     await fixture.whenStable();
 
-    expect(navegar).toHaveBeenCalledWith('/pedidos');
+    expect(navegar).toHaveBeenCalledWith('/inicio');
+  });
+
+  it('com senha provisória, leva direto à troca de senha', async () => {
+    await montar();
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+    preencher('#login-telefone', '11987654321');
+    preencher('#login-senha', 'provisoria-123');
+    enviar();
+    await fixture.whenStable();
+    backend.expectOne('/api/v1/auth/login').flush({
+      data: {
+        accessToken: 't',
+        tokenType: 'Bearer',
+        expiresIn: 900,
+        usuario: { ...USUARIO, trocarSenha: true },
+      },
+    });
+    await fixture.whenStable();
+
+    expect(navegar).toHaveBeenCalledWith('/trocar-senha');
+  });
+
+  it('recusa telefone sem DDD antes de enviar', async () => {
+    await montar();
+
+    preencher('#login-telefone', '98765-4321');
+    preencher('#login-senha', 'qualquer');
+    enviar();
+    await fixture.whenStable();
+
+    expect(tela.textContent).toContain('Use o celular com DDD');
+    backend.expectNone('/api/v1/auth/login');
   });
 
   it('mostra a mensagem da API acima da ação quando o login falha', async () => {
     await montar();
 
-    preencher('#login-email', 'lucia@exemplo.com');
+    preencher('#login-telefone', '11987654321');
     preencher('#login-senha', 'senha-errada');
     enviar();
     await fixture.whenStable();
@@ -88,14 +127,14 @@ describe('Login', () => {
     backend
       .expectOne('/api/v1/auth/login')
       .flush(
-        { error: { code: 'CREDENCIAIS_INVALIDAS', message: 'E-mail ou senha incorretos.' } },
+        { error: { code: 'CREDENCIAIS_INVALIDAS', message: 'Telefone ou senha incorretos.' } },
         { status: 401, statusText: 'Unauthorized' },
       );
 
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(tela.querySelector('[role="alert"]')?.textContent).toContain(
-        'E-mail ou senha incorretos.',
+        'Telefone ou senha incorretos.',
       );
     });
   });
@@ -112,20 +151,10 @@ describe('Login', () => {
     expect(botao?.getAttribute('aria-label')).toBe('Ocultar senha');
   });
 
-  it('só oferece a criação de conta quando o cadastro público está ligado', async () => {
-    await montar(false);
+  it('não oferece cadastro: contas são criadas por um administrador', async () => {
+    await montar();
+
     expect(tela.textContent).not.toContain('Criar conta');
-  });
-
-  it('confere a confirmação de senha no cadastro', async () => {
-    await montar(true);
-    tela.querySelector<HTMLButtonElement>('.alternar-cadastro')?.click();
-    await fixture.whenStable();
-
-    preencher('#cadastro-senha', 'uma-senha-bem-longa');
-    preencher('#cadastro-confirmacao', 'outra-senha-diferente');
-    await fixture.whenStable();
-
-    expect(tela.textContent).toContain('As senhas não coincidem.');
+    expect(tela.textContent).toContain('Peça a um administrador');
   });
 });

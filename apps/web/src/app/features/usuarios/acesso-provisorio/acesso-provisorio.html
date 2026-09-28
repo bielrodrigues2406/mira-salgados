@@ -1,0 +1,44 @@
+<section class="cartao acesso" aria-labelledby="titulo-acesso" role="region">
+  <div class="cabecalho">
+    <h2 id="titulo-acesso" class="texto-titulo">
+      {{ acesso().motivo === 'criada' ? 'Conta criada' : 'Senha redefinida' }}
+    </h2>
+    <button
+      type="button"
+      class="botao botao-terciario botao-icone fechar"
+      aria-label="Fechar credenciais"
+      (click)="fechar.emit()"
+    >
+      <ms-icone nome="fechar" [tamanho]="20" />
+    </button>
+  </div>
+  <p class="descricao">
+    Envie o acesso para {{ acesso().nome }}. A senha provisória aparece só agora; no primeiro acesso
+    a pessoa cria a própria senha.
+  </p>
+  <dl class="dados">
+    <div>
+      <dt class="texto-rotulo">Celular</dt>
+      <dd class="numerico">{{ telefone() }}</dd>
+    </div>
+    <div>
+      <dt class="texto-rotulo">Senha provisória</dt>
+      <dd class="senha numerico">{{ acesso().senha }}</dd>
+    </div>
+  </dl>
+  <div class="acoes">
+    <a
+      class="botao botao-primario"
+      target="_blank"
+      rel="noopener noreferrer"
+      [href]="linkWhatsApp()"
+    >
+      <ms-icone nome="whatsapp" />
+      <span>Enviar pelo WhatsApp</span>
+    </a>
+    <button type="button" class="botao botao-secundario" (click)="copiar()">
+      <ms-icone [nome]="copiado() ? 'confirmado' : 'copiar'" />
+      <span>{{ copiado() ? 'Copiado' : 'Copiar mensagem' }}</span>
+    </button>
+  </div>
+</section>

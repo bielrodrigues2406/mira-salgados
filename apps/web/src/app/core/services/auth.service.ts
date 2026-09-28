@@ -15,7 +15,7 @@ import {
 
 import { environment } from '../../../environments/environment';
 import type { ApiEnvelope } from '../models/api';
-import type { ConfiguracaoAuth, NovoUsuario, SessaoResposta, Usuario } from '../models/usuario';
+import type { SessaoResposta, Usuario } from '../models/usuario';
 
 interface Sessao {
   accessToken: string;
@@ -37,27 +37,29 @@ export class AuthService {
 
   readonly usuario = computed(() => this.sessao()?.usuario ?? null);
   readonly autenticado = computed(() => this.sessao() !== null);
+  readonly ehAdmin = computed(() => this.usuario()?.papel === 'ADMIN');
+  /** Senha provisória: até trocar, a API só aceita a troca de senha e sair. */
+  readonly precisaTrocarSenha = computed(() => this.usuario()?.trocarSenha ?? false);
 
   accessToken(): string | null {
     return this.sessao()?.accessToken ?? null;
   }
 
-  configuracao(): Observable<ConfiguracaoAuth> {
+  /** O telefone pode vir com máscara; a API considera só os dígitos. */
+  login(telefone: string, senha: string): Observable<Usuario> {
     return this.http
-      .get<ApiEnvelope<ConfiguracaoAuth>>(`${AUTH}/configuracao`)
-      .pipe(map(({ data }) => data));
-  }
-
-  login(email: string, senha: string): Observable<Usuario> {
-    return this.http
-      .post<ApiEnvelope<SessaoResposta>>(`${AUTH}/login`, { email, senha })
+      .post<ApiEnvelope<SessaoResposta>>(`${AUTH}/login`, { telefone, senha })
       .pipe(map(({ data }) => this.iniciarSessao(data)));
   }
 
-  registrar(dados: NovoUsuario): Observable<Usuario> {
-    return this.http
-      .post<ApiEnvelope<Usuario>>(`${AUTH}/registro`, dados)
-      .pipe(map(({ data }) => data));
+  /** Troca pela própria pessoa; as outras sessões da conta são encerradas no servidor. */
+  trocarSenha(senhaAtual: string, novaSenha: string): Observable<Usuario> {
+    return this.http.patch<ApiEnvelope<Usuario>>(`${AUTH}/senha`, { senhaAtual, novaSenha }).pipe(
+      map(({ data }) => data),
+      tap((usuario) => {
+        this.sessao.update((atual) => atual && { ...atual, usuario });
+      }),
+    );
   }
 
   /**

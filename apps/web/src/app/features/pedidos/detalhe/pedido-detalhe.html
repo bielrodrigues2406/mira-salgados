@@ -148,6 +148,17 @@
         @if (pedido.cliente.endereco; as endereco) {
           <span class="meta"><ms-icone nome="local" />{{ endereco }}</span>
         }
+        @if (pedido.status !== 'CANCELADO' && pedido.itens.length > 0) {
+          <a
+            class="meta telefone nao-imprimir"
+            target="_blank"
+            rel="noopener noreferrer"
+            [href]="resumoNoWhatsApp(pedido)"
+          >
+            <ms-icone nome="whatsapp" />
+            Enviar resumo ao cliente
+          </a>
+        }
         @for (outro of outrasEncomendas(); track outro.id) {
           <a class="outra-encomenda" [routerLink]="['/pedidos', outro.id]">
             <ms-icone nome="alerta" />

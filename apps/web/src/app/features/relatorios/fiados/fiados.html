@@ -48,6 +48,8 @@
         <span class="destaque-legenda numerico">{{ legenda() }}</span>
       </section>
 
+      <ms-compartilhar [gerarPlanilha]="planilha" />
+
       <ul class="clientes" aria-label="Clientes com fiado em aberto">
         @for (fiado of resultado.itens; track fiado.cliente.id) {
           <li class="cartao cliente">
@@ -59,10 +61,18 @@
               <span class="cliente-valor numerico">{{ fiado.emAbertoCentavos | moeda }}</span>
             </div>
             @if (telefoneParaLigar(fiado); as telefone) {
-              <a class="telefone numerico" [href]="telefone">
-                <ms-icone nome="telefone" [tamanho]="16" />
-                {{ fiado.cliente.telefone | telefone }}
-              </a>
+              <div class="contato nao-imprimir">
+                <a class="telefone numerico" [href]="telefone">
+                  <ms-icone nome="telefone" [tamanho]="16" />
+                  {{ fiado.cliente.telefone | telefone }}
+                </a>
+                @if (cobrancaNoWhatsApp(fiado); as link) {
+                  <a class="telefone" [href]="link" target="_blank" rel="noopener noreferrer">
+                    <ms-icone nome="whatsapp" [tamanho]="16" />
+                    Lembrar no WhatsApp
+                  </a>
+                }
+              </div>
             }
             <ul class="pedidos">
               @for (pedido of fiado.pedidos; track pedido.id) {

@@ -1,0 +1,221 @@
+<header class="cabecalho">
+  <div class="cabecalho-textos">
+    <h1 class="texto-display">{{ saudacao() }}</h1>
+    <p class="data">{{ dataDeHoje }}</p>
+  </div>
+  <a class="botao botao-primario novo" routerLink="/pedidos/novo">
+    <ms-icone nome="mais" />
+    <span>Novo pedido</span>
+  </a>
+</header>
+
+@if (painel.error() && !dados()) {
+  <ms-estado-erro
+    titulo="Não foi possível carregar o resumo"
+    [erro]="painel.error()"
+    (tentarNovamente)="painel.reload()"
+  />
+} @else if (dados(); as painel) {
+  <section class="destaque" aria-labelledby="titulo-hoje">
+    @if (produz()) {
+      <h2 id="titulo-hoje" class="destaque-rotulo">Você faz hoje</h2>
+      <div class="destaque-valor">
+        <span class="destaque-numero numerico">{{ numero(diaDeHoje()?.minhasUnidades ?? 0) }}</span>
+        <span class="destaque-unidade">salgados</span>
+      </div>
+      @if (diaDeHoje()?.meusSalgados; as salgados) {
+        @if (salgados.length > 0) {
+          <ul class="destaque-salgados">
+            @for (salgado of salgados; track salgado.produto.id + salgado.preparo) {
+              <li>
+                <span class="numerico">{{ numero(salgado.unidades) }}</span>
+                {{ nomeDoSalgado(salgado) }}
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="destaque-legenda">Nada seu marcado para hoje.</p>
+        }
+      }
+      <p class="destaque-legenda numerico">
+        A família toda: {{ contagem(painel.hoje.unidades, 'salgado', 'salgados') }} em
+        {{ contagem(painel.hoje.quantidadePedidos, 'encomenda', 'encomendas') }}
+      </p>
+    } @else {
+      <h2 id="titulo-hoje" class="destaque-rotulo">Hoje</h2>
+      <div class="destaque-valor">
+        <span class="destaque-numero numerico">{{ numero(painel.hoje.unidades) }}</span>
+        <span class="destaque-unidade">salgados</span>
+      </div>
+      <p class="destaque-legenda numerico">
+        {{
+          contagem(painel.hoje.quantidadePedidos, 'encomenda confirmada', 'encomendas confirmadas')
+        }}
+      </p>
+    }
+    <a class="destaque-link" routerLink="/producao">
+      <span>Ver produção do dia</span>
+      <ms-icone nome="chevronDireita" [tamanho]="16" />
+    </a>
+  </section>
+
+  @if (
+    painel.hoje.semPagamento.pedidos.length > 0 ||
+    painel.familia.rascunhos > 0 ||
+    painel.familia.fiados.totalEmAbertoCentavos > 0
+  ) {
+    <section class="atencao" aria-labelledby="titulo-atencao">
+      <h2 id="titulo-atencao" class="texto-rotulo">Precisa de atenção</h2>
+      <ul class="avisos">
+        @if (painel.hoje.semPagamento.pedidos.length > 0) {
+          <li>
+            <a class="aviso" routerLink="/relatorios/acerto">
+              <ms-icone nome="alerta" [tamanho]="20" />
+              <span class="aviso-texto">
+                <strong class="numerico">{{
+                  painel.hoje.semPagamento.valorCentavos | moeda
+                }}</strong>
+                sem pagamento hoje ({{ listaDePedidos(painel.hoje.semPagamento.pedidos) }})
+              </span>
+              <ms-icone nome="chevronDireita" [tamanho]="16" />
+            </a>
+          </li>
+        }
+        @if (painel.familia.rascunhos > 0) {
+          <li>
+            <a class="aviso" routerLink="/pedidos">
+              <ms-icone nome="editar" [tamanho]="20" />
+              <span class="aviso-texto">
+                <strong class="numerico">{{
+                  contagem(painel.familia.rascunhos, 'rascunho', 'rascunhos')
+                }}</strong>
+                para os próximos dias, fora da produção até confirmar
+              </span>
+              <ms-icone nome="chevronDireita" [tamanho]="16" />
+            </a>
+          </li>
+        }
+        @if (painel.familia.fiados.totalEmAbertoCentavos > 0) {
+          <li>
+            <a class="aviso" routerLink="/relatorios/fiados">
+              <ms-icone nome="relogio" [tamanho]="20" />
+              <span class="aviso-texto">
+                <strong class="numerico">{{
+                  painel.familia.fiados.totalEmAbertoCentavos | moeda
+                }}</strong>
+                em fiado a receber
+              </span>
+              <ms-icone nome="chevronDireita" [tamanho]="16" />
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="cartao secao" aria-labelledby="titulo-entregas">
+    <div class="secao-titulo">
+      <h2 id="titulo-entregas" class="texto-titulo">A entregar hoje</h2>
+      <a class="secao-link" routerLink="/pedidos">Pedidos</a>
+    </div>
+    @if (painel.hoje.aEntregar.length === 0) {
+      <p class="texto-legenda">Nenhuma entrega pendente hoje.</p>
+    } @else {
+      <ul class="entregas">
+        @for (entrega of painel.hoje.aEntregar; track entrega.id) {
+          <li>
+            <a class="entrega" [routerLink]="['/pedidos', entrega.id]">
+              <span class="entrega-horario numerico">{{ entrega.horario ?? 'Sem horário' }}</span>
+              <span class="entrega-textos">
+                <span class="entrega-cliente">{{ entrega.cliente.nome }}</span>
+                <span class="texto-legenda numerico">
+                  #{{ entrega.numero }} ·
+                  {{ entrega.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada' }} ·
+                  {{ contagem(entrega.unidades, 'salgado', 'salgados') }}
+                </span>
+              </span>
+              <ms-icone nome="chevronDireita" [tamanho]="16" />
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="cartao secao" aria-labelledby="titulo-proximos">
+    <div class="secao-titulo">
+      <h2 id="titulo-proximos" class="texto-titulo">
+        {{ produz() ? 'Sua produção nos próximos dias' : 'Próximos dias' }}
+      </h2>
+      <a class="secao-link" routerLink="/producao" [queryParams]="{ modo: 'semana' }">Semana</a>
+    </div>
+    <ul class="proximos">
+      @for (dia of proximos(); track dia.data) {
+        <li>
+          <a class="proximo" routerLink="/producao" [queryParams]="{ data: dia.data }">
+            <span class="proximo-dia">{{ dataCurta(dia.data) }}</span>
+            <span class="proximo-barra" aria-hidden="true">
+              <span class="proximo-preenchido" [style.width]="larguraDaBarra(dia)"></span>
+            </span>
+            <span class="proximo-numero numerico">
+              {{ unidadesDoDia(dia) === 0 ? '–' : numero(unidadesDoDia(dia)) }}
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+
+  @if (painel.ganhos; as ganhos) {
+    <section class="cartao secao" aria-labelledby="titulo-ganhos">
+      <h2 id="titulo-ganhos" class="texto-titulo">Seus ganhos</h2>
+      <dl class="ganhos">
+        <div class="ganho">
+          <dt class="texto-rotulo">Esta semana</dt>
+          <dd class="ganho-valor numerico">{{ ganhos.semana.produzidoCentavos | moeda }}</dd>
+          <dd class="texto-legenda numerico">
+            {{ ganhos.semana.recebidoCentavos | moeda }} já recebido ·
+            {{ contagem(ganhos.semana.unidades, 'salgado', 'salgados') }}
+          </dd>
+        </div>
+        <div class="ganho">
+          <dt class="texto-rotulo">Este mês</dt>
+          <dd class="ganho-valor numerico">{{ ganhos.mes.produzidoCentavos | moeda }}</dd>
+          <dd class="texto-legenda numerico">
+            {{ ganhos.mes.recebidoCentavos | moeda }} já recebido ·
+            {{ contagem(ganhos.mes.unidades, 'salgado', 'salgados') }}
+          </dd>
+        </div>
+      </dl>
+      <p class="campo-ajuda">
+        O valor é o dos seus salgados, já com a sua parte dos descontos. "Já recebido" é a sua parte
+        do dinheiro e do PIX que entraram; o resto é fiado ou falta receber.
+      </p>
+    </section>
+  }
+
+  <section class="cartao secao" aria-labelledby="titulo-familia">
+    <div class="secao-titulo">
+      <h2 id="titulo-familia" class="texto-titulo">Semana da família</h2>
+      <a class="secao-link" routerLink="/relatorios">Relatórios</a>
+    </div>
+    <dl class="ganhos">
+      <div class="ganho">
+        <dt class="texto-rotulo">Vendido</dt>
+        <dd class="ganho-valor numerico">
+          {{ painel.familia.semana.faturamentoCentavos | moeda }}
+        </dd>
+        <dd class="texto-legenda numerico">
+          {{ contagem(painel.familia.semana.unidades, 'salgado', 'salgados') }}
+        </dd>
+      </div>
+      <div class="ganho">
+        <dt class="texto-rotulo">Em caixa</dt>
+        <dd class="ganho-valor numerico">{{ painel.familia.semana.caixaCentavos | moeda }}</dd>
+        <dd class="texto-legenda">Dinheiro e PIX</dd>
+      </div>
+    </dl>
+  </section>
+} @else {
+  <ms-lista-esqueleto rotulo="Carregando o resumo" [quantidade]="3" />
+}

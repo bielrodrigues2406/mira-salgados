@@ -73,6 +73,18 @@ const FIADOS_EM_ABERTO = `
   ),
   fiados AS (SELECT * FROM por_pedido WHERE em_aberto > 0)`;
 
+const RESUMO_DOS_FIADOS = `${FIADOS_EM_ABERTO}
+  SELECT COUNT(DISTINCT cliente_id)::int AS clientes, COUNT(*)::int AS pedidos,
+         COALESCE(SUM(em_aberto), 0) AS total
+  FROM fiados`;
+
+function paraResumo(resumo: ResumoCru | undefined): ResumoDosFiados {
+  return {
+    totalEmAbertoCentavos: resumo ? decimalParaCentavos(resumo.total) : 0,
+    quantidadePedidos: resumo?.pedidos ?? 0,
+  };
+}
+
 @Injectable()
 export class FiadosService {
   constructor(private readonly dataSource: DataSource) {}
@@ -92,13 +104,7 @@ export class FiadosService {
         LIMIT $4 OFFSET $5`,
         [...parametros, filtro.pageSize, filtro.skip],
       ),
-      this.dataSource.query<ResumoCru[]>(
-        `${FIADOS_EM_ABERTO}
-        SELECT COUNT(DISTINCT cliente_id)::int AS clientes, COUNT(*)::int AS pedidos,
-               COALESCE(SUM(em_aberto), 0) AS total
-        FROM fiados`,
-        parametros,
-      ),
+      this.dataSource.query<ResumoCru[]>(RESUMO_DOS_FIADOS, parametros),
     ]);
 
     const ids = clientes.map((cliente) => cliente.id);
@@ -130,10 +136,17 @@ export class FiadosService {
       })),
       resumo?.clientes ?? 0,
       filtro,
-      {
-        totalEmAbertoCentavos: resumo ? decimalParaCentavos(resumo.total) : 0,
-        quantidadePedidos: resumo?.pedidos ?? 0,
-      } satisfies ResumoDosFiados,
+      paraResumo(resumo),
     );
+  }
+
+  /** Só o total em aberto de todos os clientes, para o painel. */
+  async resumo(): Promise<ResumoDosFiados> {
+    const [resumo] = await this.dataSource.query<ResumoCru[]>(RESUMO_DOS_FIADOS, [
+      STATUS_EM_VIGOR,
+      FORMAS_LIQUIDAS,
+      null,
+    ]);
+    return paraResumo(resumo);
   }
 }

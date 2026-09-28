@@ -1,0 +1,159 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resumo p {
+  margin: 0;
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filtro {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--cor-borda-interativa);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-cartao);
+  color: var(--cor-texto);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.filtro[aria-pressed='true'] {
+  border-color: var(--cor-acao);
+  background: var(--cor-acao);
+  color: var(--sobre-comando);
+}
+
+.dias {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  background: var(--cor-cartao);
+}
+
+.dia.hoje {
+  border-color: var(--cor-temporal);
+  box-shadow: inset 4px 0 0 var(--cor-temporal);
+}
+
+.dia.vazio {
+  gap: 2px;
+  padding: 10px 14px;
+  background: transparent;
+}
+
+.dia.vazio p {
+  margin: 0;
+}
+
+.dia-cabecalho,
+.carga-linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dia-titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dia-total {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.marca-hoje {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-temporal);
+  color: var(--cor-comando);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cargas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carga + .carga {
+  padding-top: 10px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.carga-nome,
+.carga-total {
+  font-weight: 600;
+}
+
+.salgados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 4px 0 0;
+  padding: 0;
+  color: var(--cor-texto-secundario);
+  list-style: none;
+}
+
+.salgado .numerico {
+  color: var(--cor-texto);
+  font-weight: 600;
+}
+
+.ver-dia {
+  align-self: flex-start;
+  color: var(--cor-acao);
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .dias {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    align-items: start;
+  }
+
+  .dia.vazio {
+    padding: 14px;
+  }
+}

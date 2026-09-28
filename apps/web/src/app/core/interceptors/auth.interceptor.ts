@@ -12,7 +12,7 @@ import { AuthService } from '../services/auth.service';
 
 // Rotas de sessão não levam access token e não disparam renovação: um 401 em
 // login ou refresh é resposta definitiva, não sinal de token vencido.
-const ROTAS_DE_SESSAO = /\/auth\/(login|refresh|logout|configuracao)$/;
+const ROTAS_DE_SESSAO = /\/auth\/(login|refresh|logout)$/;
 
 function comToken(requisicao: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
   return requisicao.clone({ setHeaders: { Authorization: `Bearer ${token}` } });

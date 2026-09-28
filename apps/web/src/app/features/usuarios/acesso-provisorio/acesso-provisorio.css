@@ -1,0 +1,46 @@
+.acesso {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-color: var(--tint-positivo-borda);
+  background: var(--tint-positivo);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fechar {
+  margin-right: -10px;
+  color: var(--cor-texto-secundario);
+}
+
+.descricao {
+  color: var(--cor-texto-secundario);
+}
+
+.dados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.dados dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.senha {
+  letter-spacing: 0.04em;
+  user-select: all;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

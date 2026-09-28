@@ -40,10 +40,10 @@ describe('guards de autenticação', () => {
     expect(executar(autenticadoGuard)).toBe(true);
   });
 
-  it('manda quem já está autenticado do login para os pedidos', () => {
+  it('manda quem já está autenticado do login para o início', () => {
     autenticado.set(true);
 
     const resultado = executar(visitanteGuard) as UrlTree;
-    expect(TestBed.inject(Router).serializeUrl(resultado)).toBe('/pedidos');
+    expect(TestBed.inject(Router).serializeUrl(resultado)).toBe('/inicio');
   });
 });

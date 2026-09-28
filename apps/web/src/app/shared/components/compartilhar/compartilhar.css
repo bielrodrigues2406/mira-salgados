@@ -1,0 +1,27 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.acao {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.campo-erro {
+  margin: 0;
+}
+
+@media print {
+  :host {
+    display: none;
+  }
+}
