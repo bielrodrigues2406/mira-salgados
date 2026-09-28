@@ -13,17 +13,20 @@ import {
 } from '../common/errors/domain.errors.js';
 import { ehViolacaoDeUnicidade } from '../common/errors/postgres-errors.js';
 import { Paginated } from '../common/pagination/pagination.js';
+import { Produtor } from '../produtores/produtor.entity.js';
 import type { AtualizarUsuarioDto, FiltroUsuariosDto } from './dto/usuarios.dto.js';
 import type { Papel } from './papeis.js';
 import { PasswordHasher } from './password-hasher.js';
 import { Usuario } from './usuario.entity.js';
 
 const UNICIDADE_DO_TELEFONE = 'uq_usuarios_telefone';
+const UNICIDADE_DO_PRODUTOR = 'uq_usuarios_produtor';
 
 export interface NovoUsuario {
   nome: string;
   telefone: string;
   papel: Papel;
+  produtorId?: string | null;
   senha: string;
   /** Senha definida por outra pessoa: precisa ser trocada no primeiro acesso. */
   provisoria: boolean;
@@ -33,11 +36,16 @@ function telefoneEmUso(): ConflictError {
   return new ConflictError('TELEFONE_EM_USO', 'Já existe uma conta com este telefone.');
 }
 
-async function traduzirTelefoneDuplicado<T>(operacao: Promise<T>): Promise<T> {
+function produtorJaVinculado(): ConflictError {
+  return new ConflictError('PRODUTOR_JA_VINCULADO', 'Este produtor já está ligado a outra conta.');
+}
+
+async function traduzirDuplicados<T>(operacao: Promise<T>): Promise<T> {
   try {
     return await operacao;
   } catch (erro) {
     if (ehViolacaoDeUnicidade(erro, UNICIDADE_DO_TELEFONE)) throw telefoneEmUso();
+    if (ehViolacaoDeUnicidade(erro, UNICIDADE_DO_PRODUTOR)) throw produtorJaVinculado();
     throw erro;
   }
 }
@@ -64,16 +72,19 @@ export class UsuariosService {
 
   async criar(dados: NovoUsuario, autorId: string | null): Promise<Usuario> {
     const senhaHash = await this.hasher.hash(dados.senha);
-    return traduzirTelefoneDuplicado(
+    return traduzirDuplicados(
       this.dataSource.transaction(async (manager) => {
         const repositorio = manager.getRepository(Usuario);
         if (await repositorio.existsBy({ telefone: dados.telefone })) throw telefoneEmUso();
+        const produtorId = dados.produtorId ?? null;
+        if (produtorId) await this.validarProdutor(manager, produtorId, null);
 
         const usuario = await repositorio.save(
           repositorio.create({
             nome: dados.nome,
             telefone: dados.telefone,
             papel: dados.papel,
+            produtorId,
             trocarSenha: dados.provisoria,
             senhaHash,
           }),
@@ -91,7 +102,7 @@ export class UsuariosService {
    * alterações simultâneas não removam os dois últimos.
    */
   atualizar(id: string, dados: AtualizarUsuarioDto, autorId: string): Promise<Usuario> {
-    return traduzirTelefoneDuplicado(
+    return traduzirDuplicados(
       this.dataSource.transaction(async (manager) => {
         const repositorio = manager.getRepository(Usuario);
         const usuario = await repositorio.findOne({
@@ -124,6 +135,10 @@ export class UsuariosService {
         if (dados.nome !== undefined) usuario.nome = dados.nome;
         if (dados.papel !== undefined) usuario.papel = dados.papel;
         if (dados.ativo !== undefined) usuario.ativo = dados.ativo;
+        if (dados.produtorId !== undefined && dados.produtorId !== usuario.produtorId) {
+          if (dados.produtorId) await this.validarProdutor(manager, dados.produtorId, id);
+          usuario.produtorId = dados.produtorId;
+        }
 
         const salvo = await repositorio.save(usuario);
         // Conta desativada perde as sessões abertas na hora.
@@ -223,6 +238,23 @@ export class UsuariosService {
 
   existeAdminAtivo(): Promise<boolean> {
     return this.usuarios.existsBy({ papel: 'ADMIN', ativo: true });
+  }
+
+  /** Produtor ativo e ainda sem conta; a restrição única cobre a corrida entre duas gravações. */
+  private async validarProdutor(
+    manager: EntityManager,
+    produtorId: string,
+    contaId: string | null,
+  ): Promise<void> {
+    const produtor = await manager.getRepository(Produtor).findOneBy({ id: produtorId });
+    if (!produtor?.ativo) {
+      throw new BusinessRuleError(
+        'PRODUTOR_INDISPONIVEL',
+        'O produtor escolhido não existe ou está inativo.',
+      );
+    }
+    const dono = await manager.getRepository(Usuario).findOneBy({ produtorId });
+    if (dono && dono.id !== contaId) throw produtorJaVinculado();
   }
 
   private async outrosAdminsAtivos(manager: EntityManager, excetoId: string): Promise<number> {

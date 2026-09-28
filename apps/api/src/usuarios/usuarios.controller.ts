@@ -47,6 +47,7 @@ export class UsuariosController {
         nome: dados.nome,
         telefone: dados.telefone,
         papel: dados.papel,
+        produtorId: dados.produtorId ?? null,
         senha: dados.senha,
         provisoria: true,
       },

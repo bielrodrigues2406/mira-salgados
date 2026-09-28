@@ -7,10 +7,12 @@ import { DataDoRelatorioDto } from './dto/data-do-relatorio.dto.js';
 import {
   FiltroFiadosDto,
   FiltroProducaoDto,
+  FiltroProducaoPorDiaDto,
   IntervaloDto,
   IntervaloPaginadoDto,
 } from './dto/intervalo.dto.js';
 import { ProducaoDoDiaDto } from './dto/producao-do-dia.dto.js';
+import { ProducaoPorDiaDto } from './dto/producao-por-dia.dto.js';
 import {
   ClienteComFiadoDto,
   FaturamentoDto,
@@ -40,6 +42,16 @@ export class RelatoriosController {
   @Get('producao-do-dia')
   async producaoDoDia(@Query() { data }: DataDoRelatorioDto): Promise<ProducaoDoDiaDto> {
     return ProducaoDoDiaDto.de(data, await this.producao.doDia(data));
+  }
+
+  /** Visão da semana: quanto cada produtor faz em cada dia, por salgado. */
+  @Get('producao-por-dia')
+  async producaoPorDia(@Query() filtro: FiltroProducaoPorDiaDto): Promise<ProducaoPorDiaDto> {
+    return ProducaoPorDiaDto.de(
+      filtro.de,
+      filtro.ate,
+      await this.producao.porDia(filtro.de, filtro.ate, filtro.produtorId),
+    );
   }
 
   @Get('faturamento')

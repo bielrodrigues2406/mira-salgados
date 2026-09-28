@@ -9,6 +9,8 @@ export class UsuarioRespostaDto {
   /** Senha provisória ainda não trocada. */
   trocarSenha: boolean;
   ativo: boolean;
+  /** Produtor ligado à conta, ou null para quem não produz. */
+  produtorId: string | null;
   criadoEm: string;
 
   static de(usuario: Usuario): UsuarioRespostaDto {
@@ -19,6 +21,7 @@ export class UsuarioRespostaDto {
       papel: usuario.papel,
       trocarSenha: usuario.trocarSenha,
       ativo: usuario.ativo,
+      produtorId: usuario.produtorId,
       criadoEm: usuario.criadoEm.toISOString(),
     });
   }

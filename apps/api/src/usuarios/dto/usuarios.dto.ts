@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsOptional,
+  IsUUID,
   IsString,
   Matches,
   MaxLength,
@@ -58,6 +59,11 @@ export class CriarUsuarioDto {
   @IsEnum(comoEnum(PAPEIS))
   papel: Papel;
 
+  /** Quem produz: liga a conta ao cadastro do produtor. */
+  @IsOptional()
+  @IsUUID()
+  produtorId?: string;
+
   /** Provisória: a pessoa troca no primeiro acesso. */
   @Senha()
   senha: string;
@@ -82,6 +88,11 @@ export class AtualizarUsuarioDto {
   @Opcional()
   @IsBoolean()
   ativo?: boolean;
+
+  /** null desfaz a ligação com o produtor. */
+  @IsOptional()
+  @IsUUID()
+  produtorId?: string | null;
 }
 
 export class RedefinirSenhaDto {
