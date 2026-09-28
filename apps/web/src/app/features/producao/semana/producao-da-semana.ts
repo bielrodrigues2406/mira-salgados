@@ -7,7 +7,10 @@ import type {
   SalgadoDoProdutor,
 } from '../../../core/models/producao';
 import { APARENCIA_DO_PREPARO } from '../../../shared/components/chip-preparo/chip-preparo';
+import { Compartilhar } from '../../../shared/components/compartilhar/compartilhar';
+import { type Arquivo, csv } from '../../../shared/utils/arquivo';
 import { dataCurta } from '../../../shared/utils/datas';
+import { mensagemDaSemana } from '../../../shared/utils/mensagens';
 import { contagem, numero } from '../../../shared/utils/textos';
 
 interface Referencia {
@@ -22,7 +25,7 @@ interface Referencia {
  */
 @Component({
   selector: 'ms-producao-da-semana',
-  imports: [RouterLink],
+  imports: [Compartilhar, RouterLink],
   templateUrl: './producao-da-semana.html',
   styleUrl: './producao-da-semana.css',
 })
@@ -67,6 +70,28 @@ export class ProducaoDaSemana {
   protected readonly total = computed(() =>
     this.dias().reduce((soma, dia) => soma + dia.unidades, 0),
   );
+
+  /** Mensagem da semana, só do produtor escolhido quando há filtro. */
+  protected readonly mensagem = computed(() => mensagemDaSemana(this.producao(), this.filtro()));
+
+  protected readonly planilha = (): Arquivo => {
+    const { de } = this.producao();
+    return csv(
+      `producao-da-semana-${de}`,
+      ['Data', 'Produtor', 'Produto', 'Preparo', 'Salgados'],
+      this.dias().flatMap((dia) =>
+        dia.produtores.flatMap((carga) =>
+          carga.salgados.map((salgado) => [
+            dia.data,
+            carga.produtor.nome,
+            salgado.produto.nome,
+            APARENCIA_DO_PREPARO[salgado.preparo].rotulo,
+            salgado.unidades,
+          ]),
+        ),
+      ),
+    );
+  };
 
   protected nomeDoSalgado(salgado: SalgadoDoProdutor): string {
     return salgado.preparo === 'FRITO'

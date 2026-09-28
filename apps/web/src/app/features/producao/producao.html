@@ -120,6 +120,7 @@
     }
     @case ('pronto') {
       @if (producao(); as producao) {
+        <ms-compartilhar [mensagem]="mensagem()" [gerarPlanilha]="planilha" />
         @if (modoAtual() === 'consolidado') {
           <ms-producao-consolidada [producao]="producao" />
         } @else {

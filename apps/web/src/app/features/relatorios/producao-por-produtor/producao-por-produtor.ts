@@ -5,13 +5,18 @@ import { iniciais } from '../../../core/layout/destinos';
 import type { Periodo, ProducaoDoProdutor } from '../../../core/models/relatorios';
 import { ProdutoresService } from '../../../core/services/produtores.service';
 import { RelatoriosService } from '../../../core/services/relatorios.service';
-import { ChipPreparo } from '../../../shared/components/chip-preparo/chip-preparo';
+import {
+  APARENCIA_DO_PREPARO,
+  ChipPreparo,
+} from '../../../shared/components/chip-preparo/chip-preparo';
+import { Compartilhar } from '../../../shared/components/compartilhar/compartilhar';
 import { EstadoErro } from '../../../shared/components/estado-erro/estado-erro';
 import { EstadoVazio } from '../../../shared/components/estado-vazio/estado-vazio';
 import { ListaEsqueleto } from '../../../shared/components/lista-esqueleto/lista-esqueleto';
 import { Paginacao } from '../../../shared/components/paginacao/paginacao';
 import { MoedaPipe } from '../../../shared/pipes/moeda.pipe';
 import { hoje } from '../../../shared/utils/datas';
+import { type Arquivo, csv, reaisNoCsv } from '../../../shared/utils/arquivo';
 import { estadoDeRecurso } from '../../../shared/utils/estado-de-recurso';
 import { contagem, numero, percentual } from '../../../shared/utils/textos';
 import { periodoDaUrl } from '../periodo';
@@ -26,6 +31,7 @@ const LIMITE_DE_PRODUTORES = 100;
   selector: 'ms-producao-por-produtor',
   imports: [
     ChipPreparo,
+    Compartilhar,
     EstadoErro,
     EstadoVazio,
     ListaEsqueleto,
@@ -56,7 +62,8 @@ export class ProducaoPorProdutor {
     source: () => [this.periodo(), this.produtorId()],
     computation: () => 1,
   });
-  protected readonly recurso = inject(RelatoriosService).producaoPorProdutor(() => ({
+  private readonly relatorios = inject(RelatoriosService);
+  protected readonly recurso = this.relatorios.producaoPorProdutor(() => ({
     ...this.periodo(),
     produtorId: this.produtorId(),
     page: this.paginaAtual(),
@@ -84,6 +91,29 @@ export class ProducaoPorProdutor {
     const resumo = this.resultado()?.resumo;
     return resumo ? contagem(resumo.unidades, 'salgado', 'salgados') : '';
   });
+
+  /** Uma linha por produtor e salgado, de todos os produtores do filtro. */
+  protected readonly planilha = async (): Promise<Arquivo> => {
+    const { de, ate } = this.periodo();
+    const producoes = await this.relatorios.todasAsPaginas<ProducaoDoProdutor>('producao', {
+      de,
+      ate,
+      produtorId: this.produtorId(),
+    });
+    return csv(
+      `producao-por-produtor-${de}-a-${ate}`,
+      ['Produtor', 'Produto', 'Preparo', 'Salgados', 'Valor antes dos descontos (R$)'],
+      producoes.flatMap((producao) =>
+        producao.itens.map((item) => [
+          producao.produtor.nome,
+          item.produto.nome,
+          APARENCIA_DO_PREPARO[item.preparo].rotulo,
+          item.unidades,
+          reaisNoCsv(item.valorCentavos),
+        ]),
+      ),
+    );
+  };
 
   protected participacao(producao: ProducaoDoProdutor): number {
     const total = this.resultado()?.resumo.unidades ?? 0;

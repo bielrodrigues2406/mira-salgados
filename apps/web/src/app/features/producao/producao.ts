@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { RelatoriosService } from '../../core/services/relatorios.service';
+import { APARENCIA_DO_PREPARO } from '../../shared/components/chip-preparo/chip-preparo';
+import { Compartilhar } from '../../shared/components/compartilhar/compartilhar';
 import { EstadoErro } from '../../shared/components/estado-erro/estado-erro';
 import { EstadoVazio } from '../../shared/components/estado-vazio/estado-vazio';
 import { Icone } from '../../shared/components/icone/icone';
@@ -14,7 +16,9 @@ import {
   hoje,
   somarDias,
 } from '../../shared/utils/datas';
+import { type Arquivo, csv } from '../../shared/utils/arquivo';
 import { estadoDeRecurso } from '../../shared/utils/estado-de-recurso';
+import { mensagemDaProducaoDoDia } from '../../shared/utils/mensagens';
 import { ProducaoConsolidada } from './consolidado/producao-consolidada';
 import { LinhaDoTempo } from './linha-do-tempo/linha-do-tempo';
 import { ProducaoDaSemana } from './semana/producao-da-semana';
@@ -33,6 +37,7 @@ const DIAS_DA_SEMANA = 7;
 @Component({
   selector: 'ms-producao',
   imports: [
+    Compartilhar,
     EstadoErro,
     EstadoVazio,
     Icone,
@@ -92,6 +97,32 @@ export class Producao {
       contagem(producao.quantidadeProdutores, 'produtor', 'produtores'),
     ].join(' · ');
   });
+
+  protected readonly mensagem = computed(() => {
+    const producao = this.producao();
+    return producao ? mensagemDaProducaoDoDia(this.dia(), producao) : null;
+  });
+
+  /** O consolidado do dia: uma linha por salgado, preparo e produtor. */
+  protected readonly planilha = (): Arquivo => {
+    const producao = this.producao();
+    if (!producao) throw new Error('Produção ainda não carregada.');
+    return csv(
+      `producao-${this.dia()}`,
+      ['Preparo', 'Produto', 'Produtor', 'Salgados', 'Centos', 'Avulsas', 'Pedidos'],
+      producao.consolidado.flatMap((grupo) =>
+        grupo.linhas.map((linha) => [
+          APARENCIA_DO_PREPARO[grupo.preparo].rotulo,
+          linha.produto.nome,
+          linha.produtor.nome,
+          linha.unidades,
+          linha.centos,
+          linha.avulsas,
+          linha.pedidos.map((numero) => `#${String(numero)}`).join(' '),
+        ]),
+      ),
+    );
+  };
 
   private naUrl(data: string): string | null {
     return data === this.hoje ? null : data;

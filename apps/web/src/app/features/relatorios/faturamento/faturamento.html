@@ -22,6 +22,7 @@
   }
   @case ('pronto') {
     @if (faturamento(); as faturamento) {
+      <ms-compartilhar [gerarPlanilha]="planilha" />
       <section class="destaque" aria-labelledby="titulo-faturamento">
         <h2 id="titulo-faturamento" class="destaque-rotulo">Faturamento do período</h2>
         <span class="destaque-valor numerico">{{ faturamento.faturamentoCentavos | moeda }}</span>

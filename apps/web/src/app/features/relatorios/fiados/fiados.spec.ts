@@ -77,7 +77,10 @@ describe('Fiados', () => {
       'Desde Sex, 2 out',
       'Desde Dom, 20 set',
     ]);
-    expect(tela.querySelectorAll('.telefone')).toHaveLength(1);
+    expect(tela.querySelectorAll('a[href^="tel:"]')).toHaveLength(1);
+    const lembrete = tela.querySelector<HTMLAnchorElement>('a[href^="https://wa.me/"]');
+    expect(lembrete?.textContent).toContain('Lembrar no WhatsApp');
+    expect(lembrete?.href).toMatch(/^https:\/\/wa\.me\/55\d{10,11}\?text=/);
     expect(textos('a[href="/pedidos/p1020"] .pedido-valor')).toEqual(['R$ 140,00']);
   });
 

@@ -369,3 +369,37 @@ p {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Impressão (e "Salvar como PDF"): só o conteúdo da tela, sem navegação nem botões. */
+@media print {
+  .lateral,
+  .topo,
+  .inferior,
+  .mais,
+  .mais-fundo,
+  .pular,
+  .nao-imprimir {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .conteudo {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .cartao,
+  section,
+  li {
+    break-inside: avoid;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
