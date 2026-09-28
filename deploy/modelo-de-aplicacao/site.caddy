@@ -1,0 +1,7 @@
+# Copie para /srv/proxy/sites/minha-app.caddy, troque o domínio e a porta
+# interna da aplicação, e recarregue o proxy:
+#   docker compose -f /srv/proxy/docker-compose.yml exec caddy caddy reload --config /etc/caddy/Caddyfile
+minhaapp.com.br {
+	encode zstd gzip
+	reverse_proxy minha-app:3000
+}

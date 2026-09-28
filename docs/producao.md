@@ -1,5 +1,9 @@
 # Colocar em produção
 
+> Numa VPS, prefira o caminho de [servidor.md](servidor.md): imagens prontas do
+> GitHub, proxy HTTPS compartilhado e espaço para outras aplicações. Este guia
+> continua valendo para subir só o Mira Salgados, compilando na própria máquina.
+
 Guia para subir o Mira Salgados num servidor de verdade, com HTTPS, conta de
 administrador e cópias de segurança.
 

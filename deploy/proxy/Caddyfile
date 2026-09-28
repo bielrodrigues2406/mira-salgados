@@ -1,0 +1,6 @@
+# Configuração global; cada aplicação tem o seu arquivo em sites/.
+{
+	email {$ACME_EMAIL}
+}
+
+import /etc/caddy/sites/*.caddy

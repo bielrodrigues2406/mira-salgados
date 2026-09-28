@@ -9,7 +9,7 @@ pagamentos e acerto de contas entre produtores.
 apps/api     API REST (NestJS 12, TypeORM, PostgreSQL 18)
 apps/web     Aplicação web (Angular 22)
 database/    Scripts de inicialização do PostgreSQL
-deploy/      Configuração do proxy HTTPS (Caddy)
+deploy/      Servidor: proxy HTTPS compartilhado, compose de produção e scripts
 design/      Protótipo de interface e decisões de design
 docker/      Imagens de produção
 docs/        Produção, segurança, convenções, ADRs e análise crítica
@@ -87,6 +87,7 @@ contra PostgreSQL 18, build e construção das imagens Docker.
 
 ## Documentação
 
+- [Servidor para várias aplicações (VPS)](docs/servidor.md)
 - [Colocar em produção](docs/producao.md)
 - [Segurança](docs/seguranca.md)
 - [Convenções de idioma, código e git](docs/convencoes.md)

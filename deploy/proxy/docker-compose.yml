@@ -1,0 +1,32 @@
+# Proxy HTTPS compartilhado: o único contêiner com portas abertas para a
+# internet. Recebe todos os domínios e encaminha cada um para a sua aplicação
+# pela rede "proxy". Certificados do Let's Encrypt automáticos.
+#   cd /srv/proxy && docker compose up -d
+
+name: proxy
+
+services:
+  caddy:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    env_file: .env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./sites:/etc/caddy/sites:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - proxy
+    mem_limit: 128m
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  caddy_data:
+  caddy_config:

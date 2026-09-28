@@ -1,0 +1,5 @@
+# Mira Salgados: o domínio vem de MIRA_SALGADOS_DOMINIO, no .env do proxy.
+{$MIRA_SALGADOS_DOMINIO} {
+	encode zstd gzip
+	reverse_proxy mira-salgados-web:80
+}
