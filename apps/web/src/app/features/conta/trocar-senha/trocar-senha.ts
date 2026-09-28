@@ -70,7 +70,7 @@ export class TrocarSenha {
           try {
             await firstValueFrom(this.auth.trocarSenha(atual, nova));
             if (eraObrigatoria) {
-              await this.router.navigateByUrl('/pedidos');
+              await this.router.navigateByUrl('/inicio');
             } else {
               this.concluida.set(true);
               this.formulario().reset({ atual: '', nova: '', confirmacao: '' });

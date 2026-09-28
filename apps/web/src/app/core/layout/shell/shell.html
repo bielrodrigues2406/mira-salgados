@@ -78,45 +78,17 @@
     <span class="marca-nome">Mira Salgados</span>
   </div>
   @if (usuario(); as usuario) {
-    <div class="conta">
-      <button
-        type="button"
-        class="conta-botao"
-        [attr.aria-label]="'Conta de ' + usuario.nome"
-        aria-haspopup="true"
-        [attr.aria-expanded]="menuAberto()"
-        aria-controls="menu-conta"
-        (click)="alternarMenu()"
-      >
-        <span class="avatar avatar-pequeno" aria-hidden="true">{{ iniciais() }}</span>
-      </button>
-      @if (menuAberto()) {
-        <div id="menu-conta" class="conta-menu">
-          <span class="conta-nome">{{ usuario.nome }}</span>
-          <span class="texto-legenda">{{ usuario.telefone | telefone }}</span>
-          @if (!precisaTrocarSenha()) {
-            <nav class="conta-links" aria-label="Conta">
-              @if (ehAdmin()) {
-                @for (destino of administracao; track destino.rota) {
-                  <a class="conta-link" [routerLink]="destino.rota" (click)="fecharMenu()">
-                    <ms-icone [nome]="destino.icone" />
-                    <span>{{ destino.rotulo }}</span>
-                  </a>
-                }
-              }
-              <a class="conta-link" routerLink="/trocar-senha" (click)="fecharMenu()">
-                <ms-icone nome="chave" />
-                <span>Trocar senha</span>
-              </a>
-            </nav>
-          }
-          <button type="button" class="botao botao-secundario conta-sair" (click)="sair()">
-            <ms-icone nome="sair" />
-            <span>Sair</span>
-          </button>
-        </div>
-      }
-    </div>
+    <button
+      type="button"
+      class="conta-botao"
+      [attr.aria-label]="'Conta de ' + usuario.nome"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="menuAberto()"
+      aria-controls="painel-mais"
+      (click)="alternarMenu()"
+    >
+      <span class="avatar avatar-pequeno" aria-hidden="true">{{ iniciais() }}</span>
+    </button>
   }
 </header>
 
@@ -124,18 +96,82 @@
   <router-outlet />
 </main>
 
+@if (menuAberto()) {
+  <div class="mais-fundo" aria-hidden="true" (click)="fecharMenu()"></div>
+  <div id="painel-mais" class="mais" role="dialog" aria-modal="true" aria-labelledby="titulo-mais">
+    <h2 id="titulo-mais" class="somente-leitor-de-tela">Mais opções</h2>
+    @if (usuario(); as usuario) {
+      <div class="mais-conta">
+        <span class="avatar mais-avatar" aria-hidden="true">{{ iniciais() }}</span>
+        <span class="mais-conta-textos">
+          <span class="mais-conta-nome">{{ usuario.nome }}</span>
+          <span class="texto-legenda numerico">{{ usuario.telefone | telefone }}</span>
+        </span>
+        <button
+          type="button"
+          class="botao botao-terciario botao-icone"
+          aria-label="Fechar"
+          (click)="fecharMenu()"
+        >
+          <ms-icone nome="fechar" [tamanho]="20" />
+        </button>
+      </div>
+    }
+    @if (!precisaTrocarSenha()) {
+      <nav class="mais-destinos" aria-label="Outras telas">
+        @for (destino of mais(); track destino.rota) {
+          <a
+            class="mais-destino"
+            [routerLink]="destino.rota"
+            routerLinkActive="ativo"
+            ariaCurrentWhenActive="page"
+            (click)="fecharMenu()"
+          >
+            <ms-icone [nome]="destino.icone" [tamanho]="24" />
+            <span>{{ destino.rotulo }}</span>
+          </a>
+        }
+      </nav>
+    }
+    <div class="mais-acoes">
+      @if (!precisaTrocarSenha()) {
+        <a class="botao botao-secundario" routerLink="/trocar-senha" (click)="fecharMenu()">
+          <ms-icone nome="chave" />
+          <span>Trocar senha</span>
+        </a>
+      }
+      <button type="button" class="botao botao-secundario" (click)="sair()">
+        <ms-icone nome="sair" />
+        <span>Sair</span>
+      </button>
+    </div>
+  </div>
+}
+
 @if (!precisaTrocarSenha()) {
   <nav class="inferior" aria-label="Navegação principal">
-    @for (destino of destinosInferiores; track destino.rota) {
+    @for (destino of inferiores; track destino.rota) {
       <a
         class="inferior-item"
         [routerLink]="destino.rota"
-        [class.ativo]="destino.atual() !== null"
-        [attr.aria-current]="destino.atual()"
+        routerLinkActive="ativo"
+        ariaCurrentWhenActive="page"
       >
         <span class="inferior-icone"><ms-icone [nome]="destino.icone" [tamanho]="20" /></span>
         <span>{{ destino.rotulo }}</span>
       </a>
     }
+    <button
+      type="button"
+      class="inferior-item"
+      [class.ativo]="naAreaDeMais() || menuAberto()"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="menuAberto()"
+      aria-controls="painel-mais"
+      (click)="alternarMenu()"
+    >
+      <span class="inferior-icone"><ms-icone nome="grade" [tamanho]="20" /></span>
+      <span>Mais</span>
+    </button>
   </nav>
 }

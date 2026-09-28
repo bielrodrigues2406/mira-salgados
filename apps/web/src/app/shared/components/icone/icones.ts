@@ -20,6 +20,12 @@ const r = (x: number, y: number, width: number, height: number, rx: number): For
 });
 
 export const ICONES = {
+  inicio: [
+    p('M3 10.5 12 3l9 7.5'),
+    p('M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9'),
+    p('M9.5 21v-6h5v6'),
+  ],
+  grade: [r(3, 3, 7, 7, 1.5), r(14, 3, 7, 7, 1.5), r(3, 14, 7, 7, 1.5), r(14, 14, 7, 7, 1.5)],
   pedidos: [
     r(8, 2, 8, 4, 1),
     p('M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'),

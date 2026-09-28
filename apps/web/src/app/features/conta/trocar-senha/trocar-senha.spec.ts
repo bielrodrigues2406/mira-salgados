@@ -51,7 +51,7 @@ describe('TrocarSenha', () => {
     await fixture.whenStable();
   }
 
-  it('no primeiro acesso, pede a senha provisória e segue para os pedidos', async () => {
+  it('no primeiro acesso, pede a senha provisória e segue para o início', async () => {
     await montar(true);
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
 
@@ -61,7 +61,7 @@ describe('TrocarSenha', () => {
     await enviar('abcd-efgh-jkmn', 'minha-senha-nova');
 
     expect(auth.trocarSenha).toHaveBeenCalledWith('abcd-efgh-jkmn', 'minha-senha-nova');
-    expect(navegar).toHaveBeenCalledWith('/pedidos');
+    expect(navegar).toHaveBeenCalledWith('/inicio');
   });
 
   it('valida tamanho, repetição e confirmação antes de enviar', async () => {

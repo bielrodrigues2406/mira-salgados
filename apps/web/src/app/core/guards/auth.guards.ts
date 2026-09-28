@@ -12,7 +12,7 @@ export const autenticadoGuard: CanActivateFn = () =>
   inject(AuthService).autenticado() || inject(Router).createUrlTree(['/entrar']);
 
 export const visitanteGuard: CanActivateFn = () =>
-  !inject(AuthService).autenticado() || inject(Router).createUrlTree(['/pedidos']);
+  !inject(AuthService).autenticado() || inject(Router).createUrlTree(['/inicio']);
 
 /** Com senha provisória, toda tela leva à troca de senha. */
 export const senhaEmDiaGuard: CanActivateChildFn = (_rota, estado) =>
@@ -21,4 +21,4 @@ export const senhaEmDiaGuard: CanActivateChildFn = (_rota, estado) =>
   inject(Router).createUrlTree([TROCA_DE_SENHA]);
 
 export const adminGuard: CanActivateFn = () =>
-  inject(AuthService).ehAdmin() || inject(Router).createUrlTree(['/pedidos']);
+  inject(AuthService).ehAdmin() || inject(Router).createUrlTree(['/inicio']);

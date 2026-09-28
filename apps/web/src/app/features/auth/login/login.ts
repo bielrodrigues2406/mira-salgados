@@ -7,7 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { mensagemDeErro } from '../../../core/services/mensagem-de-erro';
 import { Icone } from '../../../shared/components/icone/icone';
 
-const DESTINO_APOS_LOGIN = '/pedidos';
+const DESTINO_APOS_LOGIN = '/inicio';
 const TROCA_DE_SENHA = '/trocar-senha';
 const DIGITOS_DO_TELEFONE = /^\d{10,11}$/;
 

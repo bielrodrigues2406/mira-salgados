@@ -22,7 +22,12 @@ export const routes: Routes = [
     canActivateChild: [senhaEmDiaGuard],
     loadComponent: () => import('./core/layout/shell/shell').then((m) => m.Shell),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'pedidos' },
+      { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+      {
+        path: 'inicio',
+        title: `Início · ${TITULO}`,
+        loadComponent: () => import('./features/inicio/inicio').then((m) => m.Inicio),
+      },
       {
         path: 'trocar-senha',
         title: `Trocar senha · ${TITULO}`,

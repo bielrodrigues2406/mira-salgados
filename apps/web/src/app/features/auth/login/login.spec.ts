@@ -61,7 +61,7 @@ describe('Login', () => {
     backend.expectNone('/api/v1/auth/login');
   });
 
-  it('entra e segue para os pedidos com credenciais válidas', async () => {
+  it('entra e segue para o início com credenciais válidas', async () => {
     await montar();
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
 
@@ -80,7 +80,7 @@ describe('Login', () => {
     });
     await fixture.whenStable();
 
-    expect(navegar).toHaveBeenCalledWith('/pedidos');
+    expect(navegar).toHaveBeenCalledWith('/inicio');
   });
 
   it('com senha provisória, leva direto à troca de senha', async () => {

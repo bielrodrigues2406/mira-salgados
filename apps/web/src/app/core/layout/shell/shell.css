@@ -98,10 +98,6 @@
   background: var(--cor-comando);
 }
 
-.conta {
-  position: relative;
-}
-
 .conta-botao {
   display: flex;
   align-items: center;
@@ -120,45 +116,6 @@
   outline-color: var(--sobre-comando);
 }
 
-.conta-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 220px;
-  padding: 14px;
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-cartao);
-  background: var(--cor-cartao);
-}
-
-.conta-nome {
-  font-weight: 600;
-}
-
-.conta-links {
-  display: flex;
-  flex-direction: column;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--cor-borda);
-}
-
-.conta-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: var(--alvo-toque);
-  color: var(--cor-texto);
-  text-decoration: none;
-}
-
-.conta-sair {
-  margin-top: 10px;
-}
-
 .conteudo {
   padding: calc(var(--altura-topo) + 20px) 16px
     calc(var(--altura-barra-inferior) + env(safe-area-inset-bottom) + 24px);
@@ -170,12 +127,16 @@
   inset: auto 0 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   background: var(--cor-comando);
 }
 
 .inferior-item {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -207,10 +168,92 @@
   color: var(--cor-temporal);
 }
 
+/* "Mais": folha que sobe da barra inferior, com as telas de uso menos frequente. */
+.mais-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background: rgb(15 36 64 / 45%);
+}
+
+.mais {
+  position: fixed;
+  inset: auto 0 calc(var(--altura-barra-inferior) + env(safe-area-inset-bottom));
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(100dvh - var(--altura-topo) - var(--altura-barra-inferior));
+  padding: 16px;
+  overflow-y: auto;
+  border-radius: var(--raio-cartao) var(--raio-cartao) 0 0;
+  background: var(--cor-cartao);
+}
+
+.mais-conta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mais-avatar {
+  background: var(--tint-acao);
+  color: var(--cor-acao);
+}
+
+.mais-conta-textos {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.mais-conta-nome {
+  font-weight: 600;
+}
+
+.mais-destinos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mais-destino {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 76px;
+  padding: 8px 4px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-cartao);
+  color: var(--cor-texto);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+}
+
+.mais-destino.ativo {
+  border-color: var(--cor-acao);
+  background: var(--tint-acao);
+  color: var(--cor-acao);
+  font-weight: 600;
+}
+
+.mais-acoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+}
+
 /* Desktop: navegação lateral fixa de 240 px. */
 @media (min-width: 768px) {
   .topo,
-  .inferior {
+  .inferior,
+  .mais,
+  .mais-fundo {
     display: none;
   }
 
