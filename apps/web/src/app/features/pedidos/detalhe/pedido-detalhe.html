@@ -27,6 +27,12 @@
           </span>
           <span class="meta numerico"><ms-icone nome="calendario" />{{ dataDaEntrega() }}</span>
         </div>
+        @if (pedido.tipoEntrega === 'ENTREGA') {
+          <span class="meta endereco-entrega">
+            <ms-icone nome="local" />
+            {{ pedido.enderecoEntrega ?? 'Endereço de entrega não informado' }}
+          </span>
+        }
         @if (pedido.observacao; as observacao) {
           <div class="observacao">
             <ms-icone nome="observacao" />

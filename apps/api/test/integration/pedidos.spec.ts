@@ -130,6 +130,98 @@ describe('pedidos', () => {
     expect(erroDe(inativo).code).toBe('CLIENTE_INVALIDO');
   });
 
+  describe('endereço de entrega', () => {
+    interface ComEndereco {
+      id: string;
+      tipoEntrega: string;
+      enderecoEntrega: string | null;
+    }
+
+    async function clienteComEndereco(endereco: string | null): Promise<string> {
+      const criado = dadosDe<{ id: string }>(
+        await api
+          .post('/clientes', { nome: `Cliente ${String(Math.random())}`, endereco })
+          .expect(201),
+      );
+      return criado.id;
+    }
+
+    it('usa o endereço do cliente quando não se informa outro', async () => {
+      const clienteId = await clienteComEndereco('Rua das Flores, 10');
+
+      const pedido = dadosDe<ComEndereco>(
+        await api
+          .post('/pedidos', { clienteId, tipoEntrega: 'ENTREGA', dataEntrega: '2026-10-02' })
+          .expect(201),
+      );
+
+      expect(pedido.enderecoEntrega).toBe('Rua das Flores, 10');
+    });
+
+    it('aceita outro endereço só para este pedido, sem mudar o cadastro', async () => {
+      const clienteId = await clienteComEndereco('Rua das Flores, 10');
+
+      const pedido = dadosDe<ComEndereco>(
+        await api
+          .post('/pedidos', {
+            clienteId,
+            tipoEntrega: 'ENTREGA',
+            dataEntrega: '2026-10-02',
+            enderecoEntrega: '  Salão de festas, Av. Brasil 500  ',
+          })
+          .expect(201),
+      );
+      const cliente = dadosDe<{ endereco: string }>(
+        await api.get(`/clientes/${clienteId}`).expect(200),
+      );
+
+      expect(pedido.enderecoEntrega).toBe('Salão de festas, Av. Brasil 500');
+      expect(cliente.endereco).toBe('Rua das Flores, 10');
+    });
+
+    it('retirada não guarda endereço; voltar para entrega traz o do cliente', async () => {
+      const clienteId = await clienteComEndereco('Rua das Flores, 10');
+      const pedido = dadosDe<ComEndereco>(
+        await api
+          .post('/pedidos', {
+            clienteId,
+            tipoEntrega: 'RETIRADA',
+            dataEntrega: '2026-10-02',
+            enderecoEntrega: 'Ignorado',
+          })
+          .expect(201),
+      );
+      expect(pedido.enderecoEntrega).toBeNull();
+
+      const entrega = dadosDe<ComEndereco>(
+        await api.patch(`/pedidos/${pedido.id}`, { tipoEntrega: 'ENTREGA' }).expect(200),
+      );
+      expect(entrega.enderecoEntrega).toBe('Rua das Flores, 10');
+
+      const retirada = dadosDe<ComEndereco>(
+        await api.patch(`/pedidos/${pedido.id}`, { tipoEntrega: 'RETIRADA' }).expect(200),
+      );
+      expect(retirada.enderecoEntrega).toBeNull();
+    });
+
+    it('entrega sem endereço em lugar nenhum é aceita, e o texto tem limite', async () => {
+      const clienteId = await clienteComEndereco(null);
+
+      const semEndereco = await api
+        .post('/pedidos', { clienteId, tipoEntrega: 'ENTREGA', dataEntrega: '2026-10-02' })
+        .expect(201);
+      const longo = await api.post('/pedidos', {
+        clienteId,
+        tipoEntrega: 'ENTREGA',
+        dataEntrega: '2026-10-02',
+        enderecoEntrega: 'x'.repeat(201),
+      });
+
+      expect(dadosDe<ComEndereco>(semEndereco).enderecoEntrega).toBeNull();
+      expect(longo.status).toBe(400);
+    });
+  });
+
   it('recusa taxa de entrega e entregador: entrega não tem efeito financeiro', async () => {
     const resposta = await api.post('/pedidos', {
       clienteId: cenario.ana.id,

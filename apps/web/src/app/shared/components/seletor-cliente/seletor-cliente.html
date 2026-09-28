@@ -15,6 +15,12 @@
       Trocar
     </button>
   </div>
+} @else if (cadastrando()) {
+  <ms-cadastro-rapido-cliente
+    [termo]="termo()"
+    (cadastrado)="aoCadastrar($event)"
+    (cancelar)="cadastrando.set(false)"
+  />
 } @else {
   <div class="campo-controle">
     <span class="campo-icone"><ms-icone nome="busca" /></span>
@@ -46,16 +52,30 @@
             </li>
           }
         </ul>
-      } @else {
+      } @else if (!permiteCadastro()) {
         <p class="texto-legenda aviso">
           Nenhum cliente ativo encontrado.
           <a routerLink="/clientes">Cadastre o cliente</a> e volte aqui.
         </p>
+      } @else {
+        <p class="texto-legenda aviso">Nenhum cliente encontrado.</p>
       }
     } @else if (resultados.error()) {
       <p class="campo-erro" role="alert">Não foi possível buscar os clientes. Tente de novo.</p>
     } @else {
       <p class="texto-legenda aviso" role="status">Buscando…</p>
     }
+  }
+  @if (permiteCadastro()) {
+    <button
+      type="button"
+      class="botao botao-terciario novo-cliente"
+      (click)="cadastrando.set(true)"
+    >
+      <ms-icone nome="mais" [tamanho]="16" />
+      <span>{{
+        termo() ? 'Cadastrar "' + termo() + '" como cliente novo' : 'Cadastrar cliente novo'
+      }}</span>
+    </button>
   }
 }

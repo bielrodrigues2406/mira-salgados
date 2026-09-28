@@ -28,6 +28,7 @@ import {
 @Index('ix_pedidos_cliente_status', ['clienteId', 'status'])
 @Check('ck_pedidos_desconto_nao_negativo', 'desconto >= 0')
 @Check('ck_pedidos_observacao_preenchida', "btrim(observacao) <> ''")
+@Check('ck_pedidos_endereco_entrega_preenchido', "btrim(endereco_entrega) <> ''")
 export class Pedido {
   @PrimaryGeneratedColumn('uuid', { primaryKeyConstraintName: 'pk_pedidos' })
   id: string;
@@ -69,6 +70,10 @@ export class Pedido {
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   observacao: string | null;
+
+  /** Onde entregar; só em pedidos de entrega. Começa como o endereço do cliente. */
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  enderecoEntrega: string | null;
 
   /** AAAA-MM-DD, sem fuso: é o dia combinado com o cliente. */
   @Column({ type: 'date' })

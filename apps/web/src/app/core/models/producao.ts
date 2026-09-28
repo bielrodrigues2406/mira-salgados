@@ -24,6 +24,7 @@ export interface PedidoNaProducao {
   status: StatusPedido;
   tipoEntrega: TipoEntrega;
   observacao: string | null;
+  enderecoEntrega: string | null;
   cliente: Referencia;
   unidades: number;
   itens: ItemNaProducao[];

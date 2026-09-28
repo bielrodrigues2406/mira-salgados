@@ -1,4 +1,4 @@
-import { Component, input, linkedSignal, output, signal } from '@angular/core';
+import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
 import { form, FormField, FormRoot, maxLength, required, validate } from '@angular/forms/signals';
 
 import type { DadosPedido, TipoEntrega } from '../../../core/models/pedido';
@@ -21,10 +21,16 @@ interface Valores {
   horarioEntrega: string;
   desconto: string;
   observacao: string;
+  /** Entrega no endereço do cadastro do cliente ou em outro, só deste pedido. */
+  enderecoModo: 'CLIENTE' | 'OUTRO';
+  enderecoOutro: string;
 }
 
-function valoresDe(dados: DadosPedido): Valores {
+function valoresDe(dados: DadosPedido, enderecoDoCliente: string | null): Valores {
+  const outro = dados.enderecoEntrega !== null && dados.enderecoEntrega !== enderecoDoCliente;
   return {
+    enderecoModo: outro ? 'OUTRO' : 'CLIENTE',
+    enderecoOutro: outro ? (dados.enderecoEntrega ?? '') : '',
     clienteId: dados.clienteId,
     tipoEntrega: dados.tipoEntrega,
     dataEntrega: dados.dataEntrega,
@@ -58,7 +64,18 @@ export class PedidoFormulario {
 
   protected readonly id = idUnico('pedido');
   protected readonly erro = signal<string | null>(null);
-  private readonly valores = linkedSignal(() => valoresDe(this.inicial()));
+  /** Endereço do cadastro do cliente escolhido; muda quando se escolhe outro cliente. */
+  protected readonly enderecoDoCliente = linkedSignal(
+    () => this.clienteInicial()?.endereco ?? null,
+  );
+  private readonly valores = linkedSignal(() =>
+    valoresDe(this.inicial(), this.clienteInicial()?.endereco ?? null),
+  );
+  protected readonly ehEntrega = computed(() => this.valores().tipoEntrega === 'ENTREGA');
+  /** Sem endereço no cadastro, só existe a opção de digitar um. */
+  protected readonly digitaEndereco = computed(
+    () => this.enderecoDoCliente() === null || this.valores().enderecoModo === 'OUTRO',
+  );
 
   protected readonly formulario = form(
     this.valores,
@@ -71,6 +88,7 @@ export class PedidoFormulario {
           : undefined,
       );
       maxLength(campo.observacao, 500, { message: 'Use no máximo 500 caracteres.' });
+      maxLength(campo.enderecoOutro, 200, { message: 'Use no máximo 200 caracteres.' });
     },
     {
       submission: {
@@ -83,9 +101,21 @@ export class PedidoFormulario {
     },
   );
 
+  protected aoEscolherCliente(cliente: ClienteEscolhido | null): void {
+    this.enderecoDoCliente.set(cliente?.endereco ?? null);
+  }
+
+  private enderecoEntrega(valores: Valores): string | null {
+    if (valores.tipoEntrega !== 'ENTREGA') return null;
+    const doCliente = this.enderecoDoCliente();
+    if (valores.enderecoModo === 'CLIENTE' && doCliente) return doCliente;
+    return valores.enderecoOutro.trim() || null;
+  }
+
   private dados(): DadosPedido {
     const valores = this.valores();
     return {
+      enderecoEntrega: this.enderecoEntrega(valores),
       clienteId: valores.clienteId,
       tipoEntrega: valores.tipoEntrega,
       dataEntrega: valores.dataEntrega,

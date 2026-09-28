@@ -169,3 +169,7 @@ ms-pagamentos-pedido {
     display: flex;
   }
 }
+
+.endereco-entrega {
+  overflow-wrap: anywhere;
+}

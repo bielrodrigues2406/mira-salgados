@@ -5,7 +5,7 @@ import {
   type TestRequest,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, Router, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
 import type { ProducaoDoDia, ProducaoPorDia } from '../../core/models/producao';
@@ -43,6 +43,7 @@ function producao(data: string): ProducaoDoDia {
             status: 'CONFIRMADO',
             tipoEntrega: 'ENTREGA',
             observacao: null,
+            enderecoEntrega: 'Rua das Flores, 10',
             cliente: { id: 'c1', nome: 'Ana Paula Ribeiro' },
             unidades: 1050,
             itens: [
@@ -80,6 +81,7 @@ function producao(data: string): ProducaoDoDia {
             status: 'CONCLUIDO',
             tipoEntrega: 'RETIRADA',
             observacao: 'Retirada pela entrada lateral.',
+            enderecoEntrega: null,
             cliente: { id: 'c2', nome: 'Escola Pequeno Príncipe' },
             unidades: 200,
             itens: [
@@ -287,7 +289,26 @@ describe('Producao', () => {
           },
         ],
       };
-      return { de, ate: somarDias(de, 6), unidades: 550, dias };
+      dias[3] = {
+        data: somarDias(de, 3),
+        quantidadePedidos: 1,
+        unidades: 100,
+        produtores: [
+          {
+            produtor: CELIA,
+            unidades: 100,
+            salgados: [{ produto: COXINHA, preparo: 'FRITO', unidades: 100 }],
+          },
+        ],
+      };
+      return { de, ate: somarDias(de, 6), unidades: 650, dias };
+    }
+
+    function aguardarPeriodo(de: string, ate: string): Promise<TestRequest> {
+      return vi.waitFor(() => {
+        TestBed.tick();
+        return backend.expectOne(`/api/v1/relatorios/producao-por-dia?de=${de}&ate=${ate}`);
+      });
     }
 
     async function abrirSemana(): Promise<void> {
@@ -318,37 +339,78 @@ describe('Producao', () => {
     it('mostra os sete dias com a carga de cada produtor por salgado', async () => {
       await abrirSemana();
 
-      expect(tela.querySelector('h1')?.textContent).toContain('Produção da semana');
-      expect(link('Semana').getAttribute('aria-current')).toBe('page');
+      expect(tela.querySelector('h1')?.textContent).toContain('Produção do período');
+      expect(link('Período').getAttribute('aria-current')).toBe('page');
       expect(tela.querySelectorAll('li.dia')).toHaveLength(7);
-      expect(tela.querySelectorAll('li.dia.vazio')).toHaveLength(6);
-      expect(textos('.carga-nome')).toEqual(['Mira', 'Célia']);
-      expect(textos('.carga-total')).toEqual(['500', '50']);
-      expect(textos('.salgado')).toEqual([
-        '300 Coxinha de frango',
-        '200 Coxinha de frango (congelado)',
-        '50 Esfiha de carne (assado)',
-      ]);
-      expect(link('Próxima semana').getAttribute('href')).toBe(
-        `/producao?modo=semana&data=${somarDias(hoje(), 7)}`,
+      expect(tela.querySelectorAll('li.dia.vazio')).toHaveLength(5);
+      expect(textos('.carga-nome')).toEqual(['Mira', 'Célia', 'Célia']);
+      expect(textos('.carga-total')).toEqual(['500', '50', '100']);
+      expect(link('Próximo período').getAttribute('href')).toBe(
+        `/producao?modo=semana&data=${somarDias(hoje(), 7)}&ate=${somarDias(hoje(), 13)}`,
       );
       expect(link('Ver pedidos do dia').getAttribute('href')).toBe(
         `/producao?data=${somarDias(hoje(), 1)}`,
       );
     });
 
+    it('soma cada salgado no período, com a parte de cada produtor', async () => {
+      await abrirSemana();
+
+      expect(textos('.total-linha .total-numero')).toEqual(['400', '200', '50']);
+      expect(textos('.total-nome')).toEqual([
+        'Coxinha de frango',
+        'Coxinha de frango (congelado)',
+        'Esfiha de carne (assado)',
+      ]);
+      expect(textos('.total-linha')[0]).toContain('Mira 300 · Célia 100');
+    });
+
     it('filtra um produtor e recalcula os totais', async () => {
       await abrirSemana();
 
-      const celia = [...tela.querySelectorAll<HTMLButtonElement>('.filtro')].find(
-        (botao) => botao.textContent.trim() === 'Célia',
+      const celia = [...tela.querySelectorAll<HTMLButtonElement>('.filtro')].find((botao) =>
+        botao.textContent.trim().startsWith('Célia'),
       );
+      expect(celia?.textContent.replace(/\s+/g, ' ').trim()).toBe('Célia 150');
       celia?.click();
       await harness.fixture.whenStable();
 
-      expect(textos('.carga-nome')).toEqual(['Célia']);
-      expect(textos('.dia-total')).toEqual(['50']);
-      expect(texto()).toContain('50 salgados em 7 dias');
+      expect(textos('.carga-nome')).toEqual(['Célia', 'Célia']);
+      expect(textos('.dia-total')).toEqual(['50', '100']);
+      expect(textos('.total-linha .total-numero')).toEqual(['100', '50']);
+      expect(texto()).toContain('150 salgados em 7 dias');
     });
+
+    it('troca para 14 dias pelos atalhos do período, mantendo o produtor escolhido', async () => {
+      await abrirSemana();
+      [...tela.querySelectorAll<HTMLButtonElement>('.filtro')]
+        .find((botao) => botao.textContent.trim().startsWith('Célia'))
+        ?.click();
+      await harness.fixture.whenStable();
+
+      [...tela.querySelectorAll<HTMLButtonElement>('.atalho')]
+        .find((botao) => botao.textContent.trim() === '14 dias')
+        ?.click();
+      const requisicao = await aguardarPeriodo(hoje(), somarDias(hoje(), 13));
+      requisicao.flush({ data: semana(hoje()) });
+      await harness.fixture.whenStable();
+
+      expect(TestBed.inject(Router).url).toBe(`/producao?modo=semana&ate=${somarDias(hoje(), 13)}`);
+      expect(textos('.carga-nome')).toEqual(['Célia', 'Célia']);
+    });
+  });
+
+  it('escolhe o dia pelo calendário', async () => {
+    await abrir('/producao');
+
+    const campo = tela.querySelector<HTMLInputElement>('#producao-data');
+    if (!campo) throw new Error('Calendário não encontrado');
+    const destino = somarDias(hoje(), 10);
+    campo.value = destino;
+    campo.dispatchEvent(new Event('change'));
+    (await aguardar(destino)).flush({ data: producao(destino) });
+    await harness.fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe(`/producao?data=${destino}`);
   });
 });

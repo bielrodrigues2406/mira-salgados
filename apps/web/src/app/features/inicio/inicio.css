@@ -272,3 +272,9 @@
     flex-grow: 0;
   }
 }
+
+.entrega-endereco {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

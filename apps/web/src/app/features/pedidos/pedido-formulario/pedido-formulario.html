@@ -5,7 +5,9 @@
       [idCampo]="id + '-cliente'"
       [descricao]="id + '-cliente-erro'"
       [inicial]="clienteInicial()"
+      [permiteCadastro]="true"
       [formField]="formulario.clienteId"
+      (escolheu)="aoEscolherCliente($event)"
     />
     <ms-erros-do-campo [id]="id + '-cliente-erro'" [estado]="formulario.clienteId()" />
   </div>
@@ -35,6 +37,44 @@
       </label>
     </div>
   </fieldset>
+
+  @if (ehEntrega()) {
+    <fieldset class="grupo">
+      <legend class="texto-rotulo">Endereço de entrega</legend>
+      @if (enderecoDoCliente(); as endereco) {
+        <label class="opcao-endereco">
+          <input type="radio" value="CLIENTE" [formField]="formulario.enderecoModo" />
+          <span class="opcao-textos">
+            <span class="opcao-rotulo">Endereço do cliente</span>
+            <span class="campo-ajuda">{{ endereco }}</span>
+          </span>
+        </label>
+        <label class="opcao-endereco">
+          <input type="radio" value="OUTRO" [formField]="formulario.enderecoModo" />
+          <span class="opcao-textos">
+            <span class="opcao-rotulo">Outro endereço</span>
+            <span class="campo-ajuda">Só para este pedido; o cadastro não muda.</span>
+          </span>
+        </label>
+      }
+      @if (digitaEndereco()) {
+        <input
+          class="campo-entrada"
+          autocomplete="off"
+          placeholder="Rua, número, bairro e referência"
+          [attr.aria-label]="enderecoDoCliente() ? 'Outro endereço' : 'Endereço de entrega'"
+          [formField]="formulario.enderecoOutro"
+          [attr.aria-describedby]="id + '-endereco-ajuda ' + id + '-endereco-erro'"
+        />
+        @if (!enderecoDoCliente()) {
+          <span class="campo-ajuda" [id]="id + '-endereco-ajuda'">
+            Opcional. O cliente não tem endereço no cadastro.
+          </span>
+        }
+        <ms-erros-do-campo [id]="id + '-endereco-erro'" [estado]="formulario.enderecoOutro()" />
+      }
+    </fieldset>
+  }
 
   <div class="duas-colunas">
     <div class="campo">

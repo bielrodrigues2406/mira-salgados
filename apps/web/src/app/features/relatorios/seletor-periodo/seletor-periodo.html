@@ -1,5 +1,5 @@
 <div class="atalhos" role="group" aria-label="Períodos prontos">
-  @for (atalho of atalhos; track atalho.rotulo) {
+  @for (atalho of atalhos(); track atalho.rotulo) {
     <button
       type="button"
       class="atalho"

@@ -47,4 +47,11 @@ export class AtualizarPedidoDto {
   @IsString()
   @MaxLength(500)
   observacao?: string | null;
+
+  /** Só em entrega. null apaga; ao passar para entrega sem endereço, usa o do cliente. */
+  @IsOptional()
+  @ApararOuNulo()
+  @IsString()
+  @MaxLength(200)
+  enderecoEntrega?: string | null;
 }

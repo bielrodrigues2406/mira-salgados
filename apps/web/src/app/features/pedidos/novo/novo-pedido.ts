@@ -27,6 +27,7 @@ export class NovoPedido {
     horarioEntrega: null,
     descontoCentavos: 0,
     observacao: null,
+    enderecoEntrega: null,
   };
 
   protected readonly criar: SalvarPedido = async (dados) => {
