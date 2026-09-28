@@ -1,0 +1,74 @@
+<div class="resumo">
+  <p class="texto-legenda numerico">
+    {{ contagem(total(), 'salgado', 'salgados') }} em {{ dias().length }} dias
+  </p>
+  @if (produtores().length > 1) {
+    <div class="filtros" role="group" aria-label="Filtrar por produtor">
+      <button
+        type="button"
+        class="filtro"
+        [attr.aria-pressed]="filtro() === null"
+        (click)="filtro.set(null)"
+      >
+        Todos
+      </button>
+      @for (produtor of produtores(); track produtor.id) {
+        <button
+          type="button"
+          class="filtro"
+          [attr.aria-pressed]="filtro() === produtor.id"
+          (click)="filtro.set(produtor.id)"
+        >
+          {{ produtor.id === meuProdutorId() ? produtor.nome + ' (você)' : produtor.nome }}
+        </button>
+      }
+    </div>
+  }
+</div>
+
+<ol class="dias" aria-label="Produção por dia">
+  @for (dia of dias(); track dia.data) {
+    <li class="dia" [class.vazio]="dia.unidades === 0" [class.hoje]="dia.data === hoje()">
+      <div class="dia-cabecalho">
+        <h2 class="dia-titulo">
+          {{ dataCurta(dia.data) }}
+          @if (dia.data === hoje()) {
+            <span class="marca-hoje">Hoje</span>
+          }
+        </h2>
+        @if (dia.unidades > 0) {
+          <span class="dia-total numerico">{{ numero(dia.unidades) }}</span>
+        }
+      </div>
+      @if (dia.unidades === 0) {
+        <p class="texto-legenda">Nada marcado.</p>
+      } @else {
+        <ul class="cargas">
+          @for (carga of dia.produtores; track carga.produtor.id) {
+            <li class="carga">
+              <div class="carga-linha">
+                <span class="carga-nome">{{ carga.produtor.nome }}</span>
+                <span class="carga-total numerico">{{ numero(carga.unidades) }}</span>
+              </div>
+              <ul class="salgados">
+                @for (salgado of carga.salgados; track salgado.produto.id + salgado.preparo) {
+                  <li class="salgado">
+                    <span class="numerico">{{ numero(salgado.unidades) }}</span>
+                    {{ nomeDoSalgado(salgado) }}
+                  </li>
+                }
+              </ul>
+            </li>
+          }
+        </ul>
+        <a
+          class="ver-dia"
+          routerLink="/producao"
+          [queryParams]="{ data: linkDoDia(dia.data), modo: null }"
+        >
+          Ver pedidos do dia
+        </a>
+      }
+    </li>
+  }
+</ol>

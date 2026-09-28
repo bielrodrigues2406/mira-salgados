@@ -1,9 +1,9 @@
 <div class="cabecalho">
-  <h1 class="texto-display">Produção do dia</h1>
+  <h1 class="texto-display">{{ naSemana() ? 'Produção da semana' : 'Produção do dia' }}</h1>
   <div class="dia">
     <a
       class="botao botao-terciario botao-icone"
-      aria-label="Dia anterior"
+      [attr.aria-label]="naSemana() ? 'Semana anterior' : 'Dia anterior'"
       [routerLink]="[]"
       [queryParams]="{ data: anterior() }"
       queryParamsHandling="merge"
@@ -12,7 +12,7 @@
     </a>
     <span class="dia-texto" aria-live="polite">
       <span>{{ dataPorExtenso() }}</span>
-      @if (ehHoje()) {
+      @if (ehHoje() && !naSemana()) {
         <span class="marca-hoje">Hoje</span>
       }
     </span>
@@ -28,7 +28,7 @@
     }
     <a
       class="botao botao-terciario botao-icone"
-      aria-label="Próximo dia"
+      [attr.aria-label]="naSemana() ? 'Próxima semana' : 'Próximo dia'"
       [routerLink]="[]"
       [queryParams]="{ data: proximo() }"
       queryParamsHandling="merge"
@@ -59,36 +59,73 @@
     <ms-icone nome="camadas" [tamanho]="16" />
     <span>Consolidado</span>
   </a>
+  <a
+    class="modo"
+    [routerLink]="[]"
+    [queryParams]="{ modo: 'semana' }"
+    queryParamsHandling="merge"
+    [attr.aria-current]="modoAtual() === 'semana' ? 'page' : null"
+  >
+    <ms-icone nome="calendario" [tamanho]="16" />
+    <span>Semana</span>
+  </a>
 </nav>
 
-@switch (estado()) {
-  @case ('carregando') {
-    <ms-lista-esqueleto rotulo="Carregando a produção" [quantidade]="3" />
+@if (naSemana()) {
+  @switch (estadoDaSemana()) {
+    @case ('carregando') {
+      <ms-lista-esqueleto rotulo="Carregando a semana" [quantidade]="3" />
+    }
+    @case ('tentando') {
+      <ms-estado-erro titulo="Não foi possível carregar a semana" [tentando]="true" />
+    }
+    @case ('erro') {
+      <ms-estado-erro
+        titulo="Não foi possível carregar a semana"
+        [erro]="semana.error()"
+        (tentarNovamente)="semana.reload()"
+      />
+    }
+    @default {
+      @if (semana.hasValue()) {
+        <ms-producao-da-semana
+          [producao]="semana.value()"
+          [hoje]="hoje"
+          [meuProdutorId]="meuProdutorId()"
+        />
+      }
+    }
   }
-  @case ('tentando') {
-    <ms-estado-erro titulo="Não foi possível carregar a produção" [tentando]="true" />
-  }
-  @case ('erro') {
-    <ms-estado-erro
-      titulo="Não foi possível carregar a produção"
-      [erro]="recurso.error()"
-      (tentarNovamente)="recurso.reload()"
-    />
-  }
-  @case ('vazio') {
-    <ms-estado-vazio icone="producao" titulo="Nada para produzir neste dia">
-      A produção reúne os pedidos confirmados com entrega na data. Rascunhos entram quando são
-      confirmados.
-      <a estadoAcao class="botao botao-secundario" routerLink="/pedidos">Ver pedidos</a>
-    </ms-estado-vazio>
-  }
-  @case ('pronto') {
-    @if (producao(); as producao) {
-      @if (modoAtual() === 'consolidado') {
-        <ms-producao-consolidada [producao]="producao" />
-      } @else {
-        <p class="resumo texto-legenda numerico">{{ resumo() }}</p>
-        <ms-linha-do-tempo [faixas]="producao.faixas" />
+} @else {
+  @switch (estado()) {
+    @case ('carregando') {
+      <ms-lista-esqueleto rotulo="Carregando a produção" [quantidade]="3" />
+    }
+    @case ('tentando') {
+      <ms-estado-erro titulo="Não foi possível carregar a produção" [tentando]="true" />
+    }
+    @case ('erro') {
+      <ms-estado-erro
+        titulo="Não foi possível carregar a produção"
+        [erro]="recurso.error()"
+        (tentarNovamente)="recurso.reload()"
+      />
+    }
+    @case ('vazio') {
+      <ms-estado-vazio icone="producao" titulo="Nada para produzir neste dia">
+        A produção reúne os pedidos confirmados com entrega na data. Rascunhos entram quando são
+        confirmados.
+        <a estadoAcao class="botao botao-secundario" routerLink="/pedidos">Ver pedidos</a>
+      </ms-estado-vazio>
+    }
+    @case ('pronto') {
+      @if (producao(); as producao) {
+        @if (modoAtual() === 'consolidado') {
+          <ms-producao-consolidada [producao]="producao" />
+        } @else {
+          <p class="resumo texto-legenda numerico">{{ resumo() }}</p>
+          <ms-linha-do-tempo [faixas]="producao.faixas" />
+        }
       }
     }
   }

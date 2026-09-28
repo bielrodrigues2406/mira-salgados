@@ -13,6 +13,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { Usuarios } from './usuarios';
 
 const LISTA = '/api/v1/usuarios?page=1&pageSize=20';
+const PRODUTORES = '/api/v1/produtores?page=1&pageSize=100&ativo=true';
+const CELIA_PRODUTORA = { id: 'produtor-celia', nome: 'Célia' };
+const MIRA_PRODUTORA = { id: 'produtor-mira', nome: 'Mira' };
 
 function conta(nome: string, extra: Partial<Usuario> = {}): Usuario {
   return {
@@ -22,6 +25,7 @@ function conta(nome: string, extra: Partial<Usuario> = {}): Usuario {
     papel: 'MEMBRO',
     trocarSenha: false,
     ativo: true,
+    produtorId: null,
     criadoEm: '2026-10-01T10:00:00.000Z',
     ...extra,
   };
@@ -60,6 +64,19 @@ describe('Usuarios', () => {
   }
 
   async function responderLista(itens: Usuario[]): Promise<void> {
+    // O cadastro de produtores é pedido uma vez, junto com a primeira lista.
+    for (const pendente of backend.match(PRODUTORES)) {
+      pendente.flush({
+        data: [CELIA_PRODUTORA, MIRA_PRODUTORA].map((produtor) => ({
+          ...produtor,
+          ativo: true,
+          produtosPadrao: [],
+          criadoEm: '2026-10-01T10:00:00.000Z',
+          atualizadoEm: '2026-10-01T10:00:00.000Z',
+        })),
+        meta: { page: 1, pageSize: 100, total: 2, totalPages: 1 },
+      });
+    }
     (await aguardarRequisicao(LISTA)).flush({
       data: itens,
       meta: { page: 1, pageSize: 20, total: itens.length, totalPages: 1 },
@@ -233,5 +250,34 @@ describe('Usuarios', () => {
 
     expect(tela.querySelector('ms-acesso-provisorio')?.textContent).toContain('Senha redefinida');
     expect(tela.querySelector('ms-acesso-provisorio')?.textContent).toContain(senha);
+  });
+
+  it('liga a conta a um produtor e mostra quem já tem conta', async () => {
+    montar();
+    await responderLista([EU, conta('Célia', { produtorId: CELIA_PRODUTORA.id }), conta('Nair')]);
+
+    expect(tela.querySelectorAll('.item')[1]?.textContent).toContain('Produz como Célia');
+
+    botao('Editar Nair').click();
+    await fixture.whenStable();
+    const opcoes = [...tela.querySelectorAll<HTMLOptionElement>('#edicao-conta-produtor option')];
+    expect(opcoes.map((opcao) => [opcao.textContent.trim(), opcao.disabled])).toEqual([
+      ['Não produz', false],
+      ['Célia (já tem conta)', true],
+      ['Mira', false],
+    ]);
+
+    const selecao = tela.querySelector<HTMLSelectElement>('#edicao-conta-produtor');
+    if (!selecao) throw new Error('Seleção não encontrada');
+    selecao.value = MIRA_PRODUTORA.id;
+    selecao.dispatchEvent(new Event('input'));
+    selecao.dispatchEvent(new Event('change'));
+    enviar('.edicao');
+    await fixture.whenStable();
+
+    const alteracao = await aguardarRequisicao('/api/v1/usuarios/id-Nair');
+    expect(alteracao.request.body).toEqual({ produtorId: MIRA_PRODUTORA.id });
+    alteracao.flush({ data: conta('Nair', { produtorId: MIRA_PRODUTORA.id }) });
+    await responderLista([EU, conta('Nair', { produtorId: MIRA_PRODUTORA.id })]);
   });
 });

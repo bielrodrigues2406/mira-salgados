@@ -8,7 +8,15 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { form, FormField, FormRoot, maxLength, required, validate } from '@angular/forms/signals';
+import {
+  type FieldTree,
+  form,
+  FormField,
+  FormRoot,
+  maxLength,
+  required,
+  validate,
+} from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 
 import { iniciais } from '../../core/layout/destinos';
@@ -19,6 +27,7 @@ import {
   type Usuario,
 } from '../../core/models/usuario';
 import { AuthService } from '../../core/services/auth.service';
+import { ProdutoresService } from '../../core/services/produtores.service';
 import { codigoDeErro, mensagemDeErro } from '../../core/services/mensagem-de-erro';
 import { UsuariosService } from '../../core/services/usuarios.service';
 import { Chip } from '../../shared/components/chip/chip';
@@ -39,12 +48,18 @@ const TAMANHO_DA_PAGINA = 20;
 const LIMITE_DO_NOME = 120;
 const DIGITOS_DO_TELEFONE = /^\d{10,11}$/;
 const TELEFONE_EM_USO = 'TELEFONE_EM_USO';
+const PRODUTOR_JA_VINCULADO = 'PRODUTOR_JA_VINCULADO';
+const LIMITE_DE_PRODUTORES = 100;
 
 interface DadosConta {
   nome: string;
   telefone: string;
   papel: Papel;
+  /** Vazio: a pessoa não produz. */
+  produtorId: string;
 }
+
+const CONTA_VAZIA: DadosConta = { nome: '', telefone: '', papel: 'MEMBRO', produtorId: '' };
 
 function somenteDigitos(texto: string): string {
   return texto.replace(/\D/g, '');
@@ -92,6 +107,26 @@ export class Usuarios {
   protected readonly meta = computed(() =>
     this.usuarios.hasValue() ? this.usuarios.value().meta : undefined,
   );
+  private readonly produtoresAtivos = inject(ProdutoresService).listar(() => ({
+    page: 1,
+    pageSize: LIMITE_DE_PRODUTORES,
+    ativo: true,
+  }));
+  protected readonly produtores = computed(() =>
+    this.produtoresAtivos.hasValue() ? this.produtoresAtivos.value().itens : [],
+  );
+  private readonly nomesDosProdutores = computed(
+    () => new Map(this.produtores().map((produtor) => [produtor.id, produtor.nome])),
+  );
+  /** Produtores já ligados a alguma conta da página, fora a conta em edição. */
+  protected readonly produtoresOcupados = computed(() => {
+    const editando = this.emEdicao()?.id;
+    return new Set(
+      this.itens()
+        .filter((usuario) => usuario.id !== editando && usuario.produtorId)
+        .map((usuario) => usuario.produtorId),
+    );
+  });
   protected readonly aviso = signal('');
   /** Credenciais da última conta criada ou senha redefinida, até serem fechadas. */
   protected readonly acesso = signal<AcessoProvisorio | null>(null);
@@ -102,7 +137,7 @@ export class Usuarios {
   protected readonly formularioAberto = signal(false);
   protected readonly erroNovo = signal<string | null>(null);
   protected readonly senhaNova = signal(gerarSenhaProvisoria());
-  private readonly nova = signal<DadosConta>({ nome: '', telefone: '', papel: 'MEMBRO' });
+  private readonly nova = signal<DadosConta>({ ...CONTA_VAZIA });
   protected readonly formularioNovo = form(
     this.nova,
     (campo) => {
@@ -119,7 +154,7 @@ export class Usuarios {
       submission: {
         action: async (campo) => {
           this.erroNovo.set(null);
-          const { nome, telefone, papel } = this.nova();
+          const { nome, telefone, papel, produtorId } = this.nova();
           const senha = this.senhaNova();
           try {
             const criado = await firstValueFrom(
@@ -127,6 +162,7 @@ export class Usuarios {
                 nome: nome.trim(),
                 telefone: somenteDigitos(telefone),
                 papel,
+                ...(produtorId ? { produtorId } : {}),
                 senha,
               }),
             );
@@ -140,13 +176,8 @@ export class Usuarios {
             this.concluir(`Conta de ${criado.nome} criada.`);
             return undefined;
           } catch (falha) {
-            if (codigoDeErro(falha) === TELEFONE_EM_USO) {
-              return {
-                kind: 'duplicado',
-                message: mensagemDeErro(falha),
-                fieldTree: campo.telefone,
-              };
-            }
+            const erro = this.erroDeCampo(falha, campo);
+            if (erro) return erro;
             this.erroNovo.set(mensagemDeErro(falha));
             return undefined;
           }
@@ -158,9 +189,7 @@ export class Usuarios {
   protected readonly emEdicao = signal<Usuario | null>(null);
   protected readonly erroEdicao = signal<string | null>(null);
   private readonly edicao = signal<DadosConta & { ativo: boolean }>({
-    nome: '',
-    telefone: '',
-    papel: 'MEMBRO',
+    ...CONTA_VAZIA,
     ativo: true,
   });
   protected readonly editandoASiMesmo = computed(() => this.emEdicao()?.id === this.euId());
@@ -193,13 +222,8 @@ export class Usuarios {
             this.concluir(`Alterações de ${salvo.nome} salvas.`);
             return undefined;
           } catch (falha) {
-            if (codigoDeErro(falha) === TELEFONE_EM_USO) {
-              return {
-                kind: 'duplicado',
-                message: mensagemDeErro(falha),
-                fieldTree: campo.telefone,
-              };
-            }
+            const erro = this.erroDeCampo(falha, campo);
+            if (erro) return erro;
             this.erroEdicao.set(mensagemDeErro(falha));
             return undefined;
           }
@@ -221,7 +245,7 @@ export class Usuarios {
   protected fecharFormulario(): void {
     this.formularioAberto.set(false);
     this.erroNovo.set(null);
-    this.formularioNovo().reset({ nome: '', telefone: '', papel: 'MEMBRO' });
+    this.formularioNovo().reset({ ...CONTA_VAZIA });
   }
 
   protected gerarOutraSenha(): void {
@@ -236,6 +260,7 @@ export class Usuarios {
       nome: usuario.nome,
       telefone: usuario.telefone ?? '',
       papel: usuario.papel,
+      produtorId: usuario.produtorId ?? '',
       ativo: usuario.ativo,
     });
     this.emEdicao.set(usuario);
@@ -277,7 +302,7 @@ export class Usuarios {
   }
 
   private alteracoes(original: Usuario): AlteracaoUsuario {
-    const { nome, telefone, papel, ativo } = this.edicao();
+    const { nome, telefone, papel, produtorId, ativo } = this.edicao();
     const alteracao: AlteracaoUsuario = {};
     if (nome.trim() !== original.nome) alteracao.nome = nome.trim();
     if (somenteDigitos(telefone) !== (original.telefone ?? '')) {
@@ -285,7 +310,27 @@ export class Usuarios {
     }
     if (papel !== original.papel) alteracao.papel = papel;
     if (ativo !== original.ativo) alteracao.ativo = ativo;
+    if ((produtorId || null) !== original.produtorId) alteracao.produtorId = produtorId || null;
     return alteracao;
+  }
+
+  protected nomeDoProdutor(id: string | null): string | undefined {
+    return id ? this.nomesDosProdutores().get(id) : undefined;
+  }
+
+  /** Conflitos que pertencem a um campo aparecem nele, não no alerta do formulário. */
+  private erroDeCampo(
+    falha: unknown,
+    campo: { telefone: FieldTree<string>; produtorId: FieldTree<string> },
+  ): { kind: string; message: string; fieldTree: FieldTree<string> } | undefined {
+    const codigo = codigoDeErro(falha);
+    if (codigo === TELEFONE_EM_USO) {
+      return { kind: 'duplicado', message: mensagemDeErro(falha), fieldTree: campo.telefone };
+    }
+    if (codigo === PRODUTOR_JA_VINCULADO) {
+      return { kind: 'duplicado', message: mensagemDeErro(falha), fieldTree: campo.produtorId };
+    }
+    return undefined;
   }
 
   private concluir(mensagem: string): void {

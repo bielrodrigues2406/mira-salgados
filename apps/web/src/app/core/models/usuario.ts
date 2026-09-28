@@ -15,6 +15,8 @@ export interface Usuario {
   /** Senha provisória que ainda precisa ser trocada. */
   trocarSenha: boolean;
   ativo: boolean;
+  /** Produtor que esta pessoa é, quando ela produz. */
+  produtorId: string | null;
   criadoEm: string;
 }
 
@@ -29,6 +31,7 @@ export interface NovoUsuario {
   nome: string;
   telefone: string;
   papel: Papel;
+  produtorId?: string;
   /** Provisória: a pessoa troca no primeiro acesso. */
   senha: string;
 }
@@ -38,6 +41,8 @@ export interface AlteracaoUsuario {
   telefone?: string;
   papel?: Papel;
   ativo?: boolean;
+  /** null desfaz a ligação. */
+  produtorId?: string | null;
 }
 
 export interface ConsultaUsuarios {

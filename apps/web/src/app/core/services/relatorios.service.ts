@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 
 import { environment } from '../../../environments/environment';
 import type { ApiEnvelope, PaginaComResumo } from '../models/api';
-import type { ProducaoDoDia } from '../models/producao';
+import type { ProducaoDoDia, ProducaoPorDia } from '../models/producao';
 import type {
   AcertoDiario,
   ClienteComFiado,
@@ -62,6 +62,19 @@ export class RelatoriosService {
   /** O que fazer no dia, por horário e consolidado. */
   producaoDoDia(data: () => string | undefined): HttpResourceRef<ProducaoDoDia | undefined> {
     return daData('producao-do-dia', data);
+  }
+
+  /** Carga de cada produtor por dia; sem intervalo, não consulta. */
+  producaoPorDia(
+    intervalo: () => { de: string; ate: string } | undefined,
+  ): HttpResourceRef<ProducaoPorDia | undefined> {
+    return httpResource(
+      () => {
+        const atual = intervalo();
+        return atual && { url: `${RELATORIOS}/producao-por-dia`, params: { ...atual } };
+      },
+      { parse: (corpo) => (corpo as ApiEnvelope<ProducaoPorDia>).data },
+    );
   }
 
   faturamento(periodo: () => Periodo | undefined): HttpResourceRef<Faturamento | undefined> {

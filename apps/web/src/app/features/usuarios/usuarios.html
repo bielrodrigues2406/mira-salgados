@@ -75,6 +75,31 @@
       <ms-erros-do-campo id="nova-conta-telefone-erro" [estado]="formularioNovo.telefone()" />
     </div>
 
+    <div class="campo">
+      <label class="texto-rotulo" for="nova-conta-produtor">Produz como</label>
+      <select
+        id="nova-conta-produtor"
+        class="campo-entrada campo-selecao"
+        [formField]="formularioNovo.produtorId"
+        aria-describedby="nova-conta-produtor-ajuda nova-conta-produtor-erro"
+      >
+        <option value="">Não produz</option>
+        @for (produtor of produtores(); track produtor.id) {
+          <option [value]="produtor.id" [disabled]="produtoresOcupados().has(produtor.id)">
+            {{
+              produtoresOcupados().has(produtor.id)
+                ? produtor.nome + ' (já tem conta)'
+                : produtor.nome
+            }}
+          </option>
+        }
+      </select>
+      <span id="nova-conta-produtor-ajuda" class="campo-ajuda">
+        Quem produz vê a própria produção e os ganhos na tela inicial.
+      </span>
+      <ms-erros-do-campo id="nova-conta-produtor-erro" [estado]="formularioNovo.produtorId()" />
+    </div>
+
     <fieldset class="grupo">
       <legend class="texto-rotulo">Papel</legend>
       <label class="opcao-papel">
@@ -189,6 +214,37 @@
                 />
               </div>
 
+              <div class="campo">
+                <label class="texto-rotulo" for="edicao-conta-produtor">Produz como</label>
+                <select
+                  id="edicao-conta-produtor"
+                  class="campo-entrada campo-selecao"
+                  [formField]="formularioEdicao.produtorId"
+                  aria-describedby="edicao-conta-produtor-ajuda edicao-conta-produtor-erro"
+                >
+                  <option value="">Não produz</option>
+                  @for (produtor of produtores(); track produtor.id) {
+                    <option
+                      [value]="produtor.id"
+                      [disabled]="produtoresOcupados().has(produtor.id)"
+                    >
+                      {{
+                        produtoresOcupados().has(produtor.id)
+                          ? produtor.nome + ' (já tem conta)'
+                          : produtor.nome
+                      }}
+                    </option>
+                  }
+                </select>
+                <span id="edicao-conta-produtor-ajuda" class="campo-ajuda">
+                  Quem produz vê a própria produção e os ganhos na tela inicial.
+                </span>
+                <ms-erros-do-campo
+                  id="edicao-conta-produtor-erro"
+                  [estado]="formularioEdicao.produtorId()"
+                />
+              </div>
+
               @if (editandoASiMesmo()) {
                 <p class="campo-ajuda">
                   Você não pode desativar nem tirar o papel de administrador da sua própria conta.
@@ -255,6 +311,11 @@
                 >
                   {{ rotuloPapel[usuario.papel] }}
                 </ms-chip>
+                @if (nomeDoProdutor(usuario.produtorId); as produtor) {
+                  <ms-chip tom="positivo" icone="producao" [compacto]="true">
+                    Produz como {{ produtor }}
+                  </ms-chip>
+                }
                 @if (!usuario.ativo) {
                   <ms-chip tom="neutro" icone="pausado" [compacto]="true">Inativa</ms-chip>
                 } @else if (usuario.trocarSenha) {
