@@ -11,6 +11,7 @@ import { LogAuditoria } from '../../src/auditoria/log-auditoria.entity.js';
 import { Usuario } from '../../src/usuarios/usuario.entity.js';
 import { criarUsuario, novoIp, SENHA_PADRAO } from './helpers/auth.js';
 import { limparBanco } from './helpers/database.js';
+import { clienteAutenticado, dadosDe } from './helpers/http.js';
 import { createTestApp } from './helpers/test-app.js';
 
 describe('auditoria', () => {
@@ -77,6 +78,41 @@ describe('auditoria', () => {
 
     expect(resposta.status).toBe(403);
     expect((resposta.body as { error: { code: string } }).error.code).toBe('SOMENTE_ADMIN');
+  });
+
+  it('traz quem fez e o nome dos registros citados, com filtro por ação e autor', async () => {
+    const admin = await clienteAutenticado(app, 'ADMIN');
+    const produtor = dadosDe<{ id: string }>(
+      await admin.post('/produtores', { nome: 'Célia' }).expect(201),
+    );
+    const produto = dadosDe<{ id: string }>(
+      await admin.post('/produtos', { nome: 'Kibe', produtorPadraoId: produtor.id }).expect(201),
+    );
+    await admin.patch(`/produtos/${produto.id}`, { nome: 'Kibe de carne' }).expect(200);
+
+    const resposta = await admin
+      .get(`/auditoria?entidade=produto&acao=ATUALIZACAO&usuarioId=${admin.usuarioId}`)
+      .expect(200);
+    const logs = dadosDe<
+      {
+        acao: string;
+        autor: { id: string; nome: string } | null;
+        referencias: Record<string, string>;
+      }[]
+    >(resposta);
+
+    expect(logs).toHaveLength(1);
+    expect(logs[0]?.autor).toEqual({ id: admin.usuarioId, nome: 'Lúcia Andrade' });
+    expect(logs[0]?.referencias).toEqual({
+      [produto.id]: 'Kibe de carne',
+      [produtor.id]: 'Célia',
+    });
+
+    const deOutraPessoa = await admin
+      .get('/auditoria?usuarioId=00000000-0000-4000-8000-000000000000')
+      .expect(200);
+    expect(dadosDe<unknown[]>(deOutraPessoa)).toHaveLength(0);
+    expect((await admin.get('/auditoria?acao=INVENTADA')).status).toBe(400);
   });
 
   describe('com falha na gravação do log', () => {
