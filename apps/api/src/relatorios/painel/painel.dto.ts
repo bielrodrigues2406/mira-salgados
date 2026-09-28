@@ -13,6 +13,7 @@ export class EntregaDoDiaDto {
   numero: number;
   horario: string | null;
   tipoEntrega: TipoEntrega;
+  enderecoEntrega: string | null;
   cliente: ReferenciaDto;
   unidades: number;
 }
@@ -70,6 +71,7 @@ export class PainelDto {
             numero: entrega.numero,
             horario: entrega.horario,
             tipoEntrega: entrega.tipoEntrega,
+            enderecoEntrega: entrega.enderecoEntrega,
             cliente: referencia(entrega.cliente),
             unidades: entrega.unidades,
           }),

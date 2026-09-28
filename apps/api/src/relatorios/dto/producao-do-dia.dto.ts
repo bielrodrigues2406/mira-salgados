@@ -24,6 +24,7 @@ export class PedidoNaProducaoDto {
   status: StatusPedido;
   tipoEntrega: TipoEntrega;
   observacao: string | null;
+  enderecoEntrega: string | null;
   cliente: ReferenciaDto;
   unidades: number;
   itens: ItemNaProducaoDto[];
@@ -84,6 +85,7 @@ export class ProducaoDoDiaDto {
               status: pedido.status,
               tipoEntrega: pedido.tipoEntrega,
               observacao: pedido.observacao,
+              enderecoEntrega: pedido.enderecoEntrega,
               cliente: referencia(pedido.cliente),
               unidades: pedido.unidades,
               itens: pedido.itens.map((item) =>

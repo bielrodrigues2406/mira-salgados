@@ -70,6 +70,10 @@ export class Pedido {
   @Column({ type: 'varchar', length: 500, nullable: true })
   observacao: string | null;
 
+  /** Onde entregar; só em pedidos de entrega. Começa como o endereço do cliente. */
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  enderecoEntrega: string | null;
+
   /** AAAA-MM-DD, sem fuso: é o dia combinado com o cliente. */
   @Column({ type: 'date' })
   dataEntrega: string;

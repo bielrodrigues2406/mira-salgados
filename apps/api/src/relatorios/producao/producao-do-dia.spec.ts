@@ -31,6 +31,7 @@ function item(
     horario: pedido.horario,
     tipoEntrega: 'RETIRADA',
     observacaoPedido: null,
+    enderecoEntrega: null,
     cliente: { id: pedido.cliente, nome: pedido.cliente },
     itemId: `i${String(sequencia)}`,
     produto: { id: produto, nome: produto },

@@ -106,6 +106,8 @@ export class PedidoDetalheDto {
   dataEntrega: string;
   horarioEntrega: string | null;
   observacao: string | null;
+  /** Só em entrega; pode ser diferente do endereço do cadastro do cliente. */
+  enderecoEntrega: string | null;
   cliente: Referencia & { telefone: string | null; endereco: string | null; ativo: boolean };
   registradoPor: Referencia;
   resumo: ResumoFinanceiroDto;
@@ -131,6 +133,7 @@ export class PedidoDetalheDto {
       dataEntrega: pedido.dataEntrega,
       horarioEntrega: horarioCurto(pedido.horarioEntrega),
       observacao: pedido.observacao,
+      enderecoEntrega: pedido.enderecoEntrega,
       cliente: {
         id: cliente.id,
         nome: cliente.nome,

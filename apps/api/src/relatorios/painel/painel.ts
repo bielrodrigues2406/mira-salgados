@@ -20,6 +20,7 @@ export interface EntregaDoDia {
   numero: number;
   horario: string | null;
   tipoEntrega: TipoEntrega;
+  enderecoEntrega: string | null;
   cliente: Referencia;
   unidades: number;
 }
@@ -91,6 +92,7 @@ export function montarPainel(dados: DadosDoPainel): Painel {
             numero: pedido.numero,
             horario: faixa.horario,
             tipoEntrega: pedido.tipoEntrega,
+            enderecoEntrega: pedido.enderecoEntrega,
             cliente: pedido.cliente,
             unidades: pedido.unidades,
           })),

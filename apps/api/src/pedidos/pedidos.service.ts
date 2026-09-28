@@ -15,6 +15,7 @@ import type { StatusPedido } from './dominio/enums.js';
 import { validarCondicoesDaTransicao, validarTransicao } from './dominio/maquina-de-estados.js';
 import type { AtualizarPedidoDto } from './dto/atualizar-pedido.dto.js';
 import type { CriarPedidoDto } from './dto/criar-pedido.dto.js';
+import { Cliente } from '../clientes/cliente.entity.js';
 import { Pedido } from './pedido.entity.js';
 import { garantirClienteAtivo } from './validacoes.js';
 
@@ -29,7 +30,7 @@ export class PedidosService {
 
   criar(dados: CriarPedidoDto, autorId: string): Promise<PedidoAgregado> {
     return this.dataSource.transaction(async (manager) => {
-      await garantirClienteAtivo(manager, dados.clienteId);
+      const cliente = await garantirClienteAtivo(manager, dados.clienteId);
 
       const repositorio = manager.getRepository(Pedido);
       const pedido = repositorio.create({
@@ -39,6 +40,12 @@ export class PedidosService {
         tipoEntrega: dados.tipoEntrega,
         desconto: centavos(dados.descontoCentavos ?? 0),
         observacao: dados.observacao ?? null,
+        enderecoEntrega:
+          dados.tipoEntrega === 'ENTREGA'
+            ? dados.enderecoEntrega === undefined
+              ? cliente.endereco
+              : dados.enderecoEntrega
+            : null,
         dataEntrega: dados.dataEntrega,
         horarioEntrega: dados.horarioEntrega ?? null,
       });
@@ -125,6 +132,14 @@ async function aplicarAlteracoes(
     pedido.clienteId = dados.clienteId;
   }
   if (dados.tipoEntrega !== undefined) pedido.tipoEntrega = dados.tipoEntrega;
+  if (dados.enderecoEntrega !== undefined) pedido.enderecoEntrega = dados.enderecoEntrega;
+  // Retirada não tem endereço; entrega sem endereço informado herda o do cliente.
+  if (pedido.tipoEntrega === 'RETIRADA') {
+    pedido.enderecoEntrega = null;
+  } else if (dados.enderecoEntrega === undefined && pedido.enderecoEntrega === null) {
+    const cliente = await manager.getRepository(Cliente).findOneBy({ id: pedido.clienteId });
+    pedido.enderecoEntrega = cliente?.endereco ?? null;
+  }
   if (dados.dataEntrega !== undefined) pedido.dataEntrega = dados.dataEntrega;
   if (dados.horarioEntrega !== undefined) pedido.horarioEntrega = dados.horarioEntrega;
   if (dados.descontoCentavos !== undefined) pedido.desconto = centavos(dados.descontoCentavos);
