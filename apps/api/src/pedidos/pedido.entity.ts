@@ -28,6 +28,7 @@ import {
 @Index('ix_pedidos_cliente_status', ['clienteId', 'status'])
 @Check('ck_pedidos_desconto_nao_negativo', 'desconto >= 0')
 @Check('ck_pedidos_observacao_preenchida', "btrim(observacao) <> ''")
+@Check('ck_pedidos_endereco_entrega_preenchido', "btrim(endereco_entrega) <> ''")
 export class Pedido {
   @PrimaryGeneratedColumn('uuid', { primaryKeyConstraintName: 'pk_pedidos' })
   id: string;
