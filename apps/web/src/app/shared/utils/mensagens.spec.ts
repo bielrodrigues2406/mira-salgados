@@ -111,7 +111,8 @@ describe('mensagens para o WhatsApp', () => {
       tipoEntrega: 'ENTREGA',
       dataEntrega: '2026-10-02',
       horarioEntrega: '10:00',
-      cliente: { nome: 'Ana Paula', endereco: 'Rua das Flores, 10' },
+      enderecoEntrega: 'Rua das Flores, 10',
+      cliente: { nome: 'Ana Paula', endereco: 'Rua Antiga, 1' },
       itens: [
         { produto: COXINHA, preparo: 'FRITO', unidadeVenda: 'CENTO', quantidade: 2 },
         { produto: KIBE, preparo: 'ASSADO', unidadeVenda: 'UNIDADE', quantidade: 1 },

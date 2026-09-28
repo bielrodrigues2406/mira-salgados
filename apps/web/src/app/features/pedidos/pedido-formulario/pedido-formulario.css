@@ -69,3 +69,31 @@
 .salvar {
   flex-grow: 1;
 }
+
+.opcao-endereco {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.opcao-endereco input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--cor-acao);
+}
+
+.opcao-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.opcao-rotulo {
+  font-weight: 600;
+}

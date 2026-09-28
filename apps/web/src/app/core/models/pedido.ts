@@ -76,6 +76,8 @@ export interface PedidoDetalhe {
   dataEntrega: string;
   horarioEntrega: string | null;
   observacao: string | null;
+  /** Onde entregar; pode ser diferente do endereço do cadastro do cliente. */
+  enderecoEntrega: string | null;
   cliente: Referencia & { telefone: string | null; endereco: string | null; ativo: boolean };
   registradoPor: Referencia;
   resumo: ResumoFinanceiro;
@@ -94,6 +96,8 @@ export interface DadosPedido {
   horarioEntrega: string | null;
   descontoCentavos: number;
   observacao: string | null;
+  /** Só em entrega; null usa o endereço do cadastro do cliente ao criar. */
+  enderecoEntrega: string | null;
 }
 
 export type AlteracaoPedido = Partial<DadosPedido>;

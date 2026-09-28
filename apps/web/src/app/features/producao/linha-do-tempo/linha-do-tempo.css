@@ -185,3 +185,12 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+
+.pedido-endereco {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--cor-texto-secundario);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}

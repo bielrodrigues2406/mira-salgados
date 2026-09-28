@@ -22,6 +22,12 @@
                 <span>{{ pedido.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada' }}</span>
               </span>
             </a>
+            @if (pedido.tipoEntrega === 'ENTREGA' && pedido.enderecoEntrega) {
+              <span class="pedido-endereco">
+                <ms-icone nome="local" [tamanho]="16" />
+                <span>{{ pedido.enderecoEntrega }}</span>
+              </span>
+            }
             @if (pedido.status === 'CONCLUIDO' || pedido.observacao) {
               <div class="pedido-extras">
                 @if (pedido.status === 'CONCLUIDO') {

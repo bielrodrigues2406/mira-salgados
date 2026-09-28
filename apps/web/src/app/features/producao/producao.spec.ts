@@ -43,6 +43,7 @@ function producao(data: string): ProducaoDoDia {
             status: 'CONFIRMADO',
             tipoEntrega: 'ENTREGA',
             observacao: null,
+            enderecoEntrega: 'Rua das Flores, 10',
             cliente: { id: 'c1', nome: 'Ana Paula Ribeiro' },
             unidades: 1050,
             itens: [
@@ -80,6 +81,7 @@ function producao(data: string): ProducaoDoDia {
             status: 'CONCLUIDO',
             tipoEntrega: 'RETIRADA',
             observacao: 'Retirada pela entrada lateral.',
+            enderecoEntrega: null,
             cliente: { id: 'c2', nome: 'Escola Pequeno Príncipe' },
             unidades: 200,
             itens: [

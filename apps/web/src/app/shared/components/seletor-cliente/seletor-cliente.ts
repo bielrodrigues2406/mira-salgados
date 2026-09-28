@@ -16,13 +16,16 @@ import type { FormValueControl } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 
 import { ClientesService } from '../../../core/services/clientes.service';
+import type { Cliente } from '../../../core/models/cliente';
 import { TelefonePipe } from '../../pipes/telefone.pipe';
+import { CadastroRapidoCliente } from '../cadastro-rapido-cliente/cadastro-rapido-cliente';
 import { Icone } from '../icone/icone';
 
 export interface ClienteEscolhido {
   id: string;
   nome: string;
   telefone: string | null;
+  endereco?: string | null;
 }
 
 const ESPERA_DA_BUSCA_MS = 250;
@@ -34,7 +37,7 @@ const RESULTADOS = 6;
  */
 @Component({
   selector: 'ms-seletor-cliente',
-  imports: [Icone, RouterLink, TelefonePipe],
+  imports: [CadastroRapidoCliente, Icone, RouterLink, TelefonePipe],
   templateUrl: './seletor-cliente.html',
   styleUrl: './seletor-cliente.css',
 })
@@ -52,9 +55,14 @@ export class SeletorCliente implements FormValueControl<string> {
   readonly inicial = input<ClienteEscolhido | null>(null);
   /** Pedidos novos só aceitam cliente ativo; relatórios buscam também os desativados. */
   readonly somenteAtivos = input(true);
+  /** No pedido: oferece cadastrar um cliente novo sem sair da tela. */
+  readonly permiteCadastro = input(false);
+  /** Cliente escolhido ou recém-cadastrado, com o endereço para a entrega. */
+  readonly escolheu = output<ClienteEscolhido | null>();
 
   protected readonly escolhido = linkedSignal(() => this.inicial());
   protected readonly termo = signal('');
+  protected readonly cadastrando = signal(false);
   private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo');
   private temporizador: ReturnType<typeof setTimeout> | undefined;
 
@@ -81,11 +89,23 @@ export class SeletorCliente implements FormValueControl<string> {
   protected escolher(cliente: ClienteEscolhido): void {
     this.escolhido.set(cliente);
     this.value.set(cliente.id);
+    this.cadastrando.set(false);
+    this.escolheu.emit(cliente);
     this.touch.emit();
+  }
+
+  protected aoCadastrar(cliente: Cliente): void {
+    this.escolher({
+      id: cliente.id,
+      nome: cliente.nome,
+      telefone: cliente.telefone,
+      endereco: cliente.endereco,
+    });
   }
 
   protected trocar(): void {
     this.escolhido.set(null);
+    this.escolheu.emit(null);
     this.value.set('');
     this.termo.set('');
     afterNextRender(() => this.campo()?.nativeElement.focus(), { injector: this.injector });

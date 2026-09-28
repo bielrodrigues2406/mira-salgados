@@ -139,8 +139,8 @@ export function mensagemDeConfirmacao(pedido: PedidoDetalhe): string {
     '',
     `${pedido.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada'}: ${negrito(quando)}`,
   ];
-  if (pedido.tipoEntrega === 'ENTREGA' && pedido.cliente.endereco) {
-    linhas.push(`Endereço: ${pedido.cliente.endereco}`);
+  if (pedido.tipoEntrega === 'ENTREGA' && pedido.enderecoEntrega) {
+    linhas.push(`Endereço: ${pedido.enderecoEntrega}`);
   }
   linhas.push(`Total: ${negrito(formatarMoeda(resumo.totalCentavos))}`);
   if (resumo.totalPagoCentavos > 0 && resumo.saldoDevedorCentavos > 0) {
