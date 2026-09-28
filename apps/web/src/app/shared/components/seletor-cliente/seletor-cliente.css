@@ -60,3 +60,9 @@
 .aviso a {
   font-weight: 600;
 }
+
+.novo-cliente {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0 4px;
+}

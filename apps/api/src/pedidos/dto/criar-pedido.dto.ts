@@ -44,4 +44,11 @@ export class CriarPedidoDto {
   @IsString()
   @MaxLength(500)
   observacao?: string | null;
+
+  /** Só em entrega. Omitido, usa o endereço do cadastro do cliente. */
+  @IsOptional()
+  @ApararOuNulo()
+  @IsString()
+  @MaxLength(200)
+  enderecoEntrega?: string | null;
 }

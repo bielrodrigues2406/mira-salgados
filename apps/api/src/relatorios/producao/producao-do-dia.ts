@@ -17,6 +17,7 @@ export interface LinhaDeProducao {
   horario: string | null;
   tipoEntrega: TipoEntrega;
   observacaoPedido: string | null;
+  enderecoEntrega: string | null;
   cliente: Referencia;
   itemId: string;
   produto: Referencia;
@@ -45,6 +46,7 @@ export interface PedidoNaProducao {
   status: StatusPedido;
   tipoEntrega: TipoEntrega;
   observacao: string | null;
+  enderecoEntrega: string | null;
   cliente: Referencia;
   unidades: number;
   itens: ItemNaProducao[];
@@ -120,6 +122,7 @@ export function montarProducaoDoDia(linhas: readonly LinhaDeProducao[]): Produca
         status: linha.status,
         tipoEntrega: linha.tipoEntrega,
         observacao: linha.observacaoPedido,
+        enderecoEntrega: linha.enderecoEntrega,
         cliente: linha.cliente,
         unidades: 0,
         itens: [],

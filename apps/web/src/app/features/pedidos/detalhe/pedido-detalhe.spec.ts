@@ -20,6 +20,7 @@ function pedido(dados: Partial<Pedido> = {}): Pedido {
     dataEntrega: '2026-10-02',
     horarioEntrega: '11:30',
     observacao: 'Retirada pela entrada lateral.',
+    enderecoEntrega: null,
     cliente: {
       id: 'c1',
       nome: 'Buffet Sabor & Arte',

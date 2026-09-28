@@ -3,7 +3,7 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 import type { Periodo } from '../../../core/models/relatorios';
 import { dataDoCalendario, hoje } from '../../../shared/utils/datas';
 import { idUnico } from '../../../shared/utils/id-unico';
-import { atalhosDePeriodo, erroDoPeriodo } from '../periodo';
+import { type Atalho, atalhosDePeriodo, erroDoPeriodo, MAXIMO_DE_DIAS } from '../periodo';
 
 /**
  * Atalhos de período e as duas datas. Só emite períodos válidos; enquanto as
@@ -18,15 +18,18 @@ import { atalhosDePeriodo, erroDoPeriodo } from '../periodo';
 export class SeletorPeriodo {
   readonly periodo = input.required<Periodo>();
   readonly periodoMudou = output<Periodo>();
+  /** Atalhos próprios da tela; sem eles, os de relatório (este mês, mês passado...). */
+  readonly atalhosProprios = input<readonly Atalho[] | null>(null);
+  readonly maximoDeDias = input(MAXIMO_DE_DIAS);
 
   protected readonly id = idUnico('periodo');
-  protected readonly atalhos = atalhosDePeriodo(hoje());
+  protected readonly atalhos = computed(() => this.atalhosProprios() ?? atalhosDePeriodo(hoje()));
   /** O que está nos campos, que pode ainda não ser um período válido. */
   protected readonly rascunho = linkedSignal(() => this.periodo());
   protected readonly erro = computed(() => {
     const { de, ate } = this.rascunho();
     if (!dataDoCalendario(de) || !dataDoCalendario(ate)) return 'Preencha as duas datas.';
-    return erroDoPeriodo({ de, ate });
+    return erroDoPeriodo({ de, ate }, this.maximoDeDias());
   });
 
   protected ehAtual(atalho: Periodo): boolean {

@@ -13,6 +13,7 @@ export interface EntregaDoDia {
   /** HH:MM, ou null quando o cliente não marcou horário. */
   horario: string | null;
   tipoEntrega: TipoEntrega;
+  enderecoEntrega: string | null;
   cliente: Referencia;
   unidades: number;
 }

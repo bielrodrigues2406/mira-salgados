@@ -7,11 +7,12 @@ import { Produtor } from '../produtores/produtor.entity.js';
 export async function garantirClienteAtivo(
   manager: EntityManager,
   clienteId: string,
-): Promise<void> {
+): Promise<Cliente> {
   const cliente = await manager.getRepository(Cliente).findOneBy({ id: clienteId });
   if (!cliente?.ativo) {
     throw new BusinessRuleError('CLIENTE_INVALIDO', 'Escolha um cliente ativo.');
   }
+  return cliente;
 }
 
 export async function garantirProdutorAtivo(

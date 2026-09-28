@@ -1,4 +1,4 @@
-import { Component, computed, input, linkedSignal } from '@angular/core';
+import { Component, computed, input, model } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import type {
@@ -16,6 +16,13 @@ import { contagem, numero } from '../../../shared/utils/textos';
 interface Referencia {
   id: string;
   nome: string;
+}
+
+interface TotalDoSalgado {
+  chave: string;
+  nome: string;
+  unidades: number;
+  porProdutor: Map<string, { nome: string; unidades: number }>;
 }
 
 /**
@@ -48,10 +55,19 @@ export class ProducaoDaSemana {
     return [...vistos.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   });
 
-  /** null é "todos". Começa no produtor da conta, se ele tiver produção na semana. */
-  protected readonly filtro = linkedSignal((): string | null => {
+  /**
+   * Produtor escolhido no filtro, guardado pela tela de fora para sobreviver à
+   * troca de período: undefined é "ainda não escolheu", null é "todos".
+   */
+  readonly escolha = model<string | null | undefined>(undefined);
+
+  /** Sem escolha, começa no produtor da conta, se ele tiver produção no período. */
+  protected readonly filtro = computed((): string | null => {
+    const escolha = this.escolha();
+    const ids = this.produtores().map(({ id }) => id);
+    if (escolha !== undefined && (escolha === null || ids.includes(escolha))) return escolha;
     const meu = this.meuProdutorId();
-    return meu && this.produtores().some((produtor) => produtor.id === meu) ? meu : null;
+    return meu && ids.includes(meu) ? meu : null;
   });
 
   protected readonly dias = computed(() => {
@@ -65,6 +81,58 @@ export class ProducaoDaSemana {
         unidades: produtores.reduce((soma, carga) => soma + carga.unidades, 0),
       };
     });
+  });
+
+  /**
+   * Quanto de cada salgado no período inteiro, do mais feito para o menos, e
+   * quanto cada produtor faz dele. Responde "quanta massa de coxinha preciso".
+   */
+  protected readonly totaisPorSalgado = computed((): TotalDoSalgado[] => {
+    const totais = new Map<string, TotalDoSalgado>();
+    for (const dia of this.dias()) {
+      for (const carga of dia.produtores) {
+        for (const salgado of carga.salgados) {
+          const chave = `${salgado.produto.id}|${salgado.preparo}`;
+          const total = totais.get(chave) ?? {
+            chave,
+            nome: this.nomeDoSalgado(salgado),
+            unidades: 0,
+            porProdutor: new Map<string, { nome: string; unidades: number }>(),
+          };
+          total.unidades += salgado.unidades;
+          const parte = total.porProdutor.get(carga.produtor.id) ?? {
+            nome: carga.produtor.nome,
+            unidades: 0,
+          };
+          parte.unidades += salgado.unidades;
+          total.porProdutor.set(carga.produtor.id, parte);
+          totais.set(chave, total);
+        }
+      }
+    }
+    return [...totais.values()].sort(
+      (a, b) => b.unidades - a.unidades || a.nome.localeCompare(b.nome, 'pt-BR'),
+    );
+  });
+
+  /** "Mira 1.500 · Célia 300", só quando mais de um produtor faz o salgado. */
+  protected divisao(total: TotalDoSalgado): string | null {
+    if (total.porProdutor.size < 2) return null;
+    return [...total.porProdutor.values()]
+      .sort((a, b) => b.unidades - a.unidades)
+      .map((parte) => `${parte.nome} ${numero(parte.unidades)}`)
+      .join(' · ');
+  }
+
+  /** Total de cada produtor no período, para o filtro. */
+  protected readonly totalDoProdutor = computed(() => {
+    const totais = new Map<string, number>();
+    for (const dia of this.producao().dias) {
+      for (const carga of dia.produtores) {
+        totais.set(carga.produtor.id, (totais.get(carga.produtor.id) ?? 0) + carga.unidades);
+      }
+    }
+    return totais;
   });
 
   protected readonly total = computed(() =>

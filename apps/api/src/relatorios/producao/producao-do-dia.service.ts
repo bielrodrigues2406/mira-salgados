@@ -26,6 +26,7 @@ interface LinhaCrua {
   horario: string | null;
   tipoEntrega: TipoEntrega;
   observacaoPedido: string | null;
+  enderecoEntrega: string | null;
   clienteId: string;
   clienteNome: string;
   itemId: string;
@@ -61,6 +62,7 @@ export class ProducaoDoDiaService {
       .addSelect("to_char(pedido.horarioEntrega, 'HH24:MI')", 'horario')
       .addSelect('pedido.tipoEntrega', 'tipoEntrega')
       .addSelect('pedido.observacao', 'observacaoPedido')
+      .addSelect('pedido.enderecoEntrega', 'enderecoEntrega')
       .addSelect('cliente.id', 'clienteId')
       .addSelect('cliente.nome', 'clienteNome')
       .addSelect('item.id', 'itemId')
@@ -142,6 +144,7 @@ function paraLinhaDeProducao(linha: LinhaCrua): LinhaDeProducao {
     horario: linha.horario,
     tipoEntrega: linha.tipoEntrega,
     observacaoPedido: linha.observacaoPedido,
+    enderecoEntrega: linha.enderecoEntrega,
     cliente: { id: linha.clienteId, nome: linha.clienteNome },
     itemId: linha.itemId,
     produto: { id: linha.produtoId, nome: linha.produtoNome },

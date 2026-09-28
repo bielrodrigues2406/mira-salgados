@@ -141,6 +141,7 @@ export class PedidoDetalhe {
       horarioEntrega: pedido.horarioEntrega,
       descontoCentavos: pedido.resumo.descontoCentavos,
       observacao: pedido.observacao,
+      enderecoEntrega: pedido.enderecoEntrega,
     };
   });
 

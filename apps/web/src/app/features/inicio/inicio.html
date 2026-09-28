@@ -133,6 +133,9 @@
                   {{ entrega.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada' }} ·
                   {{ contagem(entrega.unidades, 'salgado', 'salgados') }}
                 </span>
+                @if (entrega.tipoEntrega === 'ENTREGA' && entrega.enderecoEntrega) {
+                  <span class="texto-legenda entrega-endereco">{{ entrega.enderecoEntrega }}</span>
+                }
               </span>
               <ms-icone nome="chevronDireita" [tamanho]="16" />
             </a>

@@ -66,6 +66,29 @@ describe('mensagens para o WhatsApp', () => {
     );
   });
 
+  it('período com mais de um dia fecha com o total de cada salgado', () => {
+    const dia = (data: string, unidades: number) => ({
+      data,
+      quantidadePedidos: 1,
+      unidades,
+      produtores: [
+        {
+          produtor: MIRA,
+          unidades,
+          salgados: [{ produto: COXINHA, preparo: 'FRITO' as const, unidades }],
+        },
+      ],
+    });
+    const periodo: ProducaoPorDia = {
+      de: '2026-09-28',
+      ate: '2026-09-29',
+      unidades: 500,
+      dias: [dia('2026-09-28', 200), dia('2026-09-29', 300)],
+    };
+
+    expect(mensagemDaSemana(periodo).endsWith('*Total do período*\n• 500 Coxinha')).toBe(true);
+  });
+
   it('acerto: caixa e a parte de cada produtor, com o que falta', () => {
     const acerto = {
       data: '2026-10-02',
@@ -111,7 +134,8 @@ describe('mensagens para o WhatsApp', () => {
       tipoEntrega: 'ENTREGA',
       dataEntrega: '2026-10-02',
       horarioEntrega: '10:00',
-      cliente: { nome: 'Ana Paula', endereco: 'Rua das Flores, 10' },
+      enderecoEntrega: 'Rua das Flores, 10',
+      cliente: { nome: 'Ana Paula', endereco: 'Rua Antiga, 1' },
       itens: [
         { produto: COXINHA, preparo: 'FRITO', unidadeVenda: 'CENTO', quantidade: 2 },
         { produto: KIBE, preparo: 'ASSADO', unidadeVenda: 'UNIDADE', quantidade: 1 },

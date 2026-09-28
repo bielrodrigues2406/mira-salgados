@@ -1,0 +1,76 @@
+<div class="cadastro" role="group" [attr.aria-labelledby]="id + '-titulo'">
+  <div class="cabecalho">
+    <span class="texto-titulo" [id]="id + '-titulo'">Novo cliente</span>
+    <button
+      type="button"
+      class="botao botao-terciario botao-icone"
+      aria-label="Fechar cadastro de cliente"
+      (click)="cancelar.emit()"
+    >
+      <ms-icone nome="fechar" [tamanho]="20" />
+    </button>
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-nome'">Nome</label>
+    <input
+      #campoNome
+      class="campo-entrada"
+      autocomplete="off"
+      [id]="id + '-nome'"
+      [formField]="formulario.nome"
+      [attr.aria-invalid]="formulario.nome().touched() && formulario.nome().invalid()"
+      [attr.aria-describedby]="id + '-nome-erro'"
+    />
+    <ms-erros-do-campo [id]="id + '-nome-erro'" [estado]="formulario.nome()" />
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-telefone'">Celular</label>
+    <input
+      class="campo-entrada numerico"
+      type="tel"
+      inputmode="tel"
+      autocomplete="off"
+      placeholder="(11) 98765-4321"
+      [id]="id + '-telefone'"
+      [formField]="formulario.telefone"
+      [attr.aria-invalid]="formulario.telefone().touched() && formulario.telefone().invalid()"
+      [attr.aria-describedby]="id + '-telefone-ajuda ' + id + '-telefone-erro'"
+    />
+    <span class="campo-ajuda" [id]="id + '-telefone-ajuda'">Opcional. Serve para o WhatsApp.</span>
+    <ms-erros-do-campo [id]="id + '-telefone-erro'" [estado]="formulario.telefone()" />
+  </div>
+
+  <div class="campo">
+    <label class="texto-rotulo" [for]="id + '-endereco'">Endereço</label>
+    <input
+      class="campo-entrada"
+      autocomplete="off"
+      [id]="id + '-endereco'"
+      [formField]="formulario.endereco"
+      [attr.aria-describedby]="id + '-endereco-ajuda ' + id + '-endereco-erro'"
+    />
+    <span class="campo-ajuda" [id]="id + '-endereco-ajuda'">Opcional. Só para entregas.</span>
+    <ms-erros-do-campo [id]="id + '-endereco-erro'" [estado]="formulario.endereco()" />
+  </div>
+
+  @if (erro(); as mensagem) {
+    <div class="alerta alerta-negativo" role="alert">
+      <ms-icone nome="alerta" [tamanho]="20" />
+      <span>{{ mensagem }}</span>
+    </div>
+  }
+
+  <div class="acoes">
+    <button
+      type="button"
+      class="botao botao-primario"
+      [disabled]="formulario().submitting()"
+      (click)="cadastrar()"
+    >
+      {{ formulario().submitting() ? 'Cadastrando…' : 'Cadastrar e usar no pedido' }}
+    </button>
+    <button type="button" class="botao botao-secundario" (click)="cancelar.emit()">Cancelar</button>
+  </div>
+</div>

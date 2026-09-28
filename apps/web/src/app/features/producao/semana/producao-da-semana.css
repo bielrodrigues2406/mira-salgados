@@ -157,3 +157,56 @@
     padding: 14px;
   }
 }
+
+.filtro-total {
+  margin-left: 6px;
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+.totais {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.totais h2 {
+  margin: 0;
+}
+
+.totais-lista {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.total-linha {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.total-numero {
+  min-width: 56px;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.total-textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.total-nome {
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .totais-lista {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}

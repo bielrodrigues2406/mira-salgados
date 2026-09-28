@@ -73,7 +73,33 @@ export function mensagemDaSemana(
   const titulo = negrito(
     `Produção${nome ? ` de ${nome}` : ''}: ${dataCurta(producao.de)} a ${dataCurta(producao.ate)}`,
   );
-  return [titulo, '', dias.length > 0 ? dias.join('\n\n') : 'Nada marcado.'].join('\n');
+  const linhas = [titulo, '', dias.length > 0 ? dias.join('\n\n') : 'Nada marcado.'];
+  // Com mais de um dia, o total de cada salgado no período fecha a mensagem.
+  if (dias.length > 1)
+    linhas.push('', negrito('Total do período'), ...totaisDaSemana(producao, produtorId));
+  return linhas.join('\n');
+}
+
+function totaisDaSemana(producao: ProducaoPorDia, produtorId: string | null): string[] {
+  const totais = new Map<string, { nome: string; preparo: Preparo; unidades: number }>();
+  for (const dia of producao.dias) {
+    for (const carga of dia.produtores) {
+      if (produtorId && carga.produtor.id !== produtorId) continue;
+      for (const item of carga.salgados) {
+        const chave = `${item.produto.id}|${item.preparo}`;
+        const total = totais.get(chave) ?? {
+          nome: item.produto.nome,
+          preparo: item.preparo,
+          unidades: 0,
+        };
+        total.unidades += item.unidades;
+        totais.set(chave, total);
+      }
+    }
+  }
+  return [...totais.values()]
+    .sort((a, b) => b.unidades - a.unidades)
+    .map((total) => salgado(total.nome, total.preparo, total.unidades));
 }
 
 /** Caixa do dia e quanto cabe a cada produtor. */
@@ -139,8 +165,8 @@ export function mensagemDeConfirmacao(pedido: PedidoDetalhe): string {
     '',
     `${pedido.tipoEntrega === 'ENTREGA' ? 'Entrega' : 'Retirada'}: ${negrito(quando)}`,
   ];
-  if (pedido.tipoEntrega === 'ENTREGA' && pedido.cliente.endereco) {
-    linhas.push(`Endereço: ${pedido.cliente.endereco}`);
+  if (pedido.tipoEntrega === 'ENTREGA' && pedido.enderecoEntrega) {
+    linhas.push(`Endereço: ${pedido.enderecoEntrega}`);
   }
   linhas.push(`Total: ${negrito(formatarMoeda(resumo.totalCentavos))}`);
   if (resumo.totalPagoCentavos > 0 && resumo.saldoDevedorCentavos > 0) {
