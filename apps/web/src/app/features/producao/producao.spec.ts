@@ -381,8 +381,12 @@ describe('Producao', () => {
       expect(texto()).toContain('150 salgados em 7 dias');
     });
 
-    it('troca para 14 dias pelos atalhos do período', async () => {
+    it('troca para 14 dias pelos atalhos do período, mantendo o produtor escolhido', async () => {
       await abrirSemana();
+      [...tela.querySelectorAll<HTMLButtonElement>('.filtro')]
+        .find((botao) => botao.textContent.trim().startsWith('Célia'))
+        ?.click();
+      await harness.fixture.whenStable();
 
       [...tela.querySelectorAll<HTMLButtonElement>('.atalho')]
         .find((botao) => botao.textContent.trim() === '14 dias')
@@ -392,6 +396,7 @@ describe('Producao', () => {
       await harness.fixture.whenStable();
 
       expect(TestBed.inject(Router).url).toBe(`/producao?modo=semana&ate=${somarDias(hoje(), 13)}`);
+      expect(textos('.carga-nome')).toEqual(['Célia', 'Célia']);
     });
   });
 

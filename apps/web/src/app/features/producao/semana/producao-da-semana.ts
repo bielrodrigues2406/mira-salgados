@@ -55,10 +55,19 @@ export class ProducaoDaSemana {
     return [...vistos.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   });
 
-  /** null é "todos". Começa no produtor da conta, se ele tiver produção na semana. */
-  protected readonly filtro = linkedSignal((): string | null => {
-    const meu = this.meuProdutorId();
-    return meu && this.produtores().some((produtor) => produtor.id === meu) ? meu : null;
+  /**
+   * null é "todos". Começa no produtor da conta, se ele tiver produção no
+   * período; ao trocar de período, a escolha feita continua valendo enquanto
+   * o produtor escolhido tiver produção.
+   */
+  protected readonly filtro = linkedSignal<{ meu: string | null; ids: string[] }, string | null>({
+    source: () => ({ meu: this.meuProdutorId(), ids: this.produtores().map(({ id }) => id) }),
+    computation: ({ meu, ids }, anterior) => {
+      if (anterior && (anterior.value === null || ids.includes(anterior.value))) {
+        return anterior.value;
+      }
+      return meu && ids.includes(meu) ? meu : null;
+    },
   });
 
   protected readonly dias = computed(() => {
