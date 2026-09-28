@@ -85,6 +85,8 @@
   flex-grow: 1;
   gap: 2px;
   min-width: 0;
+  /* Centraliza a primeira linha (20px) com o ícone (32px). */
+  padding-top: 6px;
 }
 
 .registro-linha {
