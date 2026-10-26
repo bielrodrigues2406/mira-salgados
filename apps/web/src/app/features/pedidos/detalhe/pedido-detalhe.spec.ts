@@ -126,6 +126,29 @@ describe('PedidoDetalhe', () => {
     expect(texto()).toContain('Confirmar pedido');
   });
 
+  it('avisa quando o desconto do rascunho passa do valor dos itens', async () => {
+    await montar(
+      pedido({
+        resumo: {
+          subtotalCentavos: 11000,
+          descontoCentavos: 50000,
+          totalCentavos: 0,
+          totalPagoCentavos: 0,
+          totalFiadoCentavos: 0,
+          saldoDevedorCentavos: 0,
+        },
+      }),
+    );
+
+    expect(texto()).toContain('O desconto passa do valor dos itens');
+  });
+
+  it('não mostra o aviso de desconto quando ele cabe nos itens', async () => {
+    await montar(pedido());
+
+    expect(texto()).not.toContain('O desconto passa do valor dos itens');
+  });
+
   it('confirma o pedido e passa a oferecer a conclusão', async () => {
     await montar(pedido());
 

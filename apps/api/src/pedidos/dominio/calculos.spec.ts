@@ -79,6 +79,14 @@ describe('cálculos do pedido', () => {
     expect(resumo.statusPagamento).toBe('PENDENTE');
   });
 
+  it('rascunho com desconto maior que os itens: total zero e pendente, não pago', () => {
+    const resumo = resumoFinanceiro([{ quantidade: 1, precoUnitario: c(11000) }], c(50000), []);
+
+    expect(resumo.total).toBe(0);
+    expect(resumo.saldoDevedor).toBe(0);
+    expect(resumo.statusPagamento).toBe('PENDENTE');
+  });
+
   it('desconto integral sobre itens quita o pedido', () => {
     expect(
       resumoFinanceiro([{ quantidade: 1, precoUnitario: c(9000) }], c(9000), []).statusPagamento,
