@@ -31,7 +31,7 @@
       autocomplete="off"
       placeholder="Buscar por nome ou telefone"
       [id]="idCampo()"
-      [attr.aria-invalid]="invalid()"
+      [attr.aria-invalid]="invalid() && touched()"
       [attr.aria-describedby]="descricao()"
       (input)="aoDigitar(campo.value)"
       (blur)="touch.emit()"

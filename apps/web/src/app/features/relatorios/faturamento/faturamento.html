@@ -72,7 +72,7 @@
                 <span class="texto-legenda numerico">{{ dia.encomendas }}</span>
               </div>
               <div class="dia-barra" aria-hidden="true">
-                <div class="dia-barra-preenchida" [style.width.%]="dia.largura"></div>
+                <div class="dia-barra-preenchida barra-animada" [style.width.%]="dia.largura"></div>
               </div>
               <span class="dia-valor numerico">{{ dia.faturamentoCentavos | moeda }}</span>
             </li>

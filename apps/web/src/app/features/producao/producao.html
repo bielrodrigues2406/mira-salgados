@@ -1,5 +1,20 @@
 <div class="cabecalho">
-  <h1 class="texto-display">{{ naSemana() ? 'Produção do período' : 'Produção do dia' }}</h1>
+  <div class="titulo-linha">
+    <h1 class="texto-display">{{ naSemana() ? 'Produção do período' : 'Produção do dia' }}</h1>
+    @if (telaAcesa.suportada) {
+      <button
+        type="button"
+        class="botao botao-secundario tela-acesa nao-imprimir"
+        [class.ligada]="telaAcesa.desejada()"
+        [attr.aria-pressed]="telaAcesa.desejada()"
+        title="A tela do celular não apaga enquanto a produção estiver aberta"
+        (click)="telaAcesa.alternar()"
+      >
+        <ms-icone nome="sol" [tamanho]="16" />
+        <span>Tela acesa</span>
+      </button>
+    }
+  </div>
   <div class="dia">
     <a
       class="botao botao-terciario botao-icone"
@@ -15,7 +30,10 @@
     } @else {
       <label class="dia-texto calendario" for="producao-data">
         <ms-icone nome="calendario" [tamanho]="16" />
-        <span aria-live="polite">{{ dataPorExtenso() }}</span>
+        <span aria-live="polite">
+          <span class="data-longa">{{ dataPorExtenso() }}</span>
+          <span class="data-curta" aria-hidden="true">{{ dataDoDiaCurta() }}</span>
+        </span>
         @if (ehHoje()) {
           <span class="marca-hoje">Hoje</span>
         }

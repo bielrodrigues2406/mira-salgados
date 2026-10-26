@@ -17,7 +17,8 @@
     "migration:revert": "nest build && typeorm migration:revert -d dist/database/data-source.js",
     "migration:show": "nest build && typeorm migration:show -d dist/database/data-source.js",
     "usuarios:criar-admin": "nest build && node dist/cli/criar-admin.js",
-    "usuarios:redefinir-admin": "nest build && node dist/cli/criar-admin.js --redefinir"
+    "usuarios:redefinir-admin": "nest build && node dist/cli/criar-admin.js --redefinir",
+    "catalogo:carregar": "nest build && node dist/cli/carregar-catalogo.js ../../deploy/mira-salgados/catalogo-inicial.json"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.7",
