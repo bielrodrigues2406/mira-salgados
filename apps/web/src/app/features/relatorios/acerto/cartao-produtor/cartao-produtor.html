@@ -12,7 +12,10 @@
       </div>
     </div>
     <div class="barra" role="img" [attr.aria-label]="'Participação de ' + participacao()">
-      <div class="barra-preenchida" [style.width.%]="parte().participacaoDecimos / 10"></div>
+      <div
+        class="barra-preenchida barra-animada"
+        [style.width.%]="parte().participacaoDecimos / 10"
+      ></div>
     </div>
     <ul class="itens">
       @for (linha of parte().itens; track linha.produto.id + linha.preparo) {

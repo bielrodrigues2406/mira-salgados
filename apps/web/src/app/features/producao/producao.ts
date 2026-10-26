@@ -1,9 +1,10 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import type { Periodo } from '../../core/models/relatorios';
 import { AuthService } from '../../core/services/auth.service';
 import { RelatoriosService } from '../../core/services/relatorios.service';
+import { TelaAcesaService } from '../../core/services/tela-acesa.service';
 import { APARENCIA_DO_PREPARO } from '../../shared/components/chip-preparo/chip-preparo';
 import { Compartilhar } from '../../shared/components/compartilhar/compartilhar';
 import { EstadoErro } from '../../shared/components/estado-erro/estado-erro';
@@ -65,6 +66,7 @@ export class Producao {
 
   private readonly router = inject(Router);
   private readonly rota = inject(ActivatedRoute);
+  protected readonly telaAcesa = inject(TelaAcesaService);
 
   protected readonly hoje = hoje();
   protected readonly dia = computed(() => dataDoCalendario(this.data()) ?? this.hoje);
@@ -79,6 +81,9 @@ export class Producao {
   );
   protected readonly atalhos = atalhosDaProducao(this.hoje);
   protected readonly maximoDeDias = MAXIMO_DE_DIAS_DA_PRODUCAO;
+  /** "Seg, 26 out": no celular estreito, a data por extenso quebraria em duas linhas. */
+  protected readonly dataDoDiaCurta = computed(() => dataCurta(this.dia()));
+
   protected readonly dataPorExtenso = computed(() => {
     const { de, ate } = this.periodo();
     return this.naSemana() ? `${dataCurta(de)} a ${dataCurta(ate)}` : dataPorExtenso(this.dia());
@@ -148,6 +153,10 @@ export class Producao {
   };
 
   /** Data escolhida no calendário do aparelho. */
+  constructor() {
+    this.telaAcesa.usarEnquantoExistir(inject(DestroyRef));
+  }
+
   protected async irParaData(valor: string): Promise<void> {
     const data = dataDoCalendario(valor);
     if (!data || data === this.dia()) return;

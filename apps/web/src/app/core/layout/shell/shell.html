@@ -2,7 +2,7 @@
 
 <aside class="lateral">
   <div class="marca">
-    <span class="marca-simbolo" aria-hidden="true">M</span>
+    <span class="marca-simbolo" aria-hidden="true"><ms-icone nome="coxinha" [tamanho]="20" /></span>
     <span class="marca-textos">
       <span class="marca-nome">Mira Salgados</span>
       <span class="marca-descricao">Gestão de encomendas</span>
@@ -74,7 +74,9 @@
 
 <header class="topo">
   <div class="marca">
-    <span class="marca-simbolo marca-simbolo-pequeno" aria-hidden="true">M</span>
+    <span class="marca-simbolo marca-simbolo-pequeno" aria-hidden="true"
+      ><ms-icone nome="coxinha" [tamanho]="20"
+    /></span>
     <span class="marca-nome">Mira Salgados</span>
   </div>
   @if (usuario(); as usuario) {
@@ -97,8 +99,22 @@
 </main>
 
 @if (menuAberto()) {
-  <div class="mais-fundo" aria-hidden="true" (click)="fecharMenu()"></div>
-  <div id="painel-mais" class="mais" role="dialog" aria-modal="true" aria-labelledby="titulo-mais">
+  <div
+    class="mais-fundo"
+    aria-hidden="true"
+    animate.enter="fundo-entrando"
+    animate.leave="fundo-saindo"
+    (click)="fecharMenu()"
+  ></div>
+  <div
+    id="painel-mais"
+    class="mais"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="titulo-mais"
+    animate.enter="folha-entrando"
+    animate.leave="folha-saindo"
+  >
     <h2 id="titulo-mais" class="somente-leitor-de-tela">Mais opções</h2>
     @if (usuario(); as usuario) {
       <div class="mais-conta">

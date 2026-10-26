@@ -59,6 +59,8 @@
     <div class="lista">
       @for (produto of itens(); track produto.id) {
         <ms-produto-cartao
+          class="em-sequencia"
+          [style.--ordem]="$index"
           [produto]="produto"
           [produtores]="opcoesDeProdutor()"
           (alterado)="concluir($event)"

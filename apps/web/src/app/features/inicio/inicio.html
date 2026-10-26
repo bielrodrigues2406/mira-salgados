@@ -158,7 +158,10 @@
           <a class="proximo" routerLink="/producao" [queryParams]="{ data: dia.data }">
             <span class="proximo-dia">{{ dataCurta(dia.data) }}</span>
             <span class="proximo-barra" aria-hidden="true">
-              <span class="proximo-preenchido" [style.width]="larguraDaBarra(dia)"></span>
+              <span
+                class="proximo-preenchido barra-animada"
+                [style.width]="larguraDaBarra(dia)"
+              ></span>
             </span>
             <span class="proximo-numero numerico">
               {{ unidadesDoDia(dia) === 0 ? '–' : numero(unidadesDoDia(dia)) }}

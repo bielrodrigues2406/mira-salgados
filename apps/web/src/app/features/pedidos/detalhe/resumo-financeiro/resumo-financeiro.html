@@ -39,7 +39,7 @@
         role="img"
         [attr.aria-label]="percentualRecebido() + '% do total recebido'"
       >
-        <div class="barra-preenchida" [style.width.%]="percentualRecebido()"></div>
+        <div class="barra-preenchida barra-animada" [style.width.%]="percentualRecebido()"></div>
       </div>
       <span class="texto-legenda numerico">{{ percentualRecebido() }}% do total recebido</span>
     </div>
