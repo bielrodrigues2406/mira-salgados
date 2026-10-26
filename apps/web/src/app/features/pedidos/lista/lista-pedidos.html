@@ -126,7 +126,12 @@
             <span class="texto-legenda numerico">{{ secao.meta()?.total }}</span>
           </div>
           @for (pedido of secao.itens(); track pedido.id) {
-            <ms-cartao-pedido [pedido]="pedido" [hoje]="hoje" />
+            <ms-cartao-pedido
+              class="em-sequencia"
+              [style.--ordem]="$index"
+              [pedido]="pedido"
+              [hoje]="hoje"
+            />
           }
           @if (secao.meta(); as meta) {
             <ms-paginacao [meta]="meta" (paginaMudou)="secao.pagina.set($event)" />

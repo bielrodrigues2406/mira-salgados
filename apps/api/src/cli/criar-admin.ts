@@ -3,11 +3,14 @@ import 'reflect-metadata';
 import { stdin, stdout } from 'node:process';
 import { createInterface } from 'node:readline/promises';
 
+import type { INestApplicationContext } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DataSource } from 'typeorm';
 
 import { AppModule } from '../app.module.js';
 import { TELEFONE } from '../common/validation/telefone.js';
 import { SENHA_MAXIMA, SENHA_MINIMA } from '../usuarios/dto/usuarios.dto.js';
+import { Usuario } from '../usuarios/usuario.entity.js';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
 
 /**
@@ -18,6 +21,8 @@ import { UsuariosService } from '../usuarios/usuarios.service.js';
  *
  * Com --redefinir, recupera uma conta existente (senha esquecida ou conta
  * desativada): ela volta ativa, como administradora e com a senha nova.
+ * Com --se-nao-houver, não faz nada se já existe um administrador ativo: é o
+ * que o deploy usa, para rodar sempre sem pedir nada.
  * Nome, telefone e senha vêm de ADMIN_NOME, ADMIN_TELEFONE e ADMIN_SENHA ou
  * são perguntados no terminal; a senha nunca aparece na tela nem nos logs.
  */
@@ -57,6 +62,10 @@ function perguntarSenha(texto: string): Promise<string> {
   });
 }
 
+function haAdministradorAtivo(app: INestApplicationContext): Promise<boolean> {
+  return app.get(DataSource).getRepository(Usuario).existsBy({ papel: 'ADMIN', ativo: true });
+}
+
 function falhar(mensagem: string): never {
   stdout.write(`Erro: ${mensagem}\n`);
   process.exit(1);
@@ -64,23 +73,30 @@ function falhar(mensagem: string): never {
 
 async function principal(): Promise<void> {
   const redefinir = process.argv.includes('--redefinir');
-  const nome = redefinir ? '' : (process.env['ADMIN_NOME'] ?? (await perguntar('Nome: ')));
-  const telefone = (
-    process.env['ADMIN_TELEFONE'] ?? (await perguntar('Celular com DDD: '))
-  ).replace(/\D/g, '');
-  const senha = process.env['ADMIN_SENHA'] ?? (await perguntarSenha('Senha: '));
-
-  if (!redefinir && nome === '') falhar('informe o nome.');
-  if (!TELEFONE.test(telefone)) falhar('o celular precisa ter DDD e 10 ou 11 dígitos.');
-  if (senha.length < SENHA_MINIMA || senha.length > SENHA_MAXIMA) {
-    falhar(`a senha precisa ter de ${String(SENHA_MINIMA)} a ${String(SENHA_MAXIMA)} caracteres.`);
-  }
-  if (!process.env['ADMIN_SENHA'] && stdin.isTTY) {
-    if ((await perguntarSenha('Repita a senha: ')) !== senha) falhar('as senhas não conferem.');
-  }
-
   const app = await NestFactory.createApplicationContext(AppModule, { logger: ['error'] });
   try {
+    if (process.argv.includes('--se-nao-houver') && (await haAdministradorAtivo(app))) {
+      stdout.write('Já existe um administrador ativo: nada a fazer.\n');
+      return;
+    }
+
+    const nome = redefinir ? '' : (process.env['ADMIN_NOME'] ?? (await perguntar('Nome: ')));
+    const telefone = (
+      process.env['ADMIN_TELEFONE'] ?? (await perguntar('Celular com DDD: '))
+    ).replace(/\D/g, '');
+    const senha = process.env['ADMIN_SENHA'] ?? (await perguntarSenha('Senha: '));
+
+    if (!redefinir && nome === '') falhar('informe o nome.');
+    if (!TELEFONE.test(telefone)) falhar('o celular precisa ter DDD e 10 ou 11 dígitos.');
+    if (senha.length < SENHA_MINIMA || senha.length > SENHA_MAXIMA) {
+      falhar(
+        `a senha precisa ter de ${String(SENHA_MINIMA)} a ${String(SENHA_MAXIMA)} caracteres.`,
+      );
+    }
+    if (!process.env['ADMIN_SENHA'] && stdin.isTTY) {
+      if ((await perguntarSenha('Repita a senha: ')) !== senha) falhar('as senhas não conferem.');
+    }
+
     const usuarios = app.get(UsuariosService);
     const conta = redefinir
       ? await usuarios.restaurarAdmin(telefone, senha)

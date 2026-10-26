@@ -1,21 +1,27 @@
 .produto {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .cabecalho {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
-.cabecalho h2 {
+.identificacao {
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cabecalho h2 {
   overflow-wrap: anywhere;
 }
 
-.cabecalho ms-chip + .editar,
 .editar {
   margin: -10px -10px -10px 0;
   color: var(--cor-texto-secundario);
@@ -25,7 +31,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .inativo .cabecalho h2 {
@@ -37,20 +43,7 @@
   border-collapse: collapse;
 }
 
-.precos caption {
-  padding-bottom: 6px;
-  text-align: left;
-}
-
-.precos th {
-  padding: 0 0 6px;
-  font-size: 12px;
-  font-weight: 500;
-  text-align: left;
-  color: var(--cor-texto-secundario);
-}
-
-.precos tbody tr {
+.precos tbody tr + tr {
   border-top: 1px solid var(--cor-borda);
 }
 
@@ -61,11 +54,6 @@
 .coluna-preco {
   text-align: right;
   font-weight: 600;
-}
-
-.precos th.coluna-preco {
-  text-align: right;
-  font-weight: 500;
 }
 
 .coluna-acao {
@@ -101,14 +89,17 @@
   color: var(--cor-texto-secundario);
 }
 
-.adicionar {
-  width: 100%;
+/* Ações de uso eventual numa linha discreta no pé do cartão. */
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: -4px 0 -8px -10px;
 }
 
-.historico-botao {
-  align-self: flex-start;
-  margin: -6px 0 -8px -8px;
-  padding: 0 8px;
+.acoes .botao {
+  padding: 0 10px;
+  font-size: 13px;
 }
 
 .historico {

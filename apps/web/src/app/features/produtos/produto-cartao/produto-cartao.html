@@ -12,10 +12,22 @@
     />
   } @else {
     <div class="cabecalho">
-      <h2 class="texto-titulo" [id]="id">{{ produto().nome }}</h2>
-      @if (!produto().ativo) {
-        <ms-chip tom="neutro" icone="pausado" [compacto]="true">Inativo</ms-chip>
-      }
+      <div class="identificacao">
+        <h2 class="texto-titulo" [id]="id">{{ produto().nome }}</h2>
+        <div class="produtor">
+          <span class="somente-leitor-de-tela">Produtor padrão</span>
+          <ms-chip
+            [tom]="produto().produtorPadrao.ativo ? 'positivo' : 'neutro'"
+            icone="produtor"
+            [compacto]="true"
+          >
+            {{ produto().produtorPadrao.nome }}
+          </ms-chip>
+          @if (!produto().ativo) {
+            <ms-chip tom="neutro" icone="pausado" [compacto]="true">Inativo</ms-chip>
+          }
+        </div>
+      </div>
       <button
         type="button"
         class="botao botao-terciario botao-icone editar"
@@ -25,21 +37,14 @@
         <ms-icone nome="editar" />
       </button>
     </div>
-
-    <div class="produtor">
-      <span class="texto-rotulo">Produtor padrão</span>
-      <ms-chip [tom]="produto().produtorPadrao.ativo ? 'positivo' : 'neutro'" icone="produtor">
-        {{ produto().produtorPadrao.nome }}
-      </ms-chip>
-    </div>
   }
 
   @if (produto().precosVigentes.length > 0) {
     <table class="precos">
-      <caption class="texto-rotulo">
+      <caption class="somente-leitor-de-tela">
         Preços vigentes
       </caption>
-      <thead>
+      <thead class="somente-leitor-de-tela">
         <tr>
           <th scope="col">Preparo</th>
           <th scope="col">Unidade</th>
@@ -113,23 +118,26 @@
       [salvar]="salvarPreco"
       (cancelar)="precoAberto.set(false)"
     />
-  } @else if (produto().ativo && !editando()) {
-    <button type="button" class="botao botao-secundario adicionar" (click)="abrirPreco()">
-      <ms-icone nome="mais" />
-      <span>Adicionar preço</span>
-    </button>
   }
 
-  <button
-    type="button"
-    class="botao botao-terciario historico-botao"
-    [attr.aria-expanded]="historicoAberto()"
-    [attr.aria-controls]="id + '-historico'"
-    (click)="alternarHistorico()"
-  >
-    <ms-icone nome="historico" />
-    <span>Histórico de preços</span>
-  </button>
+  <div class="acoes">
+    @if (!precoAberto() && produto().ativo && !editando()) {
+      <button type="button" class="botao botao-terciario" (click)="abrirPreco()">
+        <ms-icone nome="mais" />
+        <span>Adicionar preço</span>
+      </button>
+    }
+    <button
+      type="button"
+      class="botao botao-terciario"
+      [attr.aria-expanded]="historicoAberto()"
+      [attr.aria-controls]="id + '-historico'"
+      (click)="alternarHistorico()"
+    >
+      <ms-icone nome="historico" />
+      <span>Histórico de preços</span>
+    </button>
+  </div>
 
   @if (historicoAberto()) {
     <section class="historico" [id]="id + '-historico'" aria-label="Histórico de preços">

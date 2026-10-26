@@ -101,7 +101,11 @@
     @case ('pronto') {
       <ul class="lista" aria-label="Clientes">
         @for (cliente of itens(); track cliente.id) {
-          <li class="item" [class.editando]="emEdicao()?.id === cliente.id">
+          <li
+            class="item em-sequencia"
+            [style.--ordem]="$index"
+            [class.editando]="emEdicao()?.id === cliente.id"
+          >
             @if (emEdicao()?.id === cliente.id) {
               <ms-cliente-formulario
                 [titulo]="'Editar ' + cliente.nome"

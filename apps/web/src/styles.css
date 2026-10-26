@@ -64,6 +64,15 @@
   --largura-lateral: 240px;
 
   --transicao: 150ms ease;
+
+  /* Movimento: curto para resposta ao toque, médio para o que aparece e
+     longo só para o que percorre distância (folha, barras). Entrada
+     desacelera; saída acelera e é mais curta que a entrada. */
+  --duracao-curta: 120ms;
+  --duracao-media: 200ms;
+  --duracao-longa: 280ms;
+  --curva-entrada: cubic-bezier(0.2, 0, 0, 1);
+  --curva-saida: cubic-bezier(0.4, 0, 1, 1);
 }
 
 *,
@@ -103,7 +112,9 @@ textarea {
     color var(--transicao),
     background-color var(--transicao),
     border-color var(--transicao),
-    box-shadow var(--transicao);
+    box-shadow var(--transicao),
+    transform var(--duracao-curta) var(--curva-entrada);
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
@@ -175,6 +186,11 @@ p {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+}
+
+/* Resposta ao toque: o botão afunda um pouco enquanto o dedo está nele. */
+.botao:not(:disabled):active {
+  transform: scale(0.97);
 }
 
 .botao:disabled {
@@ -354,10 +370,147 @@ p {
   color: var(--cor-negativo);
 }
 
+.alerta-atencao {
+  background: var(--tint-atencao);
+  border-color: var(--tint-atencao-borda);
+  color: var(--cor-texto);
+}
+
+.alerta-atencao ms-icone {
+  color: var(--cor-atencao);
+}
+
 .alerta-positivo {
   background: var(--tint-positivo);
   border-color: var(--tint-positivo-borda);
   color: var(--cor-positivo);
+}
+
+/* Itens de lista entram em sequência ao carregar: 25 ms entre um e outro, até
+   o oitavo, para a lista não demorar a ficar completa. */
+.em-sequencia {
+  animation: item-entra var(--duracao-media) var(--curva-entrada) both;
+  animation-delay: calc(min(var(--ordem, 0), 8) * 25ms);
+}
+
+ms-cartao-pedido.em-sequencia,
+ms-produto-cartao.em-sequencia {
+  display: block;
+}
+
+@keyframes item-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Barras de proporção crescem da esquerda ao aparecer e quando o valor muda. */
+.barra-animada {
+  transform-origin: left center;
+  transition: width var(--duracao-longa) var(--curva-entrada);
+  animation: barra-cresce var(--duracao-longa) var(--curva-entrada) both;
+}
+
+@keyframes barra-cresce {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Barra inferior e folha "Mais": o destino afunda ao toque e a pílula do
+   destino ativo abre do centro para os lados. */
+.inferior-icone {
+  transition: transform var(--duracao-curta) var(--curva-entrada);
+}
+
+.inferior-item:active .inferior-icone {
+  transform: scale(0.9);
+}
+
+.mais-destino:active {
+  transform: scale(0.97);
+}
+
+@keyframes pilula-entra {
+  from {
+    transform: scaleX(0.5);
+    opacity: 0.4;
+  }
+}
+
+/* Folhas que sobem da base (como a do "Mais") e o fundo que escurece; ao
+   fechar, o caminho de volta é mais curto. */
+.fundo-entrando {
+  animation: fundo-entra var(--duracao-media) var(--curva-entrada);
+}
+
+.fundo-saindo {
+  animation: fundo-entra var(--duracao-curta) var(--curva-saida) reverse both;
+}
+
+.folha-entrando {
+  animation: folha-entra var(--duracao-longa) var(--curva-entrada);
+}
+
+.folha-saindo {
+  animation: folha-sai var(--duracao-media) var(--curva-saida) both;
+}
+
+@keyframes fundo-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes folha-entra {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
+@keyframes folha-sai {
+  to {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
+/* Troca de tela (View Transitions do router): o conteúdo some rápido e o novo
+   sobe 6 px enquanto aparece. Topo, barra inferior e lateral têm nome
+   próprio e não piscam. */
+::view-transition-old(root) {
+  animation: tela-sai var(--duracao-curta) var(--curva-saida) both;
+}
+
+::view-transition-new(root) {
+  animation: tela-entra var(--duracao-media) var(--curva-entrada) both;
+}
+
+::view-transition-old(topo),
+::view-transition-old(inferior),
+::view-transition-old(lateral) {
+  display: none;
+}
+
+::view-transition-new(topo),
+::view-transition-new(inferior),
+::view-transition-new(lateral) {
+  animation: none;
+}
+
+@keyframes tela-sai {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes tela-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -367,6 +520,12 @@ p {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 

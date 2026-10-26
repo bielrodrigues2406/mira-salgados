@@ -56,7 +56,11 @@ export interface TotaisDoPedido {
  * a família decidiu não controlar no sistema (decisão D3 revista).
  */
 export function resumoDeTotais(totais: TotaisDoPedido): ResumoFinanceiro {
-  const total = subtrair(totais.subtotal, totais.desconto);
+  // Só no rascunho o desconto pode passar dos itens (ele é digitado antes
+  // deles; a confirmação barra). O total não fica negativo nem o pedido
+  // aparece como pago enquanto isso.
+  const descontoExcedente = totais.desconto > totais.subtotal;
+  const total = descontoExcedente ? ZERO_CENTAVOS : subtrair(totais.subtotal, totais.desconto);
   const saldo = subtrair(total, totais.totalPago);
   return {
     ...totais,
@@ -65,7 +69,9 @@ export function resumoDeTotais(totais: TotaisDoPedido): ResumoFinanceiro {
     // Sem itens ainda não há o que cobrar: o total zero do desconto integral é
     // PAGO, o do pedido vazio continua PENDENTE.
     statusPagamento:
-      totais.subtotal === 0 ? 'PENDENTE' : statusDoPagamento(total, totais.totalPago),
+      totais.subtotal === 0 || descontoExcedente
+        ? 'PENDENTE'
+        : statusDoPagamento(total, totais.totalPago),
   };
 }
 

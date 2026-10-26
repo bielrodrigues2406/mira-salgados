@@ -22,4 +22,8 @@ export class ResumoFinanceiro {
     return Math.min(100, Math.floor((totalPagoCentavos * 100) / totalCentavos));
   });
   protected readonly quantidadeItens = computed(() => this.pedido().itens.length);
+  /** Só acontece no rascunho: o desconto pode ser digitado antes dos itens. */
+  protected readonly descontoAcimaDosItens = computed(
+    () => this.resumo().descontoCentavos > this.resumo().subtotalCentavos,
+  );
 }

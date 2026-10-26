@@ -94,7 +94,7 @@
         <h2 class="texto-rotulo dia-titulo" [id]="'dia-' + dia.data">{{ dia.rotulo }}</h2>
         <ol class="cartao registros">
           @for (registro of dia.registros; track registro.id) {
-            <li class="registro">
+            <li class="registro em-sequencia" [style.--ordem]="$index">
               <span class="registro-icone" aria-hidden="true">
                 <ms-icone [nome]="icone(registro.acao)" [tamanho]="16" />
               </span>

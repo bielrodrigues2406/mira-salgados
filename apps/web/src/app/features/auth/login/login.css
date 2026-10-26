@@ -21,6 +21,14 @@
   padding: 24px 20px;
   border-radius: var(--raio-cartao);
   background: var(--cor-cartao);
+  animation: login-entra var(--duracao-longa) var(--curva-entrada) both;
+}
+
+@keyframes login-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
 .marca {

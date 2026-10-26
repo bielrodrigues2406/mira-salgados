@@ -32,6 +32,16 @@
     }
   </dl>
 
+  @if (descontoAcimaDosItens()) {
+    <div class="alerta alerta-atencao" role="status">
+      <ms-icone nome="atencao" [tamanho]="20" />
+      <span>
+        O desconto passa do valor dos itens. Adicione itens ou diminua o desconto antes de
+        confirmar.
+      </span>
+    </div>
+  }
+
   @if (pedido().status !== 'CANCELADO') {
     <div class="progresso">
       <div
@@ -39,7 +49,7 @@
         role="img"
         [attr.aria-label]="percentualRecebido() + '% do total recebido'"
       >
-        <div class="barra-preenchida" [style.width.%]="percentualRecebido()"></div>
+        <div class="barra-preenchida barra-animada" [style.width.%]="percentualRecebido()"></div>
       </div>
       <span class="texto-legenda numerico">{{ percentualRecebido() }}% do total recebido</span>
     </div>

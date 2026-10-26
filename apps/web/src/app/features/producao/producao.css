@@ -10,6 +10,30 @@
   gap: 8px;
 }
 
+.titulo-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tela-acesa {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.tela-acesa.ligada {
+  border-color: var(--cor-temporal);
+  background: var(--temporal-translucido);
+  color: var(--cor-temporal-texto);
+}
+
+.tela-acesa.ligada ms-icone {
+  color: var(--cor-temporal);
+}
+
 .dia {
   display: flex;
   align-items: center;
@@ -23,6 +47,26 @@
   align-items: center;
   gap: 8px;
   font-weight: 600;
+}
+
+.data-curta {
+  display: none;
+}
+
+@media (max-width: 479px) {
+  /* Continua para o leitor de tela; a curta é só visual. */
+  .data-longa {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .data-curta {
+    display: inline;
+  }
 }
 
 .marca-hoje {

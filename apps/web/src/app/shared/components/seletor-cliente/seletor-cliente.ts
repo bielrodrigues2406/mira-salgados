@@ -47,6 +47,8 @@ export class SeletorCliente implements FormValueControl<string> {
 
   readonly value = model('');
   readonly invalid = input(false);
+  /** O erro só aparece depois que a pessoa passou pelo campo ou tentou salvar. */
+  readonly touched = input(false);
   readonly touch = output();
   /** Id do campo de busca, para o rótulo do formulário apontar para ele. */
   readonly idCampo = input.required<string>();

@@ -38,13 +38,17 @@ describe('NovoPedido', () => {
     backend.verify();
   });
 
-  it('exige cliente antes de criar', async () => {
+  it('exige cliente antes de criar, sem marcar o campo como errado antes da hora', async () => {
     await montar();
+    const busca = (): HTMLInputElement | null =>
+      tela.querySelector<HTMLInputElement>('ms-seletor-cliente input');
+    expect(busca()?.getAttribute('aria-invalid')).toBe('false');
 
     tela.querySelector('form')?.dispatchEvent(new Event('submit', { cancelable: true }));
     await fixture.whenStable();
 
     expect(tela.textContent).toContain('Escolha o cliente.');
+    expect(busca()?.getAttribute('aria-invalid')).toBe('true');
   });
 
   it('entrega pede só o endereço, sem taxa nem entregador', async () => {
