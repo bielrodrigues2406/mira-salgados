@@ -48,5 +48,8 @@
     "@parcel/watcher": false,
     "lmdb": false,
     "msgpackr-extract": false
+  },
+  "overrides": {
+    "multer": "2.5.0"
   }
 }
