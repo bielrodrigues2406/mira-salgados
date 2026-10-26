@@ -1,0 +1,65 @@
+{
+  "produtores": ["Mira", "Gabriel", "Mariellen e Elton"],
+  "produtos": [
+    {
+      "nome": "Coxinha de frango",
+      "produtor": "Mariellen e Elton",
+      "precos": { "FRITO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 10000 } }
+    },
+    {
+      "nome": "Coxinha de carne",
+      "produtor": "Mariellen e Elton",
+      "precos": { "FRITO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 10000 } }
+    },
+    {
+      "nome": "Risoles de presunto e queijo",
+      "produtor": "Mariellen e Elton",
+      "precos": { "FRITO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 10000 } }
+    },
+    {
+      "nome": "Bolinha de queijo",
+      "produtor": "Gabriel",
+      "precos": { "FRITO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 10000 } }
+    },
+    {
+      "nome": "Kibe",
+      "produtor": "Gabriel",
+      "precos": { "FRITO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 10000 } }
+    },
+    {
+      "nome": "Porco-espinho",
+      "produtor": "Mariellen e Elton",
+      "precos": { "FRITO": { "CENTO": 12000 }, "CONGELADO": { "CENTO": 11000 } }
+    },
+    {
+      "nome": "Esfiha de carne",
+      "produtor": "Mira",
+      "precos": { "ASSADO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 11000 } }
+    },
+    {
+      "nome": "Esfiha de frango",
+      "produtor": "Mira",
+      "precos": { "ASSADO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 11000 } }
+    },
+    {
+      "nome": "Empada de frango com palmito",
+      "produtor": "Mira",
+      "precos": { "ASSADO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 11000 } }
+    },
+    {
+      "nome": "Bolinha de bacalhau",
+      "produtor": "Mariellen e Elton",
+      "precos": { "FRITO": { "CENTO": 20000 }, "CONGELADO": { "CENTO": 19000 } }
+    },
+    {
+      "nome": "Pastel de carne",
+      "produtor": "Mariellen e Elton",
+      "precos": { "FRITO": { "CENTO": 11000 }, "CONGELADO": { "CENTO": 10000 } }
+    },
+    {
+      "nome": "Pastel de queijo",
+      "produtor": "Mariellen e Elton",
+      "precos": { "FRITO": { "CENTO": 13000 }, "CONGELADO": { "CENTO": 12000 } }
+    }
+  ]
+}
