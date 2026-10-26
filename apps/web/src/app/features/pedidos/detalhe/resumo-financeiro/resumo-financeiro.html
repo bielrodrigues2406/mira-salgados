@@ -32,6 +32,16 @@
     }
   </dl>
 
+  @if (descontoAcimaDosItens()) {
+    <div class="alerta alerta-atencao" role="status">
+      <ms-icone nome="atencao" [tamanho]="20" />
+      <span>
+        O desconto passa do valor dos itens. Adicione itens ou diminua o desconto antes de
+        confirmar.
+      </span>
+    </div>
+  }
+
   @if (pedido().status !== 'CANCELADO') {
     <div class="progresso">
       <div

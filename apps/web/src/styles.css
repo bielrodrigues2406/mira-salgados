@@ -370,6 +370,16 @@ p {
   color: var(--cor-negativo);
 }
 
+.alerta-atencao {
+  background: var(--tint-atencao);
+  border-color: var(--tint-atencao-borda);
+  color: var(--cor-texto);
+}
+
+.alerta-atencao ms-icone {
+  color: var(--cor-atencao);
+}
+
 .alerta-positivo {
   background: var(--tint-positivo);
   border-color: var(--tint-positivo-borda);

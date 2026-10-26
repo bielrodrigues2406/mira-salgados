@@ -15,12 +15,6 @@
   color: var(--cor-texto-secundario);
 }
 
-.alerta-atencao {
-  border-color: var(--tint-atencao-borda);
-  background: var(--tint-atencao);
-  color: var(--cor-texto);
-}
-
 .alerta-atencao a {
   font-weight: 600;
 }
