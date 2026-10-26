@@ -183,6 +183,14 @@
   font-weight: 700;
 }
 
+/* Sem horário combinado: texto menor, para não disputar com os horários. */
+.sem-horario {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
 .entrega-textos {
   display: flex;
   flex-direction: column;

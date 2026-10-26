@@ -125,7 +125,9 @@
         @for (entrega of painel.hoje.aEntregar; track entrega.id) {
           <li>
             <a class="entrega" [routerLink]="['/pedidos', entrega.id]">
-              <span class="entrega-horario numerico">{{ entrega.horario ?? 'Sem horário' }}</span>
+              <span class="entrega-horario numerico" [class.sem-horario]="!entrega.horario">{{
+                entrega.horario ?? 'Sem horário'
+              }}</span>
               <span class="entrega-textos">
                 <span class="entrega-cliente">{{ entrega.cliente.nome }}</span>
                 <span class="texto-legenda numerico">
