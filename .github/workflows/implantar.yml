@@ -1,0 +1,117 @@
+name: Implantar
+
+# Coloca o Mira Salgados no ar na VPS, ou atualiza a versão. Copia a pasta
+# deploy/ por SSH e roda deploy/servidor/implantar.sh, que na primeira vez
+# prepara o servidor, cria o administrador e carrega o catálogo inicial.
+# Só roda à mão, a partir do master, e o ambiente "producao" pede aprovação:
+# quem dispara este workflow tem, na prática, root na VPS (docs/servidor.md).
+on:
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: 'Versão: 7 primeiros caracteres de um commit do master (vazio = o último)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: implantar
+  cancel-in-progress: false
+
+jobs:
+  implantar:
+    name: VPS
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: producao
+      url: https://${{ vars.DOMINIO }}
+    env:
+      VPS: root@${{ vars.VPS_HOST }}
+      REGISTRO: ghcr.io/${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Conferir a configuração
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          DOMINIO: ${{ vars.DOMINIO }}
+          ACME_EMAIL: ${{ vars.ACME_EMAIL }}
+          TEM_CHAVE: ${{ secrets.VPS_SSH_KEY != '' }}
+        run: |
+          faltando=()
+          [ -n "$VPS_HOST" ] || faltando+=("variável VPS_HOST")
+          [ -n "$DOMINIO" ] || faltando+=("variável DOMINIO")
+          [ -n "$ACME_EMAIL" ] || faltando+=("variável ACME_EMAIL")
+          [ "$TEM_CHAVE" = "true" ] || faltando+=("segredo VPS_SSH_KEY")
+          if [ ${#faltando[@]} -gt 0 ]; then
+            echo "::error title=Configuração::Falta no ambiente producao: ${faltando[*]}."
+            exit 1
+          fi
+
+      - name: Versão
+        id: versao
+        env:
+          ESCOLHIDA: ${{ inputs.versao }}
+          ATOR: ${{ github.actor }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          versao="${ESCOLHIDA:-${GITHUB_SHA::7}}"
+          if ! [[ "$versao" =~ ^([0-9a-f]{7}|latest)$ ]]; then
+            echo "::error title=Versão::Use os 7 primeiros caracteres de um commit, ou deixe vazio."
+            exit 1
+          fi
+          echo "$TOKEN" | docker login ghcr.io -u "$ATOR" --password-stdin > /dev/null
+          for imagem in api web; do
+            if ! docker manifest inspect "$REGISTRO/mira-salgados-$imagem:$versao" > /dev/null 2>&1; then
+              echo "::error title=Versão::Imagem $imagem:$versao não publicada. Espere o workflow Publicar imagens deste commit."
+              exit 1
+            fi
+          done
+          docker logout ghcr.io > /dev/null
+          echo "versao=$versao" >> "$GITHUB_OUTPUT"
+
+      - name: Chave SSH
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ vars.VPS_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          if [ -n "$VPS_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            # Sem a identidade guardada, aceita a de agora e mostra como guardar.
+            ssh-keyscan -t ed25519 "$VPS_HOST" 2> /dev/null > ~/.ssh/known_hosts
+            echo "::warning title=Identidade da VPS::Guarde esta linha na variável VPS_KNOWN_HOSTS do ambiente producao: $(cat ~/.ssh/known_hosts)"
+          fi
+          printf 'Host *\n  StrictHostKeyChecking yes\n  ServerAliveInterval 30\n  ConnectTimeout 20\n' > ~/.ssh/config
+
+      - name: Copiar deploy/ para a VPS
+        run: |
+          tar czf - deploy | ssh "$VPS" \
+            'rm -rf /opt/mira-salgados/deploy && mkdir -p /opt/mira-salgados && tar xzf - -C /opt/mira-salgados'
+
+      - name: Implantar
+        env:
+          DOMINIO: ${{ vars.DOMINIO }}
+          ACME_EMAIL: ${{ vars.ACME_EMAIL }}
+          VERSAO: ${{ steps.versao.outputs.versao }}
+          GHCR_USUARIO: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ADMIN_NOME: ${{ secrets.ADMIN_NOME }}
+          ADMIN_TELEFONE: ${{ secrets.ADMIN_TELEFONE }}
+          ADMIN_SENHA: ${{ secrets.ADMIN_SENHA }}
+        run: |
+          # As variáveis vão por um arquivo só do root, não pela linha de
+          # comando, que outros processos da VPS enxergam.
+          for nome in DOMINIO ACME_EMAIL VERSAO GHCR_USUARIO GHCR_TOKEN ADMIN_NOME ADMIN_TELEFONE ADMIN_SENHA; do
+            printf '%s=%q\n' "$nome" "${!nome}"
+          done | ssh "$VPS" 'umask 077 && cat > /root/.implantar.env'
+          ssh "$VPS" 'bash /opt/mira-salgados/deploy/servidor/implantar.sh /root/.implantar.env'

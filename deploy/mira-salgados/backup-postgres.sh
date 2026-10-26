@@ -13,11 +13,15 @@ aplicacao="${1:?informe a pasta da aplicação, como /srv/apps/mira-salgados}"
 nome="$(basename "$aplicacao")"
 destino="/srv/backups/$nome"
 mkdir -p "$destino"
-arquivo="$destino/$nome-$(date +%Y-%m-%d-%H%M).sql.gz"
+arquivo="$destino/$nome-$(date +%Y-%m-%d-%H%M%S).sql.gz"
+# Temporário próprio: dois backups ao mesmo tempo (o do cron e um manual) não
+# se atropelam, e um backup interrompido não deixa arquivo pela metade.
+temporario="$(mktemp "$destino/.$nome-XXXXXX")"
+trap 'rm -f "$temporario"' EXIT
 
 docker compose --project-directory "$aplicacao" exec -T db \
-  sh -c 'pg_dump --clean --if-exists -U "$POSTGRES_USER" -d "$POSTGRES_DB"' | gzip > "$arquivo.tmp"
-mv "$arquivo.tmp" "$arquivo"
+  sh -c 'pg_dump --clean --if-exists -U "$POSTGRES_USER" -d "$POSTGRES_DB"' | gzip > "$temporario"
+mv "$temporario" "$arquivo"
 find "$destino" -name "$nome-*.sql.gz" -mtime +30 -delete
 
 echo "$(date '+%Y-%m-%d %H:%M') $nome: backup em $arquivo"

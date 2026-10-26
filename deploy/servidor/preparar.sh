@@ -57,6 +57,18 @@ ufw --force enable
 echo "==> fail2ban para tentativas de SSH"
 systemctl enable --now fail2ban
 
+# Com uma chave autorizada, senha deixa de entrar por SSH: o workflow e quem
+# administra usam chave, e o console do painel da VPS continua funcionando.
+if [ -s /root/.ssh/authorized_keys ]; then
+  echo "==> SSH só com chave"
+  cat > /etc/ssh/sshd_config.d/10-somente-chave.conf << 'CONF'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin prohibit-password
+CONF
+  sshd -t && (systemctl reload ssh || systemctl restart ssh)
+fi
+
 echo "==> Swap de 2 GB (folga para picos de memória)"
 if ! swapon --show | grep -q '/swapfile'; then
   fallocate -l 2G /swapfile
