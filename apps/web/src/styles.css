@@ -418,6 +418,65 @@ ms-produto-cartao.em-sequencia {
   }
 }
 
+/* Barra inferior e folha "Mais": o destino afunda ao toque e a pílula do
+   destino ativo abre do centro para os lados. */
+.inferior-icone {
+  transition: transform var(--duracao-curta) var(--curva-entrada);
+}
+
+.inferior-item:active .inferior-icone {
+  transform: scale(0.9);
+}
+
+.mais-destino:active {
+  transform: scale(0.97);
+}
+
+@keyframes pilula-entra {
+  from {
+    transform: scaleX(0.5);
+    opacity: 0.4;
+  }
+}
+
+/* Folhas que sobem da base (como a do "Mais") e o fundo que escurece; ao
+   fechar, o caminho de volta é mais curto. */
+.fundo-entrando {
+  animation: fundo-entra var(--duracao-media) var(--curva-entrada);
+}
+
+.fundo-saindo {
+  animation: fundo-entra var(--duracao-curta) var(--curva-saida) reverse both;
+}
+
+.folha-entrando {
+  animation: folha-entra var(--duracao-longa) var(--curva-entrada);
+}
+
+.folha-saindo {
+  animation: folha-sai var(--duracao-media) var(--curva-saida) both;
+}
+
+@keyframes fundo-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes folha-entra {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
+@keyframes folha-sai {
+  to {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
 /* Troca de tela (View Transitions do router): o conteúdo some rápido e o novo
    sobe 6 px enquanto aparece. Topo, barra inferior e lateral têm nome
    próprio e não piscam. */

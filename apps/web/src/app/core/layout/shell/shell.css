@@ -173,22 +173,6 @@
   animation: pilula-entra var(--duracao-media) var(--curva-entrada);
 }
 
-.inferior-icone {
-  transition: transform var(--duracao-curta) var(--curva-entrada);
-}
-
-.inferior-item:active .inferior-icone {
-  transform: scale(0.9);
-}
-
-/* A pílula do destino ativo abre do centro para os lados. */
-@keyframes pilula-entra {
-  from {
-    transform: scaleX(0.5);
-    opacity: 0.4;
-  }
-}
-
 /* "Mais": folha que sobe da barra inferior, com as telas de uso menos frequente. */
 .mais-fundo {
   position: fixed;
@@ -254,11 +238,6 @@
   font-weight: 500;
   text-align: center;
   text-decoration: none;
-}
-
-.mais-destino:active {
-  transform: scale(0.97);
-  background: var(--tint-acao);
 }
 
 .mais-destino.ativo {
@@ -414,43 +393,5 @@
     max-width: calc(var(--largura-lateral) + 1200px);
     margin-left: var(--largura-lateral);
     padding: 32px;
-  }
-}
-
-/* A folha sobe da barra inferior e o fundo escurece; ao fechar, o caminho de
-   volta é mais curto. */
-.fundo-entrando {
-  animation: fundo-entra var(--duracao-media) var(--curva-entrada);
-}
-
-.fundo-saindo {
-  animation: fundo-entra var(--duracao-curta) var(--curva-saida) reverse both;
-}
-
-.folha-entrando {
-  animation: folha-entra var(--duracao-longa) var(--curva-entrada);
-}
-
-.folha-saindo {
-  animation: folha-sai var(--duracao-media) var(--curva-saida) both;
-}
-
-@keyframes fundo-entra {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes folha-entra {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-  }
-}
-
-@keyframes folha-sai {
-  to {
-    opacity: 0;
-    transform: translateY(32px);
   }
 }
