@@ -1,4 +1,9 @@
-import { atalhosDaProducao, periodoDaProducao, periodoVizinho } from './periodo-da-producao';
+import {
+  atalhosDaProducao,
+  periodoDaProducao,
+  periodoVizinho,
+  segundaDaSemana,
+} from './periodo-da-producao';
 
 describe('período da produção', () => {
   it('sem fim na URL são 7 dias a partir da data; fim inválido ou longo demais também', () => {
@@ -15,12 +20,21 @@ describe('período da produção', () => {
   });
 
   it('atalhos olham para a frente', () => {
-    expect(atalhosDaProducao('2026-09-28')).toEqual([
-      { rotulo: '7 dias', de: '2026-09-28', ate: '2026-10-04' },
-      { rotulo: '14 dias', de: '2026-09-28', ate: '2026-10-11' },
+    // 30/09/2026 é quarta-feira: a semana vai de segunda 28/09 a domingo 04/10.
+    expect(atalhosDaProducao('2026-09-30')).toEqual([
+      { rotulo: '7 dias', de: '2026-09-30', ate: '2026-10-06' },
+      { rotulo: 'Esta semana', de: '2026-09-28', ate: '2026-10-04' },
+      { rotulo: 'Semana que vem', de: '2026-10-05', ate: '2026-10-11' },
+      { rotulo: '14 dias', de: '2026-09-30', ate: '2026-10-13' },
       { rotulo: 'Este mês', de: '2026-09-01', ate: '2026-09-30' },
       { rotulo: 'Próximo mês', de: '2026-10-01', ate: '2026-10-31' },
     ]);
+  });
+
+  it('a semana começa na segunda, inclusive quando a data é domingo', () => {
+    expect(segundaDaSemana('2026-09-28')).toBe('2026-09-28');
+    expect(segundaDaSemana('2026-10-04')).toBe('2026-09-28');
+    expect(segundaDaSemana('2026-10-01')).toBe('2026-09-28');
   });
 
   it('as setas andam o tamanho do período, e o mês inteiro anda de mês em mês', () => {

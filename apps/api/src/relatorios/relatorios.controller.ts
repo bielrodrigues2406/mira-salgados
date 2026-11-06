@@ -13,6 +13,7 @@ import {
 } from './dto/intervalo.dto.js';
 import { ProducaoDoDiaDto } from './dto/producao-do-dia.dto.js';
 import { ProducaoPorDiaDto } from './dto/producao-por-dia.dto.js';
+import { SaldosDto } from './dto/saldos.dto.js';
 import {
   ClienteComFiadoDto,
   FaturamentoDto,
@@ -22,6 +23,7 @@ import {
 import { FiadosService } from './fiados/fiados.service.js';
 import { RelatoriosDePeriodoService } from './periodo/relatorios-de-periodo.service.js';
 import { ProducaoDoDiaService } from './producao/producao-do-dia.service.js';
+import { SaldosService } from './saldos/saldos.service.js';
 
 @Controller('relatorios')
 export class RelatoriosController {
@@ -30,12 +32,19 @@ export class RelatoriosController {
     private readonly producao: ProducaoDoDiaService,
     private readonly periodo: RelatoriosDePeriodoService,
     private readonly fiados: FiadosService,
+    private readonly saldos: SaldosService,
   ) {}
 
-  /** Caixa do dia e divisão entre produtores, proporcional ao valor produzido. */
+  /** O que entrou no dia e o que cada produtor fez, sem divisão do caixa. */
   @Get('acerto')
   async acertoDiario(@Query() { data }: DataDoRelatorioDto): Promise<AcertoDiarioDto> {
     return AcertoDiarioDto.de(data, await this.acerto.daData(data));
+  }
+
+  /** Quanto cada produtor tem a receber, já recebeu e falta, até a data (o hoje do aparelho). */
+  @Get('saldos')
+  async saldosDosProdutores(@Query() { data }: DataDoRelatorioDto): Promise<SaldosDto> {
+    return SaldosDto.de(data, await this.saldos.ate(data));
   }
 
   /** O que fazer no dia: por horário (cronológico) e por produto (consolidado). */

@@ -2,16 +2,12 @@ import {
   type Centavos,
   multiplicar,
   ratearCentavos,
-  ratearInteiro,
   somar,
   subtrair,
   ZERO_CENTAVOS,
 } from '../../common/utils/dinheiro.js';
 import { PREPAROS, type Preparo, type UnidadeVenda } from '../../produtos/preco-produto.entity.js';
 import { unidadesDe } from '../producao/producao-do-dia.js';
-
-/** Participação em décimos de ponto percentual: 1000 é 100,0%. */
-export const PARTICIPACAO_TOTAL = 1000;
 
 interface Referencia {
   id: string;
@@ -51,14 +47,12 @@ export interface LinhaDoProdutor {
 export interface ParteDoProdutor {
   produtor: Referencia;
   unidades: number;
-  participacaoDecimos: number;
   itens: LinhaDoProdutor[];
   valorItens: Centavos;
   /** Parte dos descontos dos pedidos que cabe aos itens deste produtor. */
   desconto: Centavos;
+  /** O que cabe ao produtor por estes salgados: itens menos a parte dos descontos. */
   valorProduzido: Centavos;
-  aReceber: Centavos;
-  pendente: Centavos;
 }
 
 export interface AcertoDiario {
@@ -72,8 +66,6 @@ export interface AcertoDiario {
   /** Igual ao valor movimentado: o desconto sai do valor produzido de cada item. */
   totalProduzido: Centavos;
   produtores: ParteDoProdutor[];
-  somaAReceber: Centavos;
-  somaPendente: Centavos;
 }
 
 interface Acumulado {
@@ -87,14 +79,13 @@ interface Acumulado {
 const ordemAlfabetica = new Intl.Collator('pt-BR', { sensitivity: 'base' });
 
 /**
- * Acerto de uma data (decisões D1, D2 e D3):
+ * Acerto de uma data (decisões D1, D2 e D3, revistas em ADR 0017):
  *
- * - valorProduzido(produtor) = itens do produtor nos pedidos da data, cada um
- *   com a sua parte do desconto do pedido (maior resto, por pedido);
- * - caixaLiquido = DINHEIRO + PIX desses pedidos; o fiado não é dinheiro;
- * - aReceber = caixaLiquido rateado pelo valor produzido (maior resto), e a
- *   soma fecha com o caixa centavo a centavo;
- * - pendente = valorProduzido - aReceber.
+ * - o que entrou: DINHEIRO e PIX dos pedidos da data; fiado e o que falta
+ *   pagar aparecem à parte;
+ * - o que cada produtor tem a receber: os itens dele nos pedidos da data, cada
+ *   um com a sua parte do desconto do pedido (maior resto, por pedido). Não há
+ *   divisão do caixa: o que já foi entregue a cada um são os repasses.
  */
 export function calcularAcerto(
   itens: readonly ItemDoAcerto[],
@@ -143,7 +134,7 @@ export function calcularAcerto(
   }
 
   const caixa = { pix, dinheiro, total: somar(pix, dinheiro) };
-  const produtores = dividir([...acumulados.values()], caixa.total);
+  const produtores = ordenar([...acumulados.values()]);
   return {
     quantidadePedidos: porPedido.size,
     unidades,
@@ -156,8 +147,6 @@ export function calcularAcerto(
     },
     totalProduzido: somar(...produtores.map((parte) => parte.valorProduzido)),
     produtores,
-    somaAReceber: somar(...produtores.map((parte) => parte.aReceber)),
-    somaPendente: somar(...produtores.map((parte) => parte.pendente)),
   };
 }
 
@@ -196,25 +185,18 @@ function acumular(
   acumulado.linhas.set(chave, linha);
 }
 
-// A ordem de exibição é também a de desempate do maior resto, para que o
-// resultado não dependa da ordem em que os itens chegaram do banco.
-function dividir(acumulados: Acumulado[], caixa: Centavos): ParteDoProdutor[] {
-  const ordenados = acumulados.toSorted(
-    (a, b) =>
-      b.valorProduzido - a.valorProduzido ||
-      ordemAlfabetica.compare(a.produtor.nome, b.produtor.nome),
-  );
-  const pesos = ordenados.map((acumulado) => acumulado.valorProduzido);
-  const temProducao = pesos.some((peso) => peso > 0);
-  const participacoes = temProducao ? ratearInteiro(PARTICIPACAO_TOTAL, pesos) : pesos.map(() => 0);
-  const aReceber = temProducao ? ratearCentavos(caixa, pesos) : pesos.map(() => ZERO_CENTAVOS);
-
-  return ordenados.map((acumulado, indice) => {
-    const recebe = aReceber[indice] ?? ZERO_CENTAVOS;
-    return {
+// Quem fez mais primeiro; empate em ordem alfabética, para o resultado não
+// depender da ordem em que os itens chegaram do banco.
+function ordenar(acumulados: Acumulado[]): ParteDoProdutor[] {
+  return acumulados
+    .toSorted(
+      (a, b) =>
+        b.valorProduzido - a.valorProduzido ||
+        ordemAlfabetica.compare(a.produtor.nome, b.produtor.nome),
+    )
+    .map((acumulado) => ({
       produtor: acumulado.produtor,
       unidades: acumulado.unidades,
-      participacaoDecimos: participacoes[indice] ?? 0,
       itens: [...acumulado.linhas.values()].sort(
         (a, b) =>
           b.valor - a.valor ||
@@ -224,8 +206,5 @@ function dividir(acumulados: Acumulado[], caixa: Centavos): ParteDoProdutor[] {
       valorItens: acumulado.valorItens,
       desconto: subtrair(acumulado.valorItens, acumulado.valorProduzido),
       valorProduzido: acumulado.valorProduzido,
-      aReceber: recebe,
-      pendente: subtrair(acumulado.valorProduzido, recebe),
-    };
-  });
+    }));
 }

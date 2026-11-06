@@ -16,6 +16,7 @@ import type {
   ProducaoDoProdutor,
   ResumoDeVolume,
   ResumoDosFiados,
+  Saldos,
 } from '../models/relatorios';
 import { paginaComResumoDe, parametros } from './respostas';
 
@@ -79,9 +80,14 @@ export class RelatoriosService {
     }
   }
 
-  /** Caixa e divisão entre produtores. */
+  /** O que entrou no dia e o que cada produtor fez. */
   acerto(data: () => string | undefined): HttpResourceRef<AcertoDiario | undefined> {
     return daData('acerto', data);
+  }
+
+  /** Quanto cada produtor tem a receber, já recebeu e falta, até a data. */
+  saldos(data: () => string | undefined): HttpResourceRef<Saldos | undefined> {
+    return daData('saldos', data);
   }
 
   /** O que fazer no dia, por horário e consolidado. */

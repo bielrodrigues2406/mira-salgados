@@ -4,6 +4,7 @@ import type { AcertoDiario } from '../acerto/acerto-diario.js';
 import type { ResumoDosFiados } from '../fiados/fiados.service.js';
 import type { ProducaoDoDia } from '../producao/producao-do-dia.js';
 import type { ProducaoPorDia, SalgadoDoProdutor } from '../producao/producao-por-dia.js';
+import type { SaldoDoProdutor } from '../saldos/saldos.service.js';
 
 interface Referencia {
   id: string;
@@ -38,8 +39,6 @@ export interface Ganho extends Intervalo {
   unidades: number;
   /** Valor dos salgados feitos, já com a parte dos descontos. */
   produzido: Centavos;
-  /** Parte do dinheiro e do PIX que entraram: o resto é fiado ou falta receber. */
-  recebido: Centavos;
 }
 
 export interface Painel {
@@ -54,6 +53,8 @@ export interface Painel {
   };
   proximosDias: DiaDoPainel[];
   ganhos: { semana: Ganho; mes: Ganho } | null;
+  /** Só com conta ligada a um produtor: a receber, já recebido em repasses e o que falta. */
+  saldo: SaldoDoProdutor | null;
   familia: {
     semana: Intervalo & { unidades: number; faturamento: Centavos; caixa: Centavos };
     fiados: ResumoDosFiados;
@@ -73,6 +74,7 @@ export interface DadosDoPainel {
   acertos: ReadonlyMap<string, AcertoDiario>;
   fiados: ResumoDosFiados;
   rascunhos: number;
+  saldo: SaldoDoProdutor | null;
 }
 
 export function montarPainel(dados: DadosDoPainel): Painel {
@@ -110,18 +112,25 @@ export function montarPainel(dados: DadosDoPainel): Painel {
         meusSalgados: produtor ? (meu?.salgados ?? []) : null,
       };
     }),
+    // O que a pessoa fez: só até hoje, como o saldo. Pedidos dos próximos dias
+    // aparecem em "próximos dias", não aqui.
     ganhos: produtor
       ? {
-          semana: ganhoNoIntervalo(dados.acertos, dados.semana, produtor.id),
-          mes: ganhoNoIntervalo(dados.acertos, dados.mes, produtor.id),
+          semana: ganhoNoIntervalo(dados.acertos, ateHoje(dados.semana, dados.data), produtor.id),
+          mes: ganhoNoIntervalo(dados.acertos, ateHoje(dados.mes, dados.data), produtor.id),
         }
       : null,
+    saldo: produtor ? dados.saldo : null,
     familia: {
       semana: { ...dados.semana, ...movimentoNoIntervalo(dados.acertos, dados.semana) },
       fiados: dados.fiados,
       rascunhos: dados.rascunhos,
     },
   };
+}
+
+function ateHoje(intervalo: Intervalo, hoje: string): Intervalo {
+  return { de: intervalo.de, ate: intervalo.ate < hoje ? intervalo.ate : hoje };
 }
 
 function acertosDoIntervalo(
@@ -144,7 +153,6 @@ function ganhoNoIntervalo(
     ...intervalo,
     unidades: partes.reduce((soma, parte) => soma + parte.unidades, 0),
     produzido: somar(...partes.map((parte) => parte.valorProduzido)),
-    recebido: somar(...partes.map((parte) => parte.aReceber)),
   };
 }
 

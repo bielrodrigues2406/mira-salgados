@@ -45,19 +45,6 @@
   letter-spacing: -0.01em;
 }
 
-.participacao {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.participacao-valor {
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 28px;
-  letter-spacing: -0.02em;
-}
-
 .rotulo-pequeno {
   color: var(--cor-texto-secundario);
   font-size: 11px;
@@ -65,18 +52,6 @@
   line-height: 16px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.barra {
-  height: 6px;
-  overflow: hidden;
-  border-radius: var(--raio-pilula);
-  background: var(--cor-borda);
-}
-
-.barra-preenchida {
-  height: 100%;
-  background: var(--cor-acao);
 }
 
 .itens {
@@ -142,40 +117,4 @@
 .valor-produzido {
   font-size: 16px;
   font-weight: 700;
-}
-
-.divisao {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0;
-  border-top: 1px solid var(--cor-borda);
-  background: var(--cor-fundo);
-}
-
-.divisao-parte {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 12px 14px;
-}
-
-.divisao-parte + .divisao-parte {
-  border-left: 1px solid var(--cor-borda);
-}
-
-.divisao-parte dd {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 28px;
-}
-
-.a-receber dt,
-.a-receber dd {
-  color: var(--cor-positivo);
-}
-
-.pendente dt,
-.pendente dd {
-  color: var(--cor-negativo);
 }

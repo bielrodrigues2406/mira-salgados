@@ -76,11 +76,6 @@ export class AcertoDiario {
     const lista = listaDePedidos(this.acerto()?.semPagamento.pedidos ?? []);
     return lista.charAt(0).toUpperCase() + lista.slice(1);
   });
-  protected readonly fechaComOCaixa = computed(() => {
-    const acerto = this.acerto();
-    return acerto !== undefined && acerto.somaAReceberCentavos === acerto.caixa.totalCentavos;
-  });
-
   protected readonly mensagem = computed(() => {
     const acerto = this.acerto();
     return acerto ? mensagemDoAcerto(acerto) : null;
@@ -93,29 +88,27 @@ export class AcertoDiario {
     const produtores = acerto.produtores.map((parte) => [
       parte.produtor.nome,
       parte.unidades,
-      (parte.participacaoDecimos / 10).toFixed(1).replace('.', ','),
+      reaisNoCsv(parte.valorItensCentavos),
+      reaisNoCsv(parte.descontoCentavos),
       reaisNoCsv(parte.valorProduzidoCentavos),
-      reaisNoCsv(parte.aReceberCentavos),
-      reaisNoCsv(parte.pendenteCentavos),
     ]);
     return csv(
       `acerto-${acerto.data}`,
-      [
-        'Produtor',
-        'Salgados',
-        'Participação (%)',
-        'Produzido (R$)',
-        'A receber (R$)',
-        'Pendente (R$)',
-      ],
+      ['Produtor', 'Salgados', 'Itens (R$)', 'Descontos (R$)', 'A receber pelo dia (R$)'],
       [
         ...produtores,
         [],
-        ['Caixa: PIX', null, null, null, reaisNoCsv(acerto.caixa.pixCentavos)],
-        ['Caixa: dinheiro', null, null, null, reaisNoCsv(acerto.caixa.dinheiroCentavos)],
+        ['Entrou: PIX', null, null, null, reaisNoCsv(acerto.caixa.pixCentavos)],
+        ['Entrou: dinheiro', null, null, null, reaisNoCsv(acerto.caixa.dinheiroCentavos)],
         ['Fiado', null, null, null, reaisNoCsv(acerto.fiado.valorCentavos)],
         ['Sem pagamento', null, null, null, reaisNoCsv(acerto.semPagamento.valorCentavos)],
-        ['Valor movimentado', acerto.unidades, null, reaisNoCsv(acerto.valorMovimentadoCentavos)],
+        [
+          'Valor movimentado',
+          acerto.unidades,
+          null,
+          null,
+          reaisNoCsv(acerto.valorMovimentadoCentavos),
+        ],
       ],
     );
   };

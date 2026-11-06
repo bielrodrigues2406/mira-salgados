@@ -17,14 +17,11 @@ export class LinhaDoProdutorDto {
 export class ParteDoProdutorDto {
   produtor: ReferenciaDto;
   unidades: number;
-  /** Décimos de ponto percentual: 568 é 56,8%. Somam 1000. */
-  participacaoDecimos: number;
   itens: LinhaDoProdutorDto[];
   valorItensCentavos: number;
   descontoCentavos: number;
+  /** O que cabe ao produtor pelos salgados do dia: itens menos a parte dos descontos. */
   valorProduzidoCentavos: number;
-  aReceberCentavos: number;
-  pendenteCentavos: number;
 }
 
 export class AcertoDiarioDto {
@@ -37,8 +34,6 @@ export class AcertoDiarioDto {
   semPagamento: { valorCentavos: number; pedidos: number[] };
   totalProduzidoCentavos: number;
   produtores: ParteDoProdutorDto[];
-  somaAReceberCentavos: number;
-  somaPendenteCentavos: number;
 
   static de(data: string, acerto: AcertoDiario): AcertoDiarioDto {
     return Object.assign(new AcertoDiarioDto(), {
@@ -61,7 +56,6 @@ export class AcertoDiarioDto {
         Object.assign(new ParteDoProdutorDto(), {
           produtor: { id: parte.produtor.id, nome: parte.produtor.nome },
           unidades: parte.unidades,
-          participacaoDecimos: parte.participacaoDecimos,
           itens: parte.itens.map((linha) =>
             Object.assign(new LinhaDoProdutorDto(), {
               produto: { id: linha.produto.id, nome: linha.produto.nome },
@@ -74,12 +68,8 @@ export class AcertoDiarioDto {
           valorItensCentavos: parte.valorItens,
           descontoCentavos: parte.desconto,
           valorProduzidoCentavos: parte.valorProduzido,
-          aReceberCentavos: parte.aReceber,
-          pendenteCentavos: parte.pendente,
         }),
       ),
-      somaAReceberCentavos: acerto.somaAReceber,
-      somaPendenteCentavos: acerto.somaPendente,
     });
   }
 }

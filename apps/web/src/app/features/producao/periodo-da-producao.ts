@@ -1,6 +1,7 @@
 import type { Periodo } from '../../core/models/relatorios';
 import {
   dataDoCalendario,
+  deTextoDeData,
   diasNoIntervalo,
   primeiroDiaDoMes,
   somarDias,
@@ -12,11 +13,19 @@ import { type Atalho, erroDoPeriodo } from '../relatorios/periodo';
 export const MAXIMO_DE_DIAS_DA_PRODUCAO = 31;
 export const DIAS_PADRAO = 7;
 
+/** Segunda-feira da semana da data (a semana vai de segunda a domingo). */
+export function segundaDaSemana(data: string): string {
+  return somarDias(data, -((deTextoDeData(data).getDay() + 6) % 7));
+}
+
 /** Olhando para a frente: é o que falta produzir. */
 export function atalhosDaProducao(hoje: string): Atalho[] {
   const proximoMes = somarDias(ultimoDiaDoMes(hoje), 1);
+  const segunda = segundaDaSemana(hoje);
   return [
     { rotulo: '7 dias', de: hoje, ate: somarDias(hoje, 6) },
+    { rotulo: 'Esta semana', de: segunda, ate: somarDias(segunda, 6) },
+    { rotulo: 'Semana que vem', de: somarDias(segunda, 7), ate: somarDias(segunda, 13) },
     { rotulo: '14 dias', de: hoje, ate: somarDias(hoje, 13) },
     { rotulo: 'Este mês', de: primeiroDiaDoMes(hoje), ate: ultimoDiaDoMes(hoje) },
     { rotulo: 'Próximo mês', de: proximoMes, ate: ultimoDiaDoMes(proximoMes) },

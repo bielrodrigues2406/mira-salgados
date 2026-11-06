@@ -9,6 +9,7 @@ describe('destinos', () => {
       'Clientes',
       'Produtos',
       'Relatórios',
+      'Repasses',
     ]);
   });
 
@@ -18,6 +19,7 @@ describe('destinos', () => {
       'Clientes',
       'Produtos',
       'Relatórios',
+      'Repasses',
       'Produtores',
     ]);
   });

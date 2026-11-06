@@ -6,16 +6,6 @@
         <h3 [id]="idTitulo">{{ parte().produtor.nome }}</h3>
         <span class="texto-legenda numerico">{{ resumo() }}</span>
       </div>
-      <div class="participacao">
-        <span class="participacao-valor numerico">{{ participacao() }}</span>
-        <span class="rotulo-pequeno">Participação</span>
-      </div>
-    </div>
-    <div class="barra" role="img" [attr.aria-label]="'Participação de ' + participacao()">
-      <div
-        class="barra-preenchida barra-animada"
-        [style.width.%]="parte().participacaoDecimos / 10"
-      ></div>
     </div>
     <ul class="itens">
       @for (linha of parte().itens; track linha.produto.id + linha.preparo) {
@@ -40,18 +30,8 @@
       </div>
     }
     <div class="linha-total">
-      <span>Valor produzido</span>
+      <span>A receber pelo dia</span>
       <span class="valor-produzido numerico">{{ parte().valorProduzidoCentavos | moeda }}</span>
     </div>
   </div>
-  <dl class="divisao">
-    <div class="divisao-parte a-receber">
-      <dt class="rotulo-pequeno">A receber do caixa</dt>
-      <dd class="numerico">{{ parte().aReceberCentavos | moeda }}</dd>
-    </div>
-    <div class="divisao-parte pendente">
-      <dt class="rotulo-pequeno">Pendente</dt>
-      <dd class="numerico">{{ parte().pendenteCentavos | moeda }}</dd>
-    </div>
-  </dl>
 </article>

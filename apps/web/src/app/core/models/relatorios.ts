@@ -17,15 +17,12 @@ export interface LinhaDoProdutor {
 export interface ParteDoProdutor {
   produtor: Referencia;
   unidades: number;
-  /** Décimos de ponto percentual: 568 é 56,8%. Somam 1000. */
-  participacaoDecimos: number;
   itens: LinhaDoProdutor[];
   valorItensCentavos: number;
   /** Parte dos descontos dos pedidos que cabe a este produtor. */
   descontoCentavos: number;
+  /** O que cabe ao produtor pelos salgados do dia: itens menos a parte dos descontos. */
   valorProduzidoCentavos: number;
-  aReceberCentavos: number;
-  pendenteCentavos: number;
 }
 
 /** Pedidos confirmados e concluídos com entrega na data (decisões D1, D2 e D3). */
@@ -39,8 +36,21 @@ export interface AcertoDiario {
   semPagamento: { valorCentavos: number; pedidos: number[] };
   totalProduzidoCentavos: number;
   produtores: ParteDoProdutor[];
-  somaAReceberCentavos: number;
-  somaPendenteCentavos: number;
+}
+
+/** Quanto um produtor tem a receber, já recebeu em repasses e o que falta, até a data. */
+export interface SaldoDoProdutor {
+  produtor: Referencia & { ativo: boolean };
+  aReceberCentavos: number;
+  recebidoCentavos: number;
+  /** Negativo quando recebeu adiantado. */
+  faltaCentavos: number;
+}
+
+export interface Saldos {
+  data: string;
+  produtores: SaldoDoProdutor[];
+  totais: { aReceberCentavos: number; recebidoCentavos: number; faltaCentavos: number };
 }
 
 /** Datas de entrega de `de` a `ate`, inclusive (AAAA-MM-DD). */
