@@ -140,7 +140,7 @@ describe('AcertoDiario', () => {
     expect(textos('.linha-total.desconto .numerico')).toEqual(['− R$ 7,60']);
     expect(textos('.linha-detalhe .texto-legenda')).toEqual(['5 centos', '1 cento + 50 avulsas']);
     expect(tela.textContent).not.toContain('A receber do caixa');
-    expect(tela.querySelector('a[href="/repasses"]')).not.toBeNull();
+    expect(tela.querySelector('a[href="/relatorios/producao"]')).not.toBeNull();
   });
 
   it('troca de dia pela URL e volta a hoje sem parâmetro', async () => {

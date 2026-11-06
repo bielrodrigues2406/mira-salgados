@@ -85,11 +85,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/produtores/produtores').then((m) => m.Produtores),
       },
       {
-        path: 'repasses',
-        title: `Repasses · ${TITULO}`,
-        loadComponent: () => import('./features/repasses/repasses').then((m) => m.Repasses),
-      },
-      {
         path: 'relatorios',
         loadComponent: () => import('./features/relatorios/relatorios').then((m) => m.Relatorios),
         children: [
@@ -108,7 +103,7 @@ export const routes: Routes = [
           },
           {
             path: 'producao',
-            title: `Produção por produtor · ${TITULO}`,
+            title: `A receber por produtor · ${TITULO}`,
             loadComponent: () =>
               import('./features/relatorios/producao-por-produtor/producao-por-produtor').then(
                 (m) => m.ProducaoPorProdutor,

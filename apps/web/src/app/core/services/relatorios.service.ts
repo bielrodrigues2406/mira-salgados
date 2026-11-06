@@ -15,8 +15,8 @@ import type {
   Periodo,
   ProducaoDoProdutor,
   ResumoDeVolume,
+  ResumoDoAReceber,
   ResumoDosFiados,
-  Saldos,
 } from '../models/relatorios';
 import { paginaComResumoDe, parametros } from './respostas';
 
@@ -24,6 +24,7 @@ const RELATORIOS = `${environment.apiUrl}/relatorios`;
 /** Maior página que a API aceita. */
 const PAGINA_DA_EXPORTACAO = 100;
 const SEM_VOLUME: ResumoDeVolume = { unidades: 0, valorCentavos: 0 };
+const NADA_A_RECEBER: ResumoDoAReceber = { ...SEM_VOLUME, aReceberCentavos: 0 };
 const SEM_FIADOS: ResumoDosFiados = { totalEmAbertoCentavos: 0, quantidadePedidos: 0 };
 
 /** Relatório de uma data (AAAA-MM-DD); sem data, não consulta. */
@@ -85,11 +86,6 @@ export class RelatoriosService {
     return daData('acerto', data);
   }
 
-  /** Quanto cada produtor tem a receber, já recebeu e falta, até a data. */
-  saldos(data: () => string | undefined): HttpResourceRef<Saldos | undefined> {
-    return daData('saldos', data);
-  }
-
   /** O que fazer no dia, por horário e consolidado. */
   producaoDoDia(data: () => string | undefined): HttpResourceRef<ProducaoDoDia | undefined> {
     return daData('producao-do-dia', data);
@@ -127,8 +123,8 @@ export class RelatoriosService {
 
   producaoPorProdutor(
     consulta: () => ConsultaDePeriodo | undefined,
-  ): HttpResourceRef<PaginaComResumo<ProducaoDoProdutor, ResumoDeVolume> | undefined> {
-    return paginado('producao', consulta, SEM_VOLUME);
+  ): HttpResourceRef<PaginaComResumo<ProducaoDoProdutor, ResumoDoAReceber> | undefined> {
+    return paginado('producao', consulta, NADA_A_RECEBER);
   }
 
   /** Clientes com fiado em aberto e o total consolidado. */

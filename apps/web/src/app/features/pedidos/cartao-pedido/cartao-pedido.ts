@@ -24,4 +24,10 @@ export class CartaoPedido {
     quandoEntregar(this.pedido().dataEntrega, this.pedido().horarioEntrega, this.hoje()),
   );
   protected readonly cancelado = computed(() => this.pedido().status === 'CANCELADO');
+  /** O que o cliente ainda deve; o fiado conta como devido. */
+  protected readonly falta = computed(() =>
+    this.cancelado() || this.pedido().statusPagamento === 'PAGO'
+      ? 0
+      : this.pedido().saldoDevedorCentavos,
+  );
 }

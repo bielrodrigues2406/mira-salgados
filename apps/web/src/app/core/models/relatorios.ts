@@ -38,21 +38,6 @@ export interface AcertoDiario {
   produtores: ParteDoProdutor[];
 }
 
-/** Quanto um produtor tem a receber, já recebeu em repasses e o que falta, até a data. */
-export interface SaldoDoProdutor {
-  produtor: Referencia & { ativo: boolean };
-  aReceberCentavos: number;
-  recebidoCentavos: number;
-  /** Negativo quando recebeu adiantado. */
-  faltaCentavos: number;
-}
-
-export interface Saldos {
-  data: string;
-  produtores: SaldoDoProdutor[];
-  totais: { aReceberCentavos: number; recebidoCentavos: number; faltaCentavos: number };
-}
-
 /** Datas de entrega de `de` a `ate`, inclusive (AAAA-MM-DD). */
 export interface Periodo {
   de: string;
@@ -91,6 +76,8 @@ export interface ProducaoDoProdutor {
   /** Quantidade vezes preço, antes dos descontos. */
   valorCentavos: number;
   quantidadePedidos: number;
+  /** O valor dos salgados menos a parte dele nos descontos, fiado incluído. */
+  aReceberCentavos: number;
   itens: { produto: Referencia; preparo: Preparo; unidades: number; valorCentavos: number }[];
 }
 
@@ -98,6 +85,11 @@ export interface ProducaoDoProdutor {
 export interface ResumoDeVolume {
   unidades: number;
   valorCentavos: number;
+}
+
+/** Volume do período e quanto todos do filtro têm a receber. */
+export interface ResumoDoAReceber extends ResumoDeVolume {
+  aReceberCentavos: number;
 }
 
 export interface ClienteComFiado {

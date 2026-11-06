@@ -16,7 +16,6 @@ export const DESTINOS: readonly Destino[] = [
   { rota: '/clientes', rotulo: 'Clientes', icone: 'clientes' },
   { rota: '/produtos', rotulo: 'Produtos', icone: 'produtos' },
   { rota: '/relatorios', rotulo: 'Relatórios', icone: 'relatorios' },
-  { rota: '/repasses', rotulo: 'Repasses', icone: 'dinheiro' },
 ];
 
 /** Cadastros de baixa frequência, em grupo próprio na barra lateral. */

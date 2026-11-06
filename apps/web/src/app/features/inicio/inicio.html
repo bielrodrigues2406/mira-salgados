@@ -174,29 +174,6 @@
     </ul>
   </section>
 
-  @if (painel.saldo; as saldo) {
-    <section class="cartao secao" aria-labelledby="titulo-saldo">
-      <div class="secao-titulo">
-        <h2 id="titulo-saldo" class="texto-titulo">Seu saldo</h2>
-        <a class="secao-link" routerLink="/repasses">Repasses</a>
-      </div>
-      <dl class="saldo">
-        <div class="saldo-falta">
-          <dt class="texto-rotulo">
-            {{ saldo.faltaCentavos < 0 ? 'Recebeu adiantado' : 'Falta receber' }}
-          </dt>
-          <dd class="saldo-valor numerico">{{ abs(saldo.faltaCentavos) | moeda }}</dd>
-        </div>
-        <div class="saldo-detalhe">
-          <dd class="texto-legenda numerico">
-            {{ saldo.aReceberCentavos | moeda }} pelos seus salgados ·
-            {{ saldo.recebidoCentavos | moeda }} já recebido
-          </dd>
-        </div>
-      </dl>
-    </section>
-  }
-
   @if (painel.ganhos; as ganhos) {
     <section class="cartao secao" aria-labelledby="titulo-ganhos">
       <h2 id="titulo-ganhos" class="texto-titulo">O que você fez</h2>

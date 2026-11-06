@@ -63,8 +63,12 @@ export class ListaPedidos {
     status,
     rotulo: APARENCIA_DO_STATUS[status].rotulo,
   }));
+  protected readonly faltaPagar = signal(false);
   protected readonly filtrando = computed(
-    () => this.busca() !== '' || this.statusFiltrados().length > 0,
+    () => this.busca() !== '' || this.quantidadeDeFiltros() > 0,
+  );
+  protected readonly quantidadeDeFiltros = computed(
+    () => this.statusFiltrados().length + (this.faltaPagar() ? 1 : 0),
   );
 
   private readonly vencemHoje = this.servico.listar(() => ({
@@ -127,11 +131,17 @@ export class ListaPedidos {
     this.voltarAoInicio();
   }
 
+  protected alternarFaltaPagar(): void {
+    this.faltaPagar.update((atual) => !atual);
+    this.voltarAoInicio();
+  }
+
   protected limparFiltros(): void {
     clearTimeout(this.temporizador);
     this.termo.set('');
     this.busca.set('');
     this.statusFiltrados.set([]);
+    this.faltaPagar.set(false);
     this.voltarAoInicio();
   }
 
@@ -155,6 +165,7 @@ export class ListaPedidos {
         pageSize: TAMANHO_DA_SECAO,
         busca: this.busca() || undefined,
         status: status.length > 0 ? [...status] : undefined,
+        faltaPagar: this.faltaPagar() || undefined,
       };
     });
     const valor = computed((): Pagina<PedidoResumo> | undefined =>

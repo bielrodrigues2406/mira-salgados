@@ -82,6 +82,18 @@
   gap: 8px;
 }
 
+.totais {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.falta {
+  color: var(--cor-texto-secundario);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .total {
   font-size: 16px;
   font-weight: 700;

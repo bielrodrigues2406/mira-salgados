@@ -30,8 +30,13 @@
       @if (!cancelado()) {
         <ms-chip-status [pagamento]="pedido().statusPagamento" />
       }
-      <span class="total numerico" [class.apagado]="cancelado()">
-        {{ pedido().totalCentavos | moeda }}
+      <span class="totais">
+        <span class="total numerico" [class.apagado]="cancelado()">
+          {{ pedido().totalCentavos | moeda }}
+        </span>
+        @if (falta() > 0) {
+          <span class="falta numerico">falta {{ falta() | moeda }}</span>
+        }
       </span>
     </span>
   </span>
