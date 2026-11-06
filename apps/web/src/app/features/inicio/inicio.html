@@ -174,15 +174,37 @@
     </ul>
   </section>
 
+  @if (painel.saldo; as saldo) {
+    <section class="cartao secao" aria-labelledby="titulo-saldo">
+      <div class="secao-titulo">
+        <h2 id="titulo-saldo" class="texto-titulo">Seu saldo</h2>
+        <a class="secao-link" routerLink="/repasses">Repasses</a>
+      </div>
+      <dl class="saldo">
+        <div class="saldo-falta">
+          <dt class="texto-rotulo">
+            {{ saldo.faltaCentavos < 0 ? 'Recebeu adiantado' : 'Falta receber' }}
+          </dt>
+          <dd class="saldo-valor numerico">{{ abs(saldo.faltaCentavos) | moeda }}</dd>
+        </div>
+        <div class="saldo-detalhe">
+          <dd class="texto-legenda numerico">
+            {{ saldo.aReceberCentavos | moeda }} pelos seus salgados ·
+            {{ saldo.recebidoCentavos | moeda }} já recebido
+          </dd>
+        </div>
+      </dl>
+    </section>
+  }
+
   @if (painel.ganhos; as ganhos) {
     <section class="cartao secao" aria-labelledby="titulo-ganhos">
-      <h2 id="titulo-ganhos" class="texto-titulo">Seus ganhos</h2>
+      <h2 id="titulo-ganhos" class="texto-titulo">O que você fez</h2>
       <dl class="ganhos">
         <div class="ganho">
           <dt class="texto-rotulo">Esta semana</dt>
           <dd class="ganho-valor numerico">{{ ganhos.semana.produzidoCentavos | moeda }}</dd>
           <dd class="texto-legenda numerico">
-            {{ ganhos.semana.recebidoCentavos | moeda }} já recebido ·
             {{ contagem(ganhos.semana.unidades, 'salgado', 'salgados') }}
           </dd>
         </div>
@@ -190,15 +212,11 @@
           <dt class="texto-rotulo">Este mês</dt>
           <dd class="ganho-valor numerico">{{ ganhos.mes.produzidoCentavos | moeda }}</dd>
           <dd class="texto-legenda numerico">
-            {{ ganhos.mes.recebidoCentavos | moeda }} já recebido ·
             {{ contagem(ganhos.mes.unidades, 'salgado', 'salgados') }}
           </dd>
         </div>
       </dl>
-      <p class="campo-ajuda">
-        O valor é o dos seus salgados, já com a sua parte dos descontos. "Já recebido" é a sua parte
-        do dinheiro e do PIX que entraram; o resto é fiado ou falta receber.
-      </p>
+      <p class="campo-ajuda">Valor dos seus salgados, já com a sua parte dos descontos.</p>
     </section>
   }
 

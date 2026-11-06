@@ -26,7 +26,6 @@ interface Acerto {
   produtores: {
     produtor: Ref;
     unidades: number;
-    participacaoDecimos: number;
     itens: {
       produto: Ref;
       preparo: string;
@@ -37,11 +36,7 @@ interface Acerto {
     valorItensCentavos: number;
     descontoCentavos: number;
     valorProduzidoCentavos: number;
-    aReceberCentavos: number;
-    pendenteCentavos: number;
   }[];
-  somaAReceberCentavos: number;
-  somaPendenteCentavos: number;
 }
 
 type Item = [produto: 'coxinha' | 'kibe', unidadeVenda: 'CENTO' | 'UNIDADE', quantidade: number];
@@ -169,18 +164,14 @@ describe('acerto diário', () => {
         pedidos: [comDesconto.numero, comFiado.numero, estornado.numero],
       },
       totalProduzidoCentavos: 69500,
-      somaAReceberCentavos: 25000,
-      somaPendenteCentavos: 44500,
     });
+    expect(dia).not.toHaveProperty('somaAReceberCentavos');
     expect(
       dia.produtores.map((parte) => ({
         nome: parte.produtor.nome,
         itens: parte.valorItensCentavos,
         desconto: parte.descontoCentavos,
         produzido: parte.valorProduzidoCentavos,
-        participacao: parte.participacaoDecimos,
-        aReceber: parte.aReceberCentavos,
-        pendente: parte.pendenteCentavos,
       })),
     ).toEqual([
       // R$ 90,00 + R$ 180,00 + R$ 90,00 de kibe, menos R$ 2,40 do desconto.
@@ -189,9 +180,6 @@ describe('acerto diário', () => {
         itens: 36000,
         desconto: 240,
         produzido: 35760,
-        participacao: 515,
-        aReceber: 12863,
-        pendente: 22897,
       },
       // R$ 285,00 + R$ 60,00 de coxinha, menos R$ 7,60 do desconto.
       {
@@ -199,9 +187,6 @@ describe('acerto diário', () => {
         itens: 34500,
         desconto: 760,
         produzido: 33740,
-        participacao: 485,
-        aReceber: 12137,
-        pendente: 21603,
       },
     ]);
     expect(dia.produtores[1]?.itens).toEqual([

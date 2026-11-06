@@ -94,7 +94,7 @@ describe('Shell', () => {
     expect(botaoMais(tela).getAttribute('aria-expanded')).toBe('true');
     expect(
       [...(painel?.querySelectorAll('.mais-destino') ?? [])].map((a) => a.textContent.trim()),
-    ).toEqual(['Clientes', 'Produtos', 'Relatórios', 'Produtores']);
+    ).toEqual(['Clientes', 'Produtos', 'Relatórios', 'Repasses', 'Produtores']);
     expect(painel?.textContent).toContain('Trocar senha');
     expect(painel?.textContent).toContain('Sair');
     expect(painel?.textContent).toContain('(11) 98765-4321');

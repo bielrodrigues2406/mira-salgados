@@ -59,15 +59,21 @@ function painel(produz: boolean): Painel {
             ate: data,
             unidades: 400,
             produzidoCentavos: 38000,
-            recebidoCentavos: 28500,
           },
           mes: {
             de: data,
             ate: data,
             unidades: 1200,
             produzidoCentavos: 114000,
-            recebidoCentavos: 90000,
           },
+        }
+      : null,
+    saldo: produz
+      ? {
+          produtor: { ...MIRA, ativo: true },
+          aReceberCentavos: 114000,
+          recebidoCentavos: 90000,
+          faltaCentavos: 24000,
         }
       : null,
     familia: {
@@ -139,7 +145,12 @@ describe('Inicio', () => {
     expect(tela.textContent).toContain('Sua produção nos próximos dias');
     expect(textos('.proximo-numero')).toEqual(['–', '400', '–', '–', '–', '–']);
     expect(textos('.ganho-valor').slice(0, 2)).toEqual(['R$ 380,00', 'R$ 1.140,00']);
-    expect(textos('.ganho dd').join(' ')).toContain('R$ 285,00 já recebido');
+    expect(tela.textContent).toContain('Seu saldo');
+    expect(tela.querySelector('.saldo-valor')?.textContent.replace(/\s+/g, ' ').trim()).toBe(
+      'R$ 240,00',
+    );
+    expect(tela.textContent.replace(/\s+/g, ' ')).toContain('R$ 900,00 já recebido');
+    expect(tela.querySelector('a[href="/repasses"]')).not.toBeNull();
   });
 
   it('mostra as entregas de hoje e o que precisa de atenção', async () => {
@@ -158,7 +169,8 @@ describe('Inicio', () => {
     await abrir(painel(false));
 
     expect(tela.querySelector('.destaque-numero')?.textContent.trim()).toBe('650');
-    expect(tela.textContent).not.toContain('Seus ganhos');
+    expect(tela.textContent).not.toContain('Seu saldo');
+    expect(tela.textContent).not.toContain('O que você fez');
     expect(tela.textContent).toContain('Semana da família');
     expect(textos('.proximo-numero')).toEqual(['–', '800', '–', '–', '–', '–']);
   });

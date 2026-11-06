@@ -78,32 +78,24 @@ describe('acerto diário', () => {
     expect(acerto.semPagamento).toEqual({ valor: 40500, pedidos: [1043, 1044] });
   });
 
-  it('divide o caixa líquido pelo valor produzido, como no protótipo', () => {
+  it('cada produtor tem a receber o que fez, sem dividir o caixa (ADR 0017)', () => {
     const { produtores } = calcularAcerto(ITENS, PAGAMENTOS);
 
-    expect(
-      produtores.map((p) => [
-        p.produtor.nome,
-        p.unidades,
-        p.valorProduzido,
-        p.participacaoDecimos,
-        p.aReceber,
-        p.pendente,
-      ]),
-    ).toEqual([
-      ['Mira', 900, 80500, 568, 35336, 45164],
-      ['Célia', 450, 42000, 296, 18436, 23564],
-      ['Rafael', 220, 19200, 136, 8428, 10772],
+    expect(produtores.map((p) => [p.produtor.nome, p.unidades, p.valorProduzido])).toEqual([
+      ['Mira', 900, 80500],
+      ['Célia', 450, 42000],
+      ['Rafael', 220, 19200],
     ]);
+    expect(produtores[0]).not.toHaveProperty('aReceber');
   });
 
-  it('fecha centavo a centavo: a receber soma o caixa e pendente soma o resto', () => {
+  it('o que os produtores fizeram soma o valor movimentado, fiado incluído', () => {
     const acerto = calcularAcerto(ITENS, PAGAMENTOS);
 
     expect(acerto.totalProduzido).toBe(acerto.valorMovimentado);
-    expect(acerto.somaAReceber).toBe(62200);
-    expect(acerto.somaPendente).toBe(79500);
-    expect(acerto.somaPendente).toBe(acerto.fiado.valor + acerto.semPagamento.valor);
+    expect(acerto.totalProduzido).toBe(
+      acerto.caixa.total + acerto.fiado.valor + acerto.semPagamento.valor,
+    );
   });
 
   it('agrupa os itens do produtor por produto e preparo, do maior valor ao menor', () => {
@@ -154,36 +146,30 @@ describe('acerto diário', () => {
       ['Célia', 18000, 240, 17760],
     ]);
     expect(acerto.totalProduzido).toBe(45500);
-    expect(acerto.somaAReceber).toBe(41500);
     expect(acerto.semPagamento).toEqual({ valor: 4000, pedidos: [2] });
   });
 
-  it('desempata o maior resto pela ordem de exibição, não pela ordem de chegada', () => {
+  it('ordena quem fez mais primeiro e desempata pelo nome, não pela chegada', () => {
     const ida = calcularAcerto(
       [
         item(1, 'Kibe', 'FRITO', CELIA, 1, 'CENTO', 9000),
         item(2, 'Coxinha de frango', 'FRITO', MIRA, 1, 'CENTO', 9000),
-        item(3, 'Risole de queijo', 'FRITO', RAFAEL, 1, 'CENTO', 9000),
+        item(3, 'Risole de queijo', 'FRITO', RAFAEL, 2, 'CENTO', 9000),
       ],
-      [pagamentos(1, { pix: 100 })],
+      [],
     );
     const volta = calcularAcerto(
       [
-        item(3, 'Risole de queijo', 'FRITO', RAFAEL, 1, 'CENTO', 9000),
+        item(3, 'Risole de queijo', 'FRITO', RAFAEL, 2, 'CENTO', 9000),
         item(2, 'Coxinha de frango', 'FRITO', MIRA, 1, 'CENTO', 9000),
         item(1, 'Kibe', 'FRITO', CELIA, 1, 'CENTO', 9000),
       ],
-      [pagamentos(1, { pix: 100 })],
+      [],
     );
 
-    const partes = (acerto: typeof ida) =>
-      acerto.produtores.map((p) => [p.produtor.nome, p.aReceber, p.participacaoDecimos]);
-    expect(partes(ida)).toEqual([
-      ['Célia', 34, 334],
-      ['Mira', 33, 333],
-      ['Rafael', 33, 333],
-    ]);
-    expect(partes(volta)).toEqual(partes(ida));
+    const nomes = (acerto: typeof ida) => acerto.produtores.map((p) => p.produtor.nome);
+    expect(nomes(ida)).toEqual(['Rafael', 'Célia', 'Mira']);
+    expect(nomes(volta)).toEqual(nomes(ida));
   });
 
   it('dia sem pedidos zera tudo, sem dividir por zero', () => {
@@ -194,15 +180,14 @@ describe('acerto diário', () => {
       valorMovimentado: ZERO_CENTAVOS,
       caixa: { total: 0 },
       produtores: [],
-      somaAReceber: 0,
     });
   });
 
-  it('pedido com desconto integral não quebra a participação', () => {
+  it('pedido com desconto integral deixa o produtor sem nada a receber', () => {
     const acerto = calcularAcerto([item(1, 'Kibe', 'FRITO', CELIA, 1, 'CENTO', 9000, 9000)], []);
 
     expect(acerto.produtores).toMatchObject([
-      { valorProduzido: 0, participacaoDecimos: 0, aReceber: 0, pendente: 0 },
+      { valorItens: 9000, desconto: 9000, valorProduzido: 0 },
     ]);
   });
 });

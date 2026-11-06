@@ -11,6 +11,7 @@ import {
   calcularAcerto,
   type ItemDoAcerto,
   type PagamentosDoPedido,
+  type ParteDoProdutor,
 } from './acerto-diario.js';
 
 interface ItemCru {
@@ -50,35 +51,11 @@ export class AcertoDiarioService {
 
   /**
    * Acerto de cada dia do intervalo, com as mesmas regras de daData, em duas
-   * consultas. Cada dia é calculado à parte: a divisão do caixa é proporcional
-   * ao que cada um produziu naquele dia, e somar dias não muda isso.
+   * consultas. Cada dia é calculado à parte.
    * Dias sem pedidos ficam fora do mapa.
    */
   async porDia(de: string, ate: string): Promise<Map<string, AcertoDiario>> {
-    const itens = await this.dataSource
-      .createQueryBuilder(ItemPedido, 'item')
-      .innerJoin('item.pedido', 'pedido')
-      .innerJoin('item.produto', 'produto')
-      .innerJoin('item.produtor', 'produtor')
-      .select("to_char(pedido.dataEntrega, 'YYYY-MM-DD')", 'data')
-      .addSelect('pedido.id', 'pedidoId')
-      .addSelect('pedido.numero', 'numero')
-      .addSelect('pedido.desconto', 'desconto')
-      .addSelect('produto.id', 'produtoId')
-      .addSelect('produto.nome', 'produtoNome')
-      .addSelect('produtor.id', 'produtorId')
-      .addSelect('produtor.nome', 'produtorNome')
-      .addSelect('item.preparo', 'preparo')
-      .addSelect('item.unidadeVenda', 'unidadeVenda')
-      .addSelect('item.quantidade', 'quantidade')
-      .addSelect('item.precoUnitario', 'precoUnitario')
-      .where('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate })
-      .andWhere('pedido.status IN (:...status)', { status: STATUS_EM_VIGOR })
-      // Ordem estável: o desempate do rateio do desconto não pode variar.
-      .orderBy('pedido.numero', 'ASC')
-      .addOrderBy('item.criadoEm', 'ASC')
-      .addOrderBy('item.id', 'ASC')
-      .getRawMany<ItemCru>();
+    const itens = await this.itens('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate });
 
     const pedidoIds = [...new Set(itens.map((item) => item.pedidoId))];
     const pagamentos =
@@ -111,6 +88,45 @@ export class AcertoDiarioService {
         data,
         calcularAcerto(doDia.map(paraItemDoAcerto), somas),
       ]),
+    );
+  }
+
+  /**
+   * O que cabe a cada produtor por todos os pedidos confirmados e concluídos
+   * com entrega até a data, com a mesma conta do acerto (parte dos descontos
+   * por pedido). Fiado e o que falta pagar entram: o produtor fez o salgado.
+   */
+  async produzidoAte(ate: string): Promise<ParteDoProdutor[]> {
+    const itens = await this.itens('pedido.dataEntrega <= :ate', { ate });
+    return calcularAcerto(itens.map(paraItemDoAcerto), []).produtores;
+  }
+
+  private itens(filtro: string, parametros: Record<string, string>): Promise<ItemCru[]> {
+    return (
+      this.dataSource
+        .createQueryBuilder(ItemPedido, 'item')
+        .innerJoin('item.pedido', 'pedido')
+        .innerJoin('item.produto', 'produto')
+        .innerJoin('item.produtor', 'produtor')
+        .select("to_char(pedido.dataEntrega, 'YYYY-MM-DD')", 'data')
+        .addSelect('pedido.id', 'pedidoId')
+        .addSelect('pedido.numero', 'numero')
+        .addSelect('pedido.desconto', 'desconto')
+        .addSelect('produto.id', 'produtoId')
+        .addSelect('produto.nome', 'produtoNome')
+        .addSelect('produtor.id', 'produtorId')
+        .addSelect('produtor.nome', 'produtorNome')
+        .addSelect('item.preparo', 'preparo')
+        .addSelect('item.unidadeVenda', 'unidadeVenda')
+        .addSelect('item.quantidade', 'quantidade')
+        .addSelect('item.precoUnitario', 'precoUnitario')
+        .where(filtro, parametros)
+        .andWhere('pedido.status IN (:...status)', { status: STATUS_EM_VIGOR })
+        // Ordem estável: o desempate do rateio do desconto não pode variar.
+        .orderBy('pedido.numero', 'ASC')
+        .addOrderBy('item.criadoEm', 'ASC')
+        .addOrderBy('item.id', 'ASC')
+        .getRawMany<ItemCru>()
     );
   }
 }

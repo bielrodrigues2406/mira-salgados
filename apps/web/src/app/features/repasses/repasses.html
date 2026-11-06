@@ -1,0 +1,279 @@
+<div class="cabecalho">
+  <h1 class="texto-display">Repasses</h1>
+  <p class="texto-legenda">
+    Quanto cada um tem a receber pelos salgados que fez, fiado incluído. Registrar o que já foi pago
+    é opcional: o saldo vai somando até alguém registrar.
+  </p>
+</div>
+
+<p class="somente-leitor-de-tela" role="status" aria-live="polite">{{ aviso() }}</p>
+
+@switch (estado()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando os saldos" [quantidade]="3" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar os saldos" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar os saldos"
+      [erro]="saldos.error()"
+      (tentarNovamente)="saldos.reload()"
+    />
+  }
+  @case ('vazio') {
+    <ms-estado-vazio icone="produtor" titulo="Nenhum produtor cadastrado">
+      Os saldos aparecem quando houver produtores e pedidos confirmados.
+    </ms-estado-vazio>
+  }
+  @case ('pronto') {
+    @if (saldos.value(); as todos) {
+      <section class="cartao totais" aria-label="Total da família">
+        <span class="totais-rotulo">Falta repassar</span>
+        <span class="totais-valor numerico">{{
+          (todos.totais.faltaCentavos > 0 ? todos.totais.faltaCentavos : 0) | moeda
+        }}</span>
+        <span class="totais-detalhe numerico">
+          {{ todos.totais.aReceberCentavos | moeda }} em salgados ·
+          {{ todos.totais.recebidoCentavos | moeda }} já repassado
+        </span>
+      </section>
+
+      <ul class="saldos" aria-label="Saldo de cada produtor">
+        @for (saldo of todos.produtores; track saldo.produtor.id) {
+          <li class="cartao saldo em-sequencia" [style.--ordem]="$index">
+            <div class="saldo-linha">
+              <span class="avatar" aria-hidden="true">{{ iniciais(saldo.produtor.nome) }}</span>
+              <div class="saldo-textos">
+                <h2 class="texto-titulo">{{ saldo.produtor.nome }}</h2>
+                <span class="texto-legenda numerico">
+                  {{ saldo.aReceberCentavos | moeda }} pelos salgados ·
+                  {{ saldo.recebidoCentavos | moeda }} recebido
+                </span>
+              </div>
+              <div
+                class="saldo-falta"
+                [class.quitado]="saldo.faltaCentavos === 0"
+                [class.adiantado]="saldo.faltaCentavos < 0"
+              >
+                <span class="saldo-falta-valor numerico">{{
+                  abs(saldo.faltaCentavos) | moeda
+                }}</span>
+                <span class="saldo-falta-rotulo">
+                  {{
+                    saldo.faltaCentavos > 0
+                      ? 'falta'
+                      : saldo.faltaCentavos < 0
+                        ? 'adiantado'
+                        : 'em dia'
+                  }}
+                </span>
+              </div>
+            </div>
+
+            @if (registrandoPara()?.produtor?.id === saldo.produtor.id) {
+              <form
+                class="formulario"
+                [attr.aria-label]="'Registrar repasse para ' + saldo.produtor.nome"
+                [formRoot]="formulario"
+              >
+                <fieldset class="grupo">
+                  <legend class="texto-rotulo">Forma</legend>
+                  <div class="formas">
+                    @for (opcao of formas; track opcao.forma) {
+                      <label class="opcao-forma">
+                        <input
+                          type="radio"
+                          class="somente-leitor-de-tela"
+                          [value]="opcao.forma"
+                          [formField]="formulario.forma"
+                        />
+                        <ms-icone [nome]="opcao.icone" />
+                        <span>{{ opcao.rotulo }}</span>
+                      </label>
+                    }
+                  </div>
+                </fieldset>
+                <div class="duas-colunas">
+                  <div class="campo">
+                    <label class="texto-rotulo" for="repasse-valor">Valor</label>
+                    <div class="campo-controle">
+                      <span class="campo-prefixo" aria-hidden="true">R$</span>
+                      <input
+                        id="repasse-valor"
+                        class="campo-entrada campo-entrada-com-prefixo numerico valor"
+                        inputmode="decimal"
+                        autocomplete="off"
+                        [formField]="formulario.valor"
+                        [attr.aria-invalid]="
+                          formulario.valor().touched() && formulario.valor().invalid()
+                        "
+                        aria-describedby="repasse-valor-erro"
+                      />
+                    </div>
+                    <ms-erros-do-campo id="repasse-valor-erro" [estado]="formulario.valor()" />
+                  </div>
+                  <div class="campo">
+                    <label class="texto-rotulo" for="repasse-data">Data</label>
+                    <input
+                      id="repasse-data"
+                      type="date"
+                      class="campo-entrada"
+                      [max]="hoje"
+                      [formField]="formulario.data"
+                      aria-describedby="repasse-data-erro"
+                    />
+                    <ms-erros-do-campo id="repasse-data-erro" [estado]="formulario.data()" />
+                  </div>
+                </div>
+                <div class="campo">
+                  <label class="texto-rotulo" for="repasse-observacao">Observação</label>
+                  <input
+                    id="repasse-observacao"
+                    class="campo-entrada"
+                    autocomplete="off"
+                    placeholder="Opcional, como semana de 3 a 9 de novembro"
+                    [formField]="formulario.observacao"
+                    aria-describedby="repasse-observacao-erro"
+                  />
+                  <ms-erros-do-campo
+                    id="repasse-observacao-erro"
+                    [estado]="formulario.observacao()"
+                  />
+                </div>
+                @if (erroDoFormulario(); as mensagem) {
+                  <div class="alerta alerta-negativo" role="alert">
+                    <ms-icone nome="alerta" [tamanho]="20" />
+                    <span>{{ mensagem }}</span>
+                  </div>
+                }
+                <div class="acoes">
+                  <button
+                    type="submit"
+                    class="botao botao-primario"
+                    [disabled]="formulario().submitting()"
+                  >
+                    {{ formulario().submitting() ? 'Registrando…' : 'Registrar repasse' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="botao botao-secundario"
+                    (click)="registrandoPara.set(null)"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            } @else {
+              <button type="button" class="botao botao-terciario registrar" (click)="abrir(saldo)">
+                <ms-icone nome="dinheiro" />
+                <span>Registrar repasse</span>
+              </button>
+            }
+          </li>
+        }
+      </ul>
+
+      <section class="historico" aria-labelledby="titulo-historico">
+        <h2 id="titulo-historico" class="texto-rotulo">Histórico</h2>
+        <div class="filtros" role="group" aria-label="Filtrar o histórico por produtor">
+          <button
+            type="button"
+            class="filtro"
+            [attr.aria-pressed]="filtro() === undefined"
+            (click)="filtrar(undefined)"
+          >
+            Todos
+          </button>
+          @for (saldo of todos.produtores; track saldo.produtor.id) {
+            <button
+              type="button"
+              class="filtro"
+              [attr.aria-pressed]="filtro() === saldo.produtor.id"
+              (click)="filtrar(saldo.produtor.id)"
+            >
+              {{ saldo.produtor.nome }}
+            </button>
+          }
+        </div>
+
+        @if (erro(); as mensagem) {
+          <div class="alerta alerta-negativo" role="alert">
+            <ms-icone nome="alerta" [tamanho]="20" />
+            <span>{{ mensagem }}</span>
+          </div>
+        }
+
+        @if (historico.hasValue() && repasses().length === 0) {
+          <p class="texto-legenda vazio">Nenhum repasse registrado ainda.</p>
+        } @else {
+          <ul class="cartao lista" aria-label="Repasses registrados">
+            @for (repasse of repasses(); track repasse.id) {
+              <li class="repasse" [class.desfeito]="repasse.desfeitoEm !== null">
+                <span class="repasse-icone" aria-hidden="true">
+                  <ms-icone [nome]="aparencia[repasse.forma].icone" [tamanho]="16" />
+                </span>
+                <div class="repasse-textos">
+                  <span class="repasse-titulo">
+                    {{ repasse.produtor.nome }}
+                    <span class="repasse-valor numerico">{{ repasse.valorCentavos | moeda }}</span>
+                  </span>
+                  <span class="texto-legenda numerico">
+                    {{ aparencia[repasse.forma].rotulo }} · {{ dataCurta(repasse.data) }} ·
+                    registrado por {{ repasse.registradoPor.nome }}
+                    @if (repasse.desfeitoEm !== null) {
+                      · desfeito por {{ repasse.desfeitoPor?.nome }}
+                    }
+                  </span>
+                  @if (repasse.observacao) {
+                    <span class="texto-legenda">{{ repasse.observacao }}</span>
+                  }
+                </div>
+                @if (repasse.desfeitoEm === null) {
+                  @if (desfazendo() === repasse.id) {
+                    <div
+                      class="confirmacao"
+                      role="group"
+                      [attr.aria-label]="rotuloDoDesfazer(repasse)"
+                    >
+                      <span class="texto-legenda">O valor volta a faltar.</span>
+                      <button
+                        type="button"
+                        class="botao botao-negativo"
+                        (click)="desfazer(repasse)"
+                      >
+                        Desfazer
+                      </button>
+                      <button
+                        type="button"
+                        class="botao botao-secundario"
+                        (click)="desfazendo.set(null)"
+                      >
+                        Manter
+                      </button>
+                    </div>
+                  } @else {
+                    <button
+                      type="button"
+                      class="botao botao-terciario botao-icone"
+                      [attr.aria-label]="rotuloDoDesfazer(repasse)"
+                      (click)="desfazendo.set(repasse.id)"
+                    >
+                      <ms-icone nome="estornar" />
+                    </button>
+                  }
+                } @else {
+                  <span class="selo-desfeito">Desfeito</span>
+                }
+              </li>
+            }
+          </ul>
+          @if (meta(); as paginacao) {
+            <ms-paginacao [meta]="paginacao" (paginaMudou)="pagina.set($event)" />
+          }
+        }
+      </section>
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import type { TipoEntrega } from '../../pedidos/dominio/enums.js';
 import type { Preparo } from '../../produtos/preco-produto.entity.js';
+import { SaldoDoProdutorDto } from '../dto/saldos.dto.js';
 import type { ResumoDosFiados } from '../fiados/fiados.service.js';
 import type { Ganho, Painel } from './painel.js';
 
@@ -30,7 +31,6 @@ export class GanhoDto {
   ate: string;
   unidades: number;
   produzidoCentavos: number;
-  recebidoCentavos: number;
 }
 
 export class PainelDto {
@@ -44,6 +44,7 @@ export class PainelDto {
   };
   proximosDias: DiaDoPainelDto[];
   ganhos: { semana: GanhoDto; mes: GanhoDto } | null;
+  saldo: SaldoDoProdutorDto | null;
   familia: {
     semana: {
       de: string;
@@ -98,6 +99,7 @@ export class PainelDto {
         semana: ganho(painel.ganhos.semana),
         mes: ganho(painel.ganhos.mes),
       },
+      saldo: painel.saldo && SaldoDoProdutorDto.de(painel.saldo),
       familia: {
         semana: {
           de: familia.semana.de,
@@ -122,7 +124,6 @@ function ganho(valor: Ganho): GanhoDto {
     ate: valor.ate,
     unidades: valor.unidades,
     produzidoCentavos: valor.produzido,
-    recebidoCentavos: valor.recebido,
   });
 }
 
