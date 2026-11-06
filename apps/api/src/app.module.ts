@@ -20,7 +20,6 @@ import { PedidosModule } from './pedidos/pedidos.module.js';
 import { ProdutoresModule } from './produtores/produtores.module.js';
 import { ProdutosModule } from './produtos/produtos.module.js';
 import { RelatoriosModule } from './relatorios/relatorios.module.js';
-import { RepassesModule } from './repasses/repasses.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
 
 @Module({
@@ -56,7 +55,6 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     ProdutosModule,
     PedidosModule,
     RelatoriosModule,
-    RepassesModule,
   ],
   providers: [
     // A ordem importa: excesso de requisições é recusado antes de qualquer

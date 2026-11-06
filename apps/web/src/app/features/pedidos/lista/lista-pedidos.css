@@ -94,6 +94,14 @@
   cursor: pointer;
 }
 
+.separador {
+  flex-shrink: 0;
+  align-self: center;
+  width: 1px;
+  height: 24px;
+  background: var(--cor-borda);
+}
+
 .opcao[aria-pressed='true'] {
   border-color: var(--cor-acao);
   background: var(--cor-acao);

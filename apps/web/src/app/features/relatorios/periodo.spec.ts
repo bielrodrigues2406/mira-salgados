@@ -1,4 +1,11 @@
-import { atalhosDePeriodo, erroDoPeriodo, esteMes, periodoDaUrl } from './periodo';
+import {
+  atalhosDePeriodo,
+  atalhosDoAReceber,
+  erroDoPeriodo,
+  estaSemana,
+  esteMes,
+  periodoDaUrl,
+} from './periodo';
 
 describe('período dos relatórios', () => {
   it('oferece atalhos a partir de hoje', () => {
@@ -26,5 +33,19 @@ describe('período dos relatórios', () => {
     expect(periodoDaUrl('2026-09-15', '2026-09-01', hoje)).toEqual(esteMes(hoje));
     expect(periodoDaUrl('2026-02-30', '2026-03-01', hoje)).toEqual(esteMes(hoje));
     expect(periodoDaUrl(undefined, undefined, hoje)).toEqual(esteMes(hoje));
+  });
+
+  it('para o a receber, a semana vai de segunda a domingo e pode ser o padrão', () => {
+    // 2026-10-15 é uma quinta-feira.
+    expect(atalhosDoAReceber('2026-10-15')).toEqual([
+      { rotulo: 'Esta semana', de: '2026-10-12', ate: '2026-10-18' },
+      { rotulo: 'Semana passada', de: '2026-10-05', ate: '2026-10-11' },
+      { rotulo: 'Este mês', de: '2026-10-01', ate: '2026-10-31' },
+      { rotulo: 'Mês passado', de: '2026-09-01', ate: '2026-09-30' },
+    ]);
+    expect(periodoDaUrl(undefined, undefined, '2026-10-15', estaSemana)).toEqual({
+      de: '2026-10-12',
+      ate: '2026-10-18',
+    });
   });
 });

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, In } from 'typeorm';
 
-import { decimalParaCentavos } from '../../common/utils/dinheiro.js';
+import { type Centavos, decimalParaCentavos } from '../../common/utils/dinheiro.js';
 import { STATUS_EM_VIGOR } from '../../pedidos/dominio/enums.js';
 import { ItemPedido } from '../../pedidos/itens/item-pedido.entity.js';
 import { Pagamento } from '../../pedidos/pagamentos/pagamento.entity.js';
@@ -11,7 +11,6 @@ import {
   calcularAcerto,
   type ItemDoAcerto,
   type PagamentosDoPedido,
-  type ParteDoProdutor,
 } from './acerto-diario.js';
 
 interface ItemCru {
@@ -92,13 +91,18 @@ export class AcertoDiarioService {
   }
 
   /**
-   * O que cabe a cada produtor por todos os pedidos confirmados e concluídos
-   * com entrega até a data, com a mesma conta do acerto (parte dos descontos
-   * por pedido). Fiado e o que falta pagar entram: o produtor fez o salgado.
+   * Quanto cada produtor tem a receber no período: os salgados que fez, com a
+   * parte dos descontos de cada pedido, fiado incluído. É a mesma conta do
+   * acerto, então a soma dos dias fecha com o período.
    */
-  async produzidoAte(ate: string): Promise<ParteDoProdutor[]> {
-    const itens = await this.itens('pedido.dataEntrega <= :ate', { ate });
-    return calcularAcerto(itens.map(paraItemDoAcerto), []).produtores;
+  async aReceberNoPeriodo(de: string, ate: string): Promise<Map<string, Centavos>> {
+    const itens = await this.itens('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate });
+    return new Map(
+      calcularAcerto(itens.map(paraItemDoAcerto), []).produtores.map((parte) => [
+        parte.produtor.id,
+        parte.valorProduzido,
+      ]),
+    );
   }
 
   private itens(filtro: string, parametros: Record<string, string>): Promise<ItemCru[]> {

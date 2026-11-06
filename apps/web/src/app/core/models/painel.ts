@@ -1,6 +1,6 @@
 import type { TipoEntrega } from './pedido';
 import type { SalgadoDoProdutor } from './producao';
-import type { ResumoDosFiados, SaldoDoProdutor } from './relatorios';
+import type { ResumoDosFiados } from './relatorios';
 
 interface Referencia {
   id: string;
@@ -49,8 +49,6 @@ export interface Painel {
   /** Hoje e os seis dias seguintes. */
   proximosDias: DiaDoPainel[];
   ganhos: { semana: Ganho; mes: Ganho } | null;
-  /** Só com conta ligada a um produtor: a receber, já recebido em repasses e o que falta. */
-  saldo: SaldoDoProdutor | null;
   familia: {
     semana: {
       de: string;

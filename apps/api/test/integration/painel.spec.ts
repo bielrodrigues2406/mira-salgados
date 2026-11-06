@@ -49,12 +49,6 @@ interface Painel {
     meusSalgados: { produto: Ref; unidades: number }[] | null;
   }[];
   ganhos: { semana: Ganho; mes: Ganho } | null;
-  saldo: {
-    produtor: Ref & { ativo: boolean };
-    aReceberCentavos: number;
-    recebidoCentavos: number;
-    faltaCentavos: number;
-  } | null;
   familia: {
     semana: {
       de: string;
@@ -251,11 +245,6 @@ describe('painel e produção por dia', () => {
           produzidoCentavos: 19000,
         },
       });
-      expect(painel.saldo).toMatchObject({
-        aReceberCentavos: 28500,
-        recebidoCentavos: 0,
-        faltaCentavos: 28500,
-      });
       expect(painel.familia).toEqual({
         semana: {
           de: '2026-09-28',
@@ -276,7 +265,6 @@ describe('painel e produção por dia', () => {
 
       expect(painel.produtor).toBeNull();
       expect(painel.ganhos).toBeNull();
-      expect(painel.saldo).toBeNull();
       expect(painel.proximosDias[0]).toMatchObject({
         unidades: 200,
         minhasUnidades: null,

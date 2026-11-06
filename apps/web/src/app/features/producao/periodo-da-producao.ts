@@ -1,9 +1,9 @@
 import type { Periodo } from '../../core/models/relatorios';
 import {
   dataDoCalendario,
-  deTextoDeData,
   diasNoIntervalo,
   primeiroDiaDoMes,
+  segundaDaSemana,
   somarDias,
   ultimoDiaDoMes,
 } from '../../shared/utils/datas';
@@ -12,11 +12,6 @@ import { type Atalho, erroDoPeriodo } from '../relatorios/periodo';
 /** O mesmo limite da API de produção por dia. */
 export const MAXIMO_DE_DIAS_DA_PRODUCAO = 31;
 export const DIAS_PADRAO = 7;
-
-/** Segunda-feira da semana da data (a semana vai de segunda a domingo). */
-export function segundaDaSemana(data: string): string {
-  return somarDias(data, -((deTextoDeData(data).getDay() + 6) % 7));
-}
 
 /** Olhando para a frente: é o que falta produzir. */
 export function atalhosDaProducao(hoje: string): Atalho[] {

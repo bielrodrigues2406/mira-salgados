@@ -6,6 +6,7 @@ import {
   mensagemDeCobranca,
   mensagemDeConfirmacao,
   mensagemDoAcerto,
+  mensagemDoAReceber,
 } from './mensagens';
 
 // O real formatado usa espaço duro; nos testes basta o espaço comum.
@@ -111,6 +112,25 @@ describe('mensagens para o WhatsApp', () => {
     expect(texto).not.toContain('Sem pagamento');
     expect(texto).toContain('Mira: R$ 300,00 (300 salgados)');
     expect(texto.endsWith('Célia: R$ 200,00 (200 salgados)')).toBe(true);
+  });
+
+  it('a receber: o período e quanto cada um tem a receber', () => {
+    const texto = legivel(
+      mensagemDoAReceber({ de: '2026-10-12', ate: '2026-10-18' }, [
+        {
+          produtor: MIRA,
+          unidades: 300,
+          valorCentavos: 30000,
+          quantidadePedidos: 2,
+          aReceberCentavos: 29500,
+          itens: [],
+        },
+      ]),
+    );
+
+    expect(texto).toBe(
+      '*A receber de Seg, 12 out a Dom, 18 out*\n\nMira: *R$ 295,00* (300 salgados)',
+    );
   });
 
   it('cobrança: pelo nome do cliente, com cada pedido e o total', () => {

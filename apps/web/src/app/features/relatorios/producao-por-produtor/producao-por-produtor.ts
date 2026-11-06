@@ -18,15 +18,19 @@ import { MoedaPipe } from '../../../shared/pipes/moeda.pipe';
 import { hoje } from '../../../shared/utils/datas';
 import { type Arquivo, csv, reaisNoCsv } from '../../../shared/utils/arquivo';
 import { estadoDeRecurso } from '../../../shared/utils/estado-de-recurso';
-import { contagem, numero, percentual } from '../../../shared/utils/textos';
-import { periodoDaUrl } from '../periodo';
+import { mensagemDoAReceber } from '../../../shared/utils/mensagens';
+import { contagem, numero } from '../../../shared/utils/textos';
+import { atalhosDoAReceber, estaSemana, periodoDaUrl } from '../periodo';
 import { SeletorPeriodo } from '../seletor-periodo/seletor-periodo';
 
 const TAMANHO_DA_PAGINA = 20;
 const IDENTIFICADOR = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIMITE_DE_PRODUTORES = 100;
 
-/** Produção agregada por produtor no período, com o que cada um fez. */
+/**
+ * Quanto cada produtor tem a receber no período: o valor dos salgados dele
+ * menos a parte nos descontos, fiado incluído. Abre na semana atual.
+ */
 @Component({
   selector: 'ms-producao-por-produtor',
   imports: [
@@ -51,7 +55,10 @@ export class ProducaoPorProdutor {
   readonly ate = input<string>();
   readonly produtor = input<string>();
 
-  protected readonly periodo = computed(() => periodoDaUrl(this.de(), this.ate(), hoje()));
+  protected readonly periodo = computed(() =>
+    periodoDaUrl(this.de(), this.ate(), hoje(), estaSemana),
+  );
+  protected readonly atalhos = atalhosDoAReceber(hoje());
   /** Produtor da URL; um valor malformado é ignorado em vez de virar erro 400. */
   protected readonly produtorId = computed(() => {
     const id = this.produtor();
@@ -85,14 +92,20 @@ export class ProducaoPorProdutor {
   );
 
   protected readonly numero = numero;
-  protected readonly percentual = percentual;
   protected readonly iniciais = iniciais;
   protected readonly resumo = computed(() => {
     const resumo = this.resultado()?.resumo;
     return resumo ? contagem(resumo.unidades, 'salgado', 'salgados') : '';
   });
+  /** Só quando todos do filtro estão na tela: a mensagem não pode deixar ninguém de fora. */
+  protected readonly mensagem = computed(() => {
+    const resultado = this.resultado();
+    return resultado && resultado.meta.totalPages <= 1
+      ? mensagemDoAReceber(this.periodo(), resultado.itens)
+      : null;
+  });
 
-  /** Uma linha por produtor e salgado, de todos os produtores do filtro. */
+  /** Uma linha por salgado e, no fim de cada produtor, o desconto e o total a receber. */
   protected readonly planilha = async (): Promise<Arquivo> => {
     const { de, ate } = this.periodo();
     const producoes = await this.relatorios.todasAsPaginas<ProducaoDoProdutor>('producao', {
@@ -101,23 +114,31 @@ export class ProducaoPorProdutor {
       produtorId: this.produtorId(),
     });
     return csv(
-      `producao-por-produtor-${de}-a-${ate}`,
-      ['Produtor', 'Produto', 'Preparo', 'Salgados', 'Valor antes dos descontos (R$)'],
-      producoes.flatMap((producao) =>
-        producao.itens.map((item) => [
+      `a-receber-${de}-a-${ate}`,
+      ['Produtor', 'Produto', 'Preparo', 'Salgados', 'Valor (R$)'],
+      producoes.flatMap((producao) => [
+        ...producao.itens.map((item) => [
           producao.produtor.nome,
           item.produto.nome,
           APARENCIA_DO_PREPARO[item.preparo].rotulo,
           item.unidades,
           reaisNoCsv(item.valorCentavos),
         ]),
-      ),
+        [producao.produtor.nome, 'Descontos', '', '', reaisNoCsv(-this.desconto(producao))],
+        [
+          producao.produtor.nome,
+          'A receber',
+          '',
+          producao.unidades,
+          reaisNoCsv(producao.aReceberCentavos),
+        ],
+      ]),
     );
   };
 
-  protected participacao(producao: ProducaoDoProdutor): number {
-    const total = this.resultado()?.resumo.unidades ?? 0;
-    return total > 0 ? Math.round((producao.unidades / total) * 1000) / 10 : 0;
+  /** A parte do produtor nos descontos dos pedidos. */
+  protected desconto(producao: ProducaoDoProdutor): number {
+    return producao.valorCentavos - producao.aReceberCentavos;
   }
 
   protected detalhe(producao: ProducaoDoProdutor): string {

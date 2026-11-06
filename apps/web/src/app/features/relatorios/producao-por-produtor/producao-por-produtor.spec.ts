@@ -20,6 +20,7 @@ const PRODUCAO: Producao[] = [
     unidades: 1200,
     valorCentavos: 114000,
     quantidadePedidos: 5,
+    aReceberCentavos: 112000,
     itens: [
       {
         produto: { id: 'coxinha', nome: 'Coxinha de frango' },
@@ -34,6 +35,7 @@ const PRODUCAO: Producao[] = [
     unidades: 1000,
     valorCentavos: 90000,
     quantidadePedidos: 3,
+    aReceberCentavos: 90000,
     itens: [
       {
         produto: { id: 'kibe', nome: 'Kibe' },
@@ -83,7 +85,7 @@ describe('ProducaoPorProdutor', () => {
     relatorio.flush({
       data: PRODUCAO,
       meta: { page: 1, pageSize: 20, total: 2, totalPages: 1 },
-      resumo: { unidades: 2200, valorCentavos: 204000 },
+      resumo: { unidades: 2200, valorCentavos: 204000, aReceberCentavos: 202000 },
     });
     await navegacao;
     await harness.fixture.whenStable();
@@ -100,17 +102,41 @@ describe('ProducaoPorProdutor', () => {
     );
   }
 
-  it('mostra cada produtor com volume, participação e valor em itens', () => {
+  it('mostra quanto cada produtor tem a receber, já com a parte nos descontos', () => {
     expect(textos('.nome h3')).toEqual(['Mira', 'Célia']);
     expect(textos('.nome .texto-legenda')).toEqual([
       '1.200 salgados · 5 pedidos',
       '1.000 salgados · 3 pedidos',
     ]);
-    expect(textos('.participacao-valor')).toEqual(['54,5%', '45,5%']);
-    expect(textos('.rodape .valor')).toEqual(['R$ 1.140,00', 'R$ 900,00']);
-    expect(textos('p.texto-legenda')[0]).toBe(
-      '2.200 salgados · R$ 2.040,00 em itens, antes dos descontos',
+    expect(textos('.a-receber-valor')).toEqual(['R$ 1.120,00', 'R$ 900,00']);
+    expect(textos('.total-valor')).toEqual(['R$ 2.020,00']);
+    expect(textos('.total .texto-legenda')).toEqual(['2.200 salgados · fiado incluído']);
+    // Célia não teve desconto: a linha não aparece.
+    expect(textos('.conta dd')).toEqual([
+      'R$ 1.140,00',
+      '-R$ 20,00',
+      'R$ 1.120,00',
+      'R$ 900,00',
+      'R$ 900,00',
+    ]);
+  });
+
+  it('abre na semana atual quando a URL não traz o período', async () => {
+    const hoje = new Date();
+    const segunda = new Date(hoje);
+    segunda.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7));
+    const esperado = `${String(segunda.getFullYear())}-${String(segunda.getMonth() + 1).padStart(2, '0')}-${String(segunda.getDate()).padStart(2, '0')}`;
+
+    const navegacao = harness.navigateByUrl('/producao');
+    const relatorio = await aguardar(
+      (r) => r.url === '/api/v1/relatorios/producao' && r.params.get('de') === esperado,
     );
+    relatorio.flush({
+      data: [],
+      meta: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
+      resumo: { unidades: 0, valorCentavos: 0, aReceberCentavos: 0 },
+    });
+    await navegacao;
   });
 
   it('filtra por produtor pela URL', async () => {
@@ -125,7 +151,7 @@ describe('ProducaoPorProdutor', () => {
     relatorio.flush({
       data: [PRODUCAO[1]],
       meta: { page: 1, pageSize: 20, total: 1, totalPages: 1 },
-      resumo: { unidades: 1000, valorCentavos: 90000 },
+      resumo: { unidades: 1000, valorCentavos: 90000, aReceberCentavos: 90000 },
     });
     await harness.fixture.whenStable();
 

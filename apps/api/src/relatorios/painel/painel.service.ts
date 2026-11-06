@@ -7,7 +7,6 @@ import { Usuario } from '../../usuarios/usuario.entity.js';
 import { AcertoDiarioService } from '../acerto/acerto-diario.service.js';
 import { FiadosService } from '../fiados/fiados.service.js';
 import { ProducaoDoDiaService } from '../producao/producao-do-dia.service.js';
-import { SaldosService } from '../saldos/saldos.service.js';
 import { montarPainel, type Painel } from './painel.js';
 
 /** Hoje e os seis dias seguintes. */
@@ -20,7 +19,6 @@ export class PainelService {
     private readonly producao: ProducaoDoDiaService,
     private readonly acerto: AcertoDiarioService,
     private readonly fiados: FiadosService,
-    private readonly saldos: SaldosService,
   ) {}
 
   /**
@@ -42,7 +40,7 @@ export class PainelService {
     const de = semana.de < mes.de ? semana.de : mes.de;
     const ate = semana.ate > mes.ate ? semana.ate : mes.ate;
 
-    const [hoje, proximos, acertos, fiados, rascunhos, saldo] = await Promise.all([
+    const [hoje, proximos, acertos, fiados, rascunhos] = await Promise.all([
       this.producao.doDia(data),
       this.producao.porDia(data, ateProximos),
       this.acerto.porDia(de, ate),
@@ -53,7 +51,6 @@ export class PainelService {
         .where("pedido.status = 'RASCUNHO'")
         .andWhere('pedido.dataEntrega BETWEEN :data AND :ateProximos', { data, ateProximos })
         .getCount(),
-      produtor ? this.saldos.doProdutor(produtor.id, data) : Promise.resolve(null),
     ]);
 
     return montarPainel({
@@ -66,7 +63,6 @@ export class PainelService {
       acertos,
       fiados,
       rascunhos,
-      saldo,
     });
   }
 }

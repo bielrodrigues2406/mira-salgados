@@ -84,8 +84,8 @@ const ordemAlfabetica = new Intl.Collator('pt-BR', { sensitivity: 'base' });
  * - o que entrou: DINHEIRO e PIX dos pedidos da data; fiado e o que falta
  *   pagar aparecem à parte;
  * - o que cada produtor tem a receber: os itens dele nos pedidos da data, cada
- *   um com a sua parte do desconto do pedido (maior resto, por pedido). Não há
- *   divisão do caixa: o que já foi entregue a cada um são os repasses.
+ *   um com a sua parte do desconto do pedido (maior resto, por pedido), fiado
+ *   incluído. Não há divisão do caixa.
  */
 export function calcularAcerto(
   itens: readonly ItemDoAcerto[],

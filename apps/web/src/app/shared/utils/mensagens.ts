@@ -1,7 +1,12 @@
 import type { PedidoDetalhe } from '../../core/models/pedido';
 import type { ProducaoDoDia, ProducaoPorDia } from '../../core/models/producao';
 import type { Preparo, UnidadeVenda } from '../../core/models/produto';
-import type { AcertoDiario, ClienteComFiado } from '../../core/models/relatorios';
+import type {
+  AcertoDiario,
+  ClienteComFiado,
+  Periodo,
+  ProducaoDoProdutor,
+} from '../../core/models/relatorios';
 import { dataCurta, dataPorExtenso } from './datas';
 import { formatarMoeda } from './dinheiro';
 import { contagem, numero } from './textos';
@@ -120,6 +125,20 @@ export function mensagemDoAcerto(acerto: AcertoDiario): string {
   for (const parte of acerto.produtores) {
     linhas.push(
       `${parte.produtor.nome}: ${formatarMoeda(parte.valorProduzidoCentavos)} (${contagem(parte.unidades, 'salgado', 'salgados')})`,
+    );
+  }
+  return linhas.join('\n');
+}
+
+/** Quanto cada produtor tem a receber no período, fiado incluído. */
+export function mensagemDoAReceber(
+  { de, ate }: Periodo,
+  producoes: readonly ProducaoDoProdutor[],
+): string {
+  const linhas = [negrito(`A receber de ${dataCurta(de)} a ${dataCurta(ate)}`), ''];
+  for (const producao of producoes) {
+    linhas.push(
+      `${producao.produtor.nome}: ${negrito(formatarMoeda(producao.aReceberCentavos))} (${contagem(producao.unidades, 'salgado', 'salgados')})`,
     );
   }
   return linhas.join('\n');

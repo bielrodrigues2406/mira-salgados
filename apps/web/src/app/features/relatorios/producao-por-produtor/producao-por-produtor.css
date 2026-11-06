@@ -52,13 +52,25 @@
   line-height: 22px;
 }
 
-.participacao {
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.total-valor {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+}
+
+.a-receber {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
 }
 
-.participacao-valor {
+.a-receber-valor {
   font-size: 20px;
   font-weight: 700;
   line-height: 24px;
@@ -70,18 +82,6 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.barra {
-  height: 6px;
-  overflow: hidden;
-  border-radius: var(--raio-pilula);
-  background: var(--cor-borda);
-}
-
-.barra-preenchida {
-  height: 100%;
-  background: var(--cor-acao);
 }
 
 .itens {
@@ -123,18 +123,36 @@
   font-weight: 700;
 }
 
-.rodape {
+.conta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
   padding-top: 10px;
   border-top: 1px solid var(--cor-borda);
-  font-weight: 600;
 }
 
-.valor {
+.conta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.conta dt {
+  color: var(--cor-texto-secundario);
+}
+
+.conta dd {
+  margin: 0;
+}
+
+.conta-total {
   font-size: 16px;
   font-weight: 700;
+}
+
+.conta .conta-total dt {
+  color: inherit;
 }
 
 @media (min-width: 1024px) {

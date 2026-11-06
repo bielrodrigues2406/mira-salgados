@@ -54,7 +54,6 @@ export class Inicio {
 
   protected readonly numero = numero;
   protected readonly contagem = contagem;
-  protected readonly abs = Math.abs;
   protected readonly dataCurta = dataCurta;
   protected readonly listaDePedidos = listaDePedidos;
 
