@@ -28,7 +28,7 @@ cada publicação.
   que declarem `@Public()`; permissões extras são metadados
   (`@SomenteAdmin()`, `@PermiteSenhaProvisoria()`) verificados num único
   ponto. A conta é relida do banco a cada requisição.
-- **Senhas com argon2id**, mínimo de 12 caracteres (NIST SP 800-63B), sem
+- **Senhas com argon2id**, mínimo de 8 caracteres (NIST SP 800-63B), sem
   regras de composição; tokens de refresh guardados só como hash.
 - **JWT com algoritmo fixo (HS256)**, emissor e audiência verificados, 15
   minutos de validade, só em memória no navegador.

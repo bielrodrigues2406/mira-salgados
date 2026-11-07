@@ -68,7 +68,7 @@ describe('TrocarSenha', () => {
     await montar(false);
 
     await enviar('senha-atual-longa', 'curta', 'outra');
-    expect(tela.textContent).toContain('Use ao menos 12 caracteres.');
+    expect(tela.textContent).toContain('Use ao menos 8 caracteres.');
     expect(tela.textContent).toContain('As senhas não coincidem.');
 
     await enviar('senha-atual-longa', 'senha-atual-longa');

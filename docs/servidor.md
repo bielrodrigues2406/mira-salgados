@@ -93,7 +93,7 @@ versão; cada passo só faz o que falta.
    | Segredo  | `VPS_SSH_KEY`    | conteúdo inteiro do arquivo `mira-deploy` |
    | Segredo  | `ADMIN_NOME`     | seu nome                                  |
    | Segredo  | `ADMIN_TELEFONE` | seu celular com DDD, só números           |
-   | Segredo  | `ADMIN_SENHA`    | sua senha, 12 caracteres ou mais          |
+   | Segredo  | `ADMIN_SENHA`    | sua senha, 8 caracteres ou mais           |
 
    Os três `ADMIN_` só servem para a primeira implantação: a conta não é
    recriada nem alterada depois, e os segredos podem ser apagados.

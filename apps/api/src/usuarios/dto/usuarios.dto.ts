@@ -20,7 +20,7 @@ import { PAPEIS, type Papel } from '../papeis.js';
 // Política de senha pelo comprimento, como recomenda o NIST SP 800-63B: regras
 // de composição levam a senhas previsíveis sem ganho real de entropia. O teto
 // limita o custo de hashing que um corpo de requisição pode provocar.
-export const SENHA_MINIMA = 12;
+export const SENHA_MINIMA = 8;
 export const SENHA_MAXIMA = 128;
 
 export function Senha(): PropertyDecorator {

@@ -73,7 +73,7 @@ Com 1 GB de memória, o build da aplicação web pode faltar memória: prefira
    docker compose run --rm api node dist/cli/criar-admin.js
    ```
 
-   Informe nome, celular e uma senha forte (12 caracteres ou mais; a senha não
+   Informe nome, celular e uma senha forte (8 caracteres ou mais; a senha não
    aparece na tela). Entre pelo site e crie as outras contas em _Usuários_:
    o sistema gera uma senha provisória e o botão _Enviar pelo WhatsApp_ manda o
    acesso para a pessoa, que cria a própria senha no primeiro acesso. Ligue
