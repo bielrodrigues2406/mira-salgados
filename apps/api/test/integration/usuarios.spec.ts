@@ -119,6 +119,16 @@ describe('usuários', () => {
     ]);
   });
 
+  it('aceita senha de 8 caracteres e recusa a de 7', async () => {
+    const corpo = { nome: 'Lia', telefone: '11966665555', papel: 'MEMBRO' };
+    await como(admin)
+      .post('/usuarios', { ...corpo, senha: '1234567' })
+      .expect(400);
+    await como(admin)
+      .post('/usuarios', { ...corpo, senha: '12345678' })
+      .expect(201);
+  });
+
   it('valida entrada e recusa telefone repetido', async () => {
     const invalido = await como(admin)
       .post('/usuarios', { nome: '', telefone: '123', papel: 'DONO', senha: 'curta' })
