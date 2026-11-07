@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -15,7 +16,6 @@ import { PAPEIS, type Papel } from './papeis.js';
 
 @Entity('usuarios')
 @Unique('uq_usuarios_telefone', ['telefone'])
-@Unique('uq_usuarios_produtor', ['produtorId'])
 @Check('ck_usuarios_telefone_digitos', "telefone ~ '^[0-9]{10,11}$'")
 export class Usuario {
   @PrimaryGeneratedColumn('uuid', { primaryKeyConstraintName: 'pk_usuarios' })
@@ -42,7 +42,11 @@ export class Usuario {
   @Column({ type: 'boolean', default: true })
   ativo: boolean;
 
-  /** Produtor que esta pessoa é, quando ela produz: o painel mostra a produção dela. */
+  /**
+   * Produtor que esta pessoa é, quando ela produz: o painel mostra a produção
+   * dela. Um produtor pode ter várias contas ("Mariellen e Elton").
+   */
+  @Index('idx_usuarios_produtor')
   @Column({ type: 'uuid', nullable: true })
   produtorId: string | null;
 
