@@ -9,7 +9,7 @@ import { provideRouter, Router, withComponentInputBinding } from '@angular/route
 import { RouterTestingHarness } from '@angular/router/testing';
 
 import type { ProducaoDoDia, ProducaoPorDia } from '../../core/models/producao';
-import { hoje, somarDias } from '../../shared/utils/datas';
+import { hoje, segundaDaSemana, somarDias } from '../../shared/utils/datas';
 import { Producao } from './producao';
 
 const MIRA = { id: 'mira', nome: 'Mira' };
@@ -381,21 +381,22 @@ describe('Producao', () => {
       expect(texto()).toContain('150 salgados em 7 dias');
     });
 
-    it('troca para 14 dias pelos atalhos do período, mantendo o produtor escolhido', async () => {
+    it('troca para a semana que vem pelos atalhos, mantendo o produtor escolhido', async () => {
       await abrirSemana();
       [...tela.querySelectorAll<HTMLButtonElement>('.filtro')]
         .find((botao) => botao.textContent.trim().startsWith('Célia'))
         ?.click();
       await harness.fixture.whenStable();
 
+      const segunda = segundaDaSemana(hoje());
       [...tela.querySelectorAll<HTMLButtonElement>('.atalho')]
-        .find((botao) => botao.textContent.trim() === '14 dias')
+        .find((botao) => botao.textContent.trim() === 'Semana que vem')
         ?.click();
-      const requisicao = await aguardarPeriodo(hoje(), somarDias(hoje(), 13));
-      requisicao.flush({ data: semana(hoje()) });
+      const requisicao = await aguardarPeriodo(somarDias(segunda, 7), somarDias(segunda, 13));
+      requisicao.flush({ data: semana(somarDias(segunda, 7)) });
       await harness.fixture.whenStable();
 
-      expect(TestBed.inject(Router).url).toBe(`/producao?modo=semana&ate=${somarDias(hoje(), 13)}`);
+      expect(TestBed.inject(Router).url).toContain(`ate=${somarDias(segunda, 13)}`);
       expect(textos('.carga-nome')).toEqual(['Célia', 'Célia']);
     });
   });

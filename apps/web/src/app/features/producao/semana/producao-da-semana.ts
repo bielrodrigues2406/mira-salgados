@@ -61,13 +61,14 @@ export class ProducaoDaSemana {
    */
   readonly escolha = model<string | null | undefined>(undefined);
 
-  /** Sem escolha, começa no produtor da conta, se ele tiver produção no período. */
+  /**
+   * Sem escolha, começa em todos: os totais da tela são do período inteiro. O
+   * produtor da conta aparece marcado como "você", a um toque.
+   */
   protected readonly filtro = computed((): string | null => {
     const escolha = this.escolha();
     const ids = this.produtores().map(({ id }) => id);
-    if (escolha !== undefined && (escolha === null || ids.includes(escolha))) return escolha;
-    const meu = this.meuProdutorId();
-    return meu && ids.includes(meu) ? meu : null;
+    return escolha && ids.includes(escolha) ? escolha : null;
   });
 
   protected readonly dias = computed(() => {

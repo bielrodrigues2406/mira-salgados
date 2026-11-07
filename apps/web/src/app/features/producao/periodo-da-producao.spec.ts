@@ -17,12 +17,9 @@ describe('período da produção', () => {
   it('atalhos olham para a frente', () => {
     // 30/09/2026 é quarta-feira: a semana vai de segunda 28/09 a domingo 04/10.
     expect(atalhosDaProducao('2026-09-30')).toEqual([
-      { rotulo: '7 dias', de: '2026-09-30', ate: '2026-10-06' },
       { rotulo: 'Esta semana', de: '2026-09-28', ate: '2026-10-04' },
       { rotulo: 'Semana que vem', de: '2026-10-05', ate: '2026-10-11' },
-      { rotulo: '14 dias', de: '2026-09-30', ate: '2026-10-13' },
       { rotulo: 'Este mês', de: '2026-09-01', ate: '2026-09-30' },
-      { rotulo: 'Próximo mês', de: '2026-10-01', ate: '2026-10-31' },
     ]);
   });
 

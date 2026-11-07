@@ -15,15 +15,11 @@ export const DIAS_PADRAO = 7;
 
 /** Olhando para a frente: é o que falta produzir. */
 export function atalhosDaProducao(hoje: string): Atalho[] {
-  const proximoMes = somarDias(ultimoDiaDoMes(hoje), 1);
   const segunda = segundaDaSemana(hoje);
   return [
-    { rotulo: '7 dias', de: hoje, ate: somarDias(hoje, 6) },
     { rotulo: 'Esta semana', de: segunda, ate: somarDias(segunda, 6) },
     { rotulo: 'Semana que vem', de: somarDias(segunda, 7), ate: somarDias(segunda, 13) },
-    { rotulo: '14 dias', de: hoje, ate: somarDias(hoje, 13) },
     { rotulo: 'Este mês', de: primeiroDiaDoMes(hoje), ate: ultimoDiaDoMes(hoje) },
-    { rotulo: 'Próximo mês', de: proximoMes, ate: ultimoDiaDoMes(proximoMes) },
   ];
 }
 
