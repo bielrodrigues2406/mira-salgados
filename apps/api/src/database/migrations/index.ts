@@ -8,6 +8,7 @@ import { CriarPedidosItensEPagamentos1790900000000 } from './1790900000000-criar
 import { ContasPorTelefoneEPapeis1791000000000 } from './1791000000000-contas-por-telefone-e-papeis.js';
 import { VincularContaAoProdutor1791100000000 } from './1791100000000-vincular-conta-ao-produtor.js';
 import { EnderecoDeEntregaNoPedido1791200000000 } from './1791200000000-endereco-de-entrega-no-pedido.js';
+import { VariasContasPorProdutor1791300000000 } from './1791300000000-varias-contas-por-produtor.js';
 
 // Lista explícita em vez de glob: funciona igual no build, na CLI do TypeORM e
 // nos testes, sem depender de resolução de caminhos em tempo de execução.
@@ -20,4 +21,5 @@ export const migrations: (new () => MigrationInterface)[] = [
   ContasPorTelefoneEPapeis1791000000000,
   VincularContaAoProdutor1791100000000,
   EnderecoDeEntregaNoPedido1791200000000,
+  VariasContasPorProdutor1791300000000,
 ];

@@ -48,7 +48,6 @@ const TAMANHO_DA_PAGINA = 20;
 const LIMITE_DO_NOME = 120;
 const DIGITOS_DO_TELEFONE = /^\d{10,11}$/;
 const TELEFONE_EM_USO = 'TELEFONE_EM_USO';
-const PRODUTOR_JA_VINCULADO = 'PRODUTOR_JA_VINCULADO';
 const LIMITE_DE_PRODUTORES = 100;
 
 interface DadosConta {
@@ -118,15 +117,6 @@ export class Usuarios {
   private readonly nomesDosProdutores = computed(
     () => new Map(this.produtores().map((produtor) => [produtor.id, produtor.nome])),
   );
-  /** Produtores já ligados a alguma conta da página, fora a conta em edição. */
-  protected readonly produtoresOcupados = computed(() => {
-    const editando = this.emEdicao()?.id;
-    return new Set(
-      this.itens()
-        .filter((usuario) => usuario.id !== editando && usuario.produtorId)
-        .map((usuario) => usuario.produtorId),
-    );
-  });
   protected readonly aviso = signal('');
   /** Credenciais da última conta criada ou senha redefinida, até serem fechadas. */
   protected readonly acesso = signal<AcessoProvisorio | null>(null);
@@ -321,14 +311,11 @@ export class Usuarios {
   /** Conflitos que pertencem a um campo aparecem nele, não no alerta do formulário. */
   private erroDeCampo(
     falha: unknown,
-    campo: { telefone: FieldTree<string>; produtorId: FieldTree<string> },
+    campo: { telefone: FieldTree<string> },
   ): { kind: string; message: string; fieldTree: FieldTree<string> } | undefined {
     const codigo = codigoDeErro(falha);
     if (codigo === TELEFONE_EM_USO) {
       return { kind: 'duplicado', message: mensagemDeErro(falha), fieldTree: campo.telefone };
-    }
-    if (codigo === PRODUTOR_JA_VINCULADO) {
-      return { kind: 'duplicado', message: mensagemDeErro(falha), fieldTree: campo.produtorId };
     }
     return undefined;
   }

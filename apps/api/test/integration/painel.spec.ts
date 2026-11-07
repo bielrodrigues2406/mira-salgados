@@ -295,15 +295,22 @@ describe('painel e produção por dia', () => {
       expect(depois.find((conta) => conta.id === membro.usuarioId)?.produtorId).toBeNull();
     });
 
-    it('um produtor tem no máximo uma conta', async () => {
+    it('um produtor pode ter mais de uma conta', async () => {
       await ligar(membro, cenario.celia);
 
-      const outra = await admin.patch(`/usuarios/${admin.usuarioId}`, {
-        produtorId: cenario.celia.id,
-      });
+      await admin
+        .patch(`/usuarios/${admin.usuarioId}`, { produtorId: cenario.celia.id })
+        .expect(200);
 
-      expect(outra.status).toBe(409);
-      expect(erroDe(outra).code).toBe('PRODUTOR_JA_VINCULADO');
+      const lista = dadosDe<{ id: string; produtorId: string | null }[]>(
+        await admin.get('/usuarios').expect(200),
+      );
+      expect(
+        lista
+          .filter((conta) => conta.produtorId === cenario.celia.id)
+          .map((conta) => conta.id)
+          .sort(),
+      ).toEqual([admin.usuarioId, membro.usuarioId].sort());
     });
 
     it('recusa produtor inexistente ou inativo', async () => {

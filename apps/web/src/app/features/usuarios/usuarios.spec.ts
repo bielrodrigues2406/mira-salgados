@@ -252,7 +252,7 @@ describe('Usuarios', () => {
     expect(tela.querySelector('ms-acesso-provisorio')?.textContent).toContain(senha);
   });
 
-  it('liga a conta a um produtor e mostra quem já tem conta', async () => {
+  it('liga a conta a um produtor, mesmo um que já tem outra conta', async () => {
     montar();
     await responderLista([EU, conta('Célia', { produtorId: CELIA_PRODUTORA.id }), conta('Nair')]);
 
@@ -263,7 +263,7 @@ describe('Usuarios', () => {
     const opcoes = [...tela.querySelectorAll<HTMLOptionElement>('#edicao-conta-produtor option')];
     expect(opcoes.map((opcao) => [opcao.textContent.trim(), opcao.disabled])).toEqual([
       ['Não produz', false],
-      ['Célia (já tem conta)', true],
+      ['Célia', false],
       ['Mira', false],
     ]);
 
