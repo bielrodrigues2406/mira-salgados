@@ -37,3 +37,7 @@ nova, criar a primeira conta e carregar o catálogo.
   variável `VPS_KNOWN_HOSTS`, uma máquina diferente é recusada.
 - Com uma chave autorizada, o SSH da VPS deixa de aceitar senha. O console do
   painel da hospedagem continua sendo a entrada de emergência.
+- Com o repositório e as imagens públicos, `deploy/servidor/instalar.sh` faz
+  a mesma implantação da própria VPS, sem token nem cópia da pasta `deploy/`:
+  baixa do `master`, pergunta os dados na tela e chama `implantar.sh`. O
+  token do registro passa a ser opcional em `implantar.sh`.

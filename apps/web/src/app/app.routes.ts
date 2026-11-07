@@ -103,7 +103,7 @@ export const routes: Routes = [
           },
           {
             path: 'producao',
-            title: `Produção por produtor · ${TITULO}`,
+            title: `A receber por produtor · ${TITULO}`,
             loadComponent: () =>
               import('./features/relatorios/producao-por-produtor/producao-por-produtor').then(
                 (m) => m.ProducaoPorProdutor,

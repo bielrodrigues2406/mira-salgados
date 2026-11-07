@@ -17,15 +17,12 @@ export interface LinhaDoProdutor {
 export interface ParteDoProdutor {
   produtor: Referencia;
   unidades: number;
-  /** Décimos de ponto percentual: 568 é 56,8%. Somam 1000. */
-  participacaoDecimos: number;
   itens: LinhaDoProdutor[];
   valorItensCentavos: number;
   /** Parte dos descontos dos pedidos que cabe a este produtor. */
   descontoCentavos: number;
+  /** O que cabe ao produtor pelos salgados do dia: itens menos a parte dos descontos. */
   valorProduzidoCentavos: number;
-  aReceberCentavos: number;
-  pendenteCentavos: number;
 }
 
 /** Pedidos confirmados e concluídos com entrega na data (decisões D1, D2 e D3). */
@@ -39,8 +36,6 @@ export interface AcertoDiario {
   semPagamento: { valorCentavos: number; pedidos: number[] };
   totalProduzidoCentavos: number;
   produtores: ParteDoProdutor[];
-  somaAReceberCentavos: number;
-  somaPendenteCentavos: number;
 }
 
 /** Datas de entrega de `de` a `ate`, inclusive (AAAA-MM-DD). */
@@ -81,6 +76,8 @@ export interface ProducaoDoProdutor {
   /** Quantidade vezes preço, antes dos descontos. */
   valorCentavos: number;
   quantidadePedidos: number;
+  /** O valor dos salgados menos a parte dele nos descontos, fiado incluído. */
+  aReceberCentavos: number;
   itens: { produto: Referencia; preparo: Preparo; unidades: number; valorCentavos: number }[];
 }
 
@@ -88,6 +85,11 @@ export interface ProducaoDoProdutor {
 export interface ResumoDeVolume {
   unidades: number;
   valorCentavos: number;
+}
+
+/** Volume do período e quanto todos do filtro têm a receber. */
+export interface ResumoDoAReceber extends ResumoDeVolume {
+  aReceberCentavos: number;
 }
 
 export interface ClienteComFiado {

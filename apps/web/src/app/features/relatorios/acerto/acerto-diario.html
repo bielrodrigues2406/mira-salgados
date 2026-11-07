@@ -120,10 +120,10 @@
       </section>
 
       <div class="divisao-cabecalho">
-        <h2 class="texto-rotulo divisao-titulo">Divisão por produtor</h2>
+        <h2 class="texto-rotulo divisao-titulo">O que cada um fez</h2>
         <p class="texto-legenda numerico">
-          Proporcional ao valor produzido ({{ acerto.totalProduzidoCentavos | moeda }}) sobre o
-          caixa líquido de {{ acerto.caixa.totalCentavos | moeda }}. Fiado não entra na divisão.
+          {{ acerto.totalProduzidoCentavos | moeda }} em salgados, fiado incluído. Para uma semana
+          ou um mês, veja <a routerLink="/relatorios/producao">Por produtor</a>.
         </p>
       </div>
 
@@ -132,23 +132,6 @@
           <ms-cartao-produtor [parte]="parte" />
         }
       </div>
-
-      <section class="cartao conferencia" aria-label="Conferência">
-        <div class="conferencia-linha">
-          <span>Soma a receber do caixa</span>
-          <span class="numerico">{{ acerto.somaAReceberCentavos | moeda }}</span>
-        </div>
-        <div class="conferencia-linha">
-          <span>Soma pendente</span>
-          <span class="numerico">{{ acerto.somaPendenteCentavos | moeda }}</span>
-        </div>
-        @if (fechaComOCaixa()) {
-          <span class="conferencia-ok">
-            <ms-icone nome="confirmado" [tamanho]="16" />
-            Distribuição fecha com o caixa líquido, centavo a centavo
-          </span>
-        }
-      </section>
     }
   }
 }

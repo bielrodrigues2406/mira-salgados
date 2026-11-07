@@ -31,7 +31,6 @@ interface Ganho {
   ate: string;
   unidades: number;
   produzidoCentavos: number;
-  recebidoCentavos: number;
 }
 
 interface Painel {
@@ -231,20 +230,19 @@ describe('painel e produção por dia', () => {
           unidades: 100,
         },
       ]);
+      // O que fez conta só até hoje: o pedido do dia 2 ainda não entra.
       expect(painel.ganhos).toEqual({
         semana: {
           de: '2026-09-28',
-          ate: '2026-10-04',
-          unidades: 400,
-          produzidoCentavos: 38000,
-          recebidoCentavos: 28500,
+          ate: DIA,
+          unidades: 300,
+          produzidoCentavos: 28500,
         },
         mes: {
           de: '2026-10-01',
-          ate: '2026-10-31',
-          unidades: 300,
-          produzidoCentavos: 28500,
-          recebidoCentavos: 19000,
+          ate: DIA,
+          unidades: 200,
+          produzidoCentavos: 19000,
         },
       });
       expect(painel.familia).toEqual({

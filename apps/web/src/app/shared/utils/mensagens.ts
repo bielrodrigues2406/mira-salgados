@@ -1,7 +1,12 @@
 import type { PedidoDetalhe } from '../../core/models/pedido';
 import type { ProducaoDoDia, ProducaoPorDia } from '../../core/models/producao';
 import type { Preparo, UnidadeVenda } from '../../core/models/produto';
-import type { AcertoDiario, ClienteComFiado } from '../../core/models/relatorios';
+import type {
+  AcertoDiario,
+  ClienteComFiado,
+  Periodo,
+  ProducaoDoProdutor,
+} from '../../core/models/relatorios';
 import { dataCurta, dataPorExtenso } from './datas';
 import { formatarMoeda } from './dinheiro';
 import { contagem, numero } from './textos';
@@ -102,13 +107,13 @@ function totaisDaSemana(producao: ProducaoPorDia, produtorId: string | null): st
     .map((total) => salgado(total.nome, total.preparo, total.unidades));
 }
 
-/** Caixa do dia e quanto cabe a cada produtor. */
+/** O que entrou no dia e o que cada produtor fez (a receber pelo dia). */
 export function mensagemDoAcerto(acerto: AcertoDiario): string {
   const linhas = [
     negrito(`Acerto de ${dataPorExtenso(acerto.data).toLowerCase()}`),
     `${contagem(acerto.quantidadePedidos, 'encomenda', 'encomendas')} · ${formatarMoeda(acerto.valorMovimentadoCentavos)}`,
     '',
-    `Caixa: ${negrito(formatarMoeda(acerto.caixa.totalCentavos))}`,
+    `Entrou: ${negrito(formatarMoeda(acerto.caixa.totalCentavos))}`,
     `PIX ${formatarMoeda(acerto.caixa.pixCentavos)} · Dinheiro ${formatarMoeda(acerto.caixa.dinheiroCentavos)}`,
   ];
   if (acerto.fiado.valorCentavos > 0)
@@ -116,11 +121,25 @@ export function mensagemDoAcerto(acerto: AcertoDiario): string {
   if (acerto.semPagamento.valorCentavos > 0) {
     linhas.push(`Sem pagamento: ${formatarMoeda(acerto.semPagamento.valorCentavos)}`);
   }
-  linhas.push('', negrito('Para cada produtor'));
+  linhas.push('', negrito('Cada um fez'));
   for (const parte of acerto.produtores) {
-    const pendente =
-      parte.pendenteCentavos > 0 ? ` (falta ${formatarMoeda(parte.pendenteCentavos)})` : '';
-    linhas.push(`${parte.produtor.nome}: ${formatarMoeda(parte.aReceberCentavos)}${pendente}`);
+    linhas.push(
+      `${parte.produtor.nome}: ${formatarMoeda(parte.valorProduzidoCentavos)} (${contagem(parte.unidades, 'salgado', 'salgados')})`,
+    );
+  }
+  return linhas.join('\n');
+}
+
+/** Quanto cada produtor tem a receber no período, fiado incluído. */
+export function mensagemDoAReceber(
+  { de, ate }: Periodo,
+  producoes: readonly ProducaoDoProdutor[],
+): string {
+  const linhas = [negrito(`A receber de ${dataCurta(de)} a ${dataCurta(ate)}`), ''];
+  for (const producao of producoes) {
+    linhas.push(
+      `${producao.produtor.nome}: ${negrito(formatarMoeda(producao.aReceberCentavos))} (${contagem(producao.unidades, 'salgado', 'salgados')})`,
+    );
   }
   return linhas.join('\n');
 }

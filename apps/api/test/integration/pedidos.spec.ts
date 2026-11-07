@@ -566,6 +566,35 @@ describe('pedidos', () => {
       expect(dadosDe<{ id: string }[]>(porNumero).map((p) => p.id)).toEqual([amanha.id]);
     });
 
+    it('falta pagar: só os confirmados e concluídos com saldo, fiado contando como devido', async () => {
+      const semNada = await adicionarItem(await novoPedido(), { quantidade: 1 });
+      await mudarStatus(semNada, 'CONFIRMADO').expect(200);
+      const parcial = await adicionarItem(await novoPedido(), { quantidade: 1 });
+      await mudarStatus(parcial, 'CONFIRMADO').expect(200);
+      await pagar(parcial, 'PIX', 5000).expect(201);
+      const noFiado = await adicionarItem(await novoPedido(), { quantidade: 1 });
+      await mudarStatus(noFiado, 'CONFIRMADO').expect(200);
+      await pagar(noFiado, 'FIADO', 9500).expect(201);
+      const quitado = await adicionarItem(await novoPedido(), { quantidade: 1 });
+      await mudarStatus(quitado, 'CONFIRMADO').expect(200);
+      await pagar(quitado, 'DINHEIRO', 9500).expect(201);
+      await adicionarItem(await novoPedido(), { quantidade: 1 });
+
+      const resposta = await api.get('/pedidos?faltaPagar=true').expect(200);
+
+      expect(
+        dadosDe<{ id: string; saldoDevedorCentavos: number }[]>(resposta)
+          .map((p) => [p.id, p.saldoDevedorCentavos])
+          .sort(),
+      ).toEqual(
+        [
+          [semNada.id, 9500],
+          [parcial.id, 4500],
+          [noFiado.id, 9500],
+        ].sort(),
+      );
+    });
+
     it('ordena os anteriores do mais recente para o mais antigo', async () => {
       await novoPedido({ dataEntrega: '2026-09-28' });
       await novoPedido({ dataEntrega: '2026-09-30' });

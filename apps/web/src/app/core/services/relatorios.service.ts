@@ -15,6 +15,7 @@ import type {
   Periodo,
   ProducaoDoProdutor,
   ResumoDeVolume,
+  ResumoDoAReceber,
   ResumoDosFiados,
 } from '../models/relatorios';
 import { paginaComResumoDe, parametros } from './respostas';
@@ -23,6 +24,7 @@ const RELATORIOS = `${environment.apiUrl}/relatorios`;
 /** Maior página que a API aceita. */
 const PAGINA_DA_EXPORTACAO = 100;
 const SEM_VOLUME: ResumoDeVolume = { unidades: 0, valorCentavos: 0 };
+const NADA_A_RECEBER: ResumoDoAReceber = { ...SEM_VOLUME, aReceberCentavos: 0 };
 const SEM_FIADOS: ResumoDosFiados = { totalEmAbertoCentavos: 0, quantidadePedidos: 0 };
 
 /** Relatório de uma data (AAAA-MM-DD); sem data, não consulta. */
@@ -79,7 +81,7 @@ export class RelatoriosService {
     }
   }
 
-  /** Caixa e divisão entre produtores. */
+  /** O que entrou no dia e o que cada produtor fez. */
   acerto(data: () => string | undefined): HttpResourceRef<AcertoDiario | undefined> {
     return daData('acerto', data);
   }
@@ -121,8 +123,8 @@ export class RelatoriosService {
 
   producaoPorProdutor(
     consulta: () => ConsultaDePeriodo | undefined,
-  ): HttpResourceRef<PaginaComResumo<ProducaoDoProdutor, ResumoDeVolume> | undefined> {
-    return paginado('producao', consulta, SEM_VOLUME);
+  ): HttpResourceRef<PaginaComResumo<ProducaoDoProdutor, ResumoDoAReceber> | undefined> {
+    return paginado('producao', consulta, NADA_A_RECEBER);
   }
 
   /** Clientes com fiado em aberto e o total consolidado. */

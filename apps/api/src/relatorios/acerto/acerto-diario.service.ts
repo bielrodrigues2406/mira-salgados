@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, In } from 'typeorm';
 
-import { decimalParaCentavos } from '../../common/utils/dinheiro.js';
+import { type Centavos, decimalParaCentavos } from '../../common/utils/dinheiro.js';
 import { STATUS_EM_VIGOR } from '../../pedidos/dominio/enums.js';
 import { ItemPedido } from '../../pedidos/itens/item-pedido.entity.js';
 import { Pagamento } from '../../pedidos/pagamentos/pagamento.entity.js';
@@ -50,35 +50,11 @@ export class AcertoDiarioService {
 
   /**
    * Acerto de cada dia do intervalo, com as mesmas regras de daData, em duas
-   * consultas. Cada dia é calculado à parte: a divisão do caixa é proporcional
-   * ao que cada um produziu naquele dia, e somar dias não muda isso.
+   * consultas. Cada dia é calculado à parte.
    * Dias sem pedidos ficam fora do mapa.
    */
   async porDia(de: string, ate: string): Promise<Map<string, AcertoDiario>> {
-    const itens = await this.dataSource
-      .createQueryBuilder(ItemPedido, 'item')
-      .innerJoin('item.pedido', 'pedido')
-      .innerJoin('item.produto', 'produto')
-      .innerJoin('item.produtor', 'produtor')
-      .select("to_char(pedido.dataEntrega, 'YYYY-MM-DD')", 'data')
-      .addSelect('pedido.id', 'pedidoId')
-      .addSelect('pedido.numero', 'numero')
-      .addSelect('pedido.desconto', 'desconto')
-      .addSelect('produto.id', 'produtoId')
-      .addSelect('produto.nome', 'produtoNome')
-      .addSelect('produtor.id', 'produtorId')
-      .addSelect('produtor.nome', 'produtorNome')
-      .addSelect('item.preparo', 'preparo')
-      .addSelect('item.unidadeVenda', 'unidadeVenda')
-      .addSelect('item.quantidade', 'quantidade')
-      .addSelect('item.precoUnitario', 'precoUnitario')
-      .where('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate })
-      .andWhere('pedido.status IN (:...status)', { status: STATUS_EM_VIGOR })
-      // Ordem estável: o desempate do rateio do desconto não pode variar.
-      .orderBy('pedido.numero', 'ASC')
-      .addOrderBy('item.criadoEm', 'ASC')
-      .addOrderBy('item.id', 'ASC')
-      .getRawMany<ItemCru>();
+    const itens = await this.itens('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate });
 
     const pedidoIds = [...new Set(itens.map((item) => item.pedidoId))];
     const pagamentos =
@@ -111,6 +87,50 @@ export class AcertoDiarioService {
         data,
         calcularAcerto(doDia.map(paraItemDoAcerto), somas),
       ]),
+    );
+  }
+
+  /**
+   * Quanto cada produtor tem a receber no período: os salgados que fez, com a
+   * parte dos descontos de cada pedido, fiado incluído. É a mesma conta do
+   * acerto, então a soma dos dias fecha com o período.
+   */
+  async aReceberNoPeriodo(de: string, ate: string): Promise<Map<string, Centavos>> {
+    const itens = await this.itens('pedido.dataEntrega BETWEEN :de AND :ate', { de, ate });
+    return new Map(
+      calcularAcerto(itens.map(paraItemDoAcerto), []).produtores.map((parte) => [
+        parte.produtor.id,
+        parte.valorProduzido,
+      ]),
+    );
+  }
+
+  private itens(filtro: string, parametros: Record<string, string>): Promise<ItemCru[]> {
+    return (
+      this.dataSource
+        .createQueryBuilder(ItemPedido, 'item')
+        .innerJoin('item.pedido', 'pedido')
+        .innerJoin('item.produto', 'produto')
+        .innerJoin('item.produtor', 'produtor')
+        .select("to_char(pedido.dataEntrega, 'YYYY-MM-DD')", 'data')
+        .addSelect('pedido.id', 'pedidoId')
+        .addSelect('pedido.numero', 'numero')
+        .addSelect('pedido.desconto', 'desconto')
+        .addSelect('produto.id', 'produtoId')
+        .addSelect('produto.nome', 'produtoNome')
+        .addSelect('produtor.id', 'produtorId')
+        .addSelect('produtor.nome', 'produtorNome')
+        .addSelect('item.preparo', 'preparo')
+        .addSelect('item.unidadeVenda', 'unidadeVenda')
+        .addSelect('item.quantidade', 'quantidade')
+        .addSelect('item.precoUnitario', 'precoUnitario')
+        .where(filtro, parametros)
+        .andWhere('pedido.status IN (:...status)', { status: STATUS_EM_VIGOR })
+        // Ordem estável: o desempate do rateio do desconto não pode variar.
+        .orderBy('pedido.numero', 'ASC')
+        .addOrderBy('item.criadoEm', 'ASC')
+        .addOrderBy('item.id', 'ASC')
+        .getRawMany<ItemCru>()
     );
   }
 }

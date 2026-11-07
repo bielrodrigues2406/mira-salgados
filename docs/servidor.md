@@ -26,7 +26,34 @@ internet ──> Caddy (80/443, HTTPS automático)      /srv/proxy
   (`ghcr.io/bielrodrigues2406/mira-salgados-api` e `-web`), com a tag
   `latest` e a do commit. O servidor só baixa.
 
-## Implantar pelo GitHub (recomendado)
+## Instalar pela própria VPS (o mais simples)
+
+Com o repositório e as imagens públicos, basta entrar na VPS por SSH, como
+root, e rodar:
+
+```sh
+curl -fsSLo instalar.sh https://raw.githubusercontent.com/bielrodrigues2406/mira-salgados/master/deploy/servidor/instalar.sh
+bash instalar.sh
+```
+
+O `instalar.sh` baixa a pasta `deploy/` do `master`, pergunta na tela o
+domínio, o e-mail do certificado, a versão (`latest` por padrão) e, só na
+primeira vez, o nome, o celular e a senha do administrador (a senha não
+aparece nem fica em arquivo depois da implantação). Em seguida chama
+`implantar.sh`, que faz o mesmo que o workflow abaixo: prepara o servidor,
+sobe proxy e aplicação, cria o administrador, carrega o catálogo, agenda o
+backup e confere o HTTPS.
+
+Para atualizar depois de um merge no `master`, rode `bash instalar.sh` de
+novo: as respostas anteriores viram o padrão e o administrador não é pedido
+outra vez. Para voltar a uma versão anterior, responda com os 7 primeiros
+caracteres do commit.
+
+Se a VPS ainda não tem chave SSH autorizada, o login por senha continua
+valendo (com firewall e fail2ban); ao autorizar uma chave e rodar de novo, o
+SSH passa a aceitar só chave.
+
+## Implantar pelo GitHub
 
 O workflow **Implantar** (`.github/workflows/implantar.yml`) faz tudo pela
 internet, sem baixar o projeto: entra na VPS por SSH, prepara o servidor na
@@ -85,9 +112,8 @@ ele recusa conectar se a máquina do outro lado não for a mesma.
 
 ## Implantar à mão
 
-O mesmo resultado, entrando na VPS por SSH. O repositório é privado: copie a
-pasta `deploy/` para `/opt/mira-salgados/deploy` (por exemplo com `scp -r`)
-em vez de clonar.
+O mesmo resultado, passo a passo, entrando na VPS por SSH. Deixe a pasta
+`deploy/` em `/opt/mira-salgados/deploy` (com `git clone` ou `scp -r`).
 
 ```sh
 sudo bash /opt/mira-salgados/deploy/servidor/preparar.sh
@@ -101,8 +127,8 @@ dos logs dos contêineres e cria a rede `proxy` e as pastas `/srv/proxy`,
 
 ### Acesso às imagens
 
-As imagens são privadas como o repositório. Crie no GitHub um token clássico
-só com `read:packages` e, no servidor:
+Só se as imagens forem privadas: crie no GitHub um token clássico só com
+`read:packages` e, no servidor:
 
 ```sh
 echo SEU_TOKEN | docker login ghcr.io -u bielrodrigues2406 --password-stdin

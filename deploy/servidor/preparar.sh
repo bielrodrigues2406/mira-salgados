@@ -45,7 +45,21 @@ systemctl enable --now docker
 echo "==> Firewall: só SSH, HTTP e HTTPS"
 ufw default deny incoming
 ufw default allow outgoing
+# Libera a porta em que o SSH atende de fato: a configurada no sshd e a da
+# conexão de quem roda o script. Hospedagens como a HostGator usam 22022;
+# liberar só a 22 trancaria todo mundo fora ao ligar o firewall.
+portas_ssh="$(
+  {
+    sshd -T 2> /dev/null | awk '$1 == "port" { print $2 }' || true
+    if [ -n "${SSH_CONNECTION:-}" ]; then echo "${SSH_CONNECTION##* }"; fi
+  } | { grep -E '^[0-9]+$' || true; } | sort -un | tr '\n' ' '
+)"
+portas_ssh="${portas_ssh:-22}"
+echo "Portas do SSH: $portas_ssh"
 ufw allow OpenSSH
+for porta in $portas_ssh; do
+  ufw allow "$porta/tcp"
+done
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow 443/udp
@@ -55,7 +69,14 @@ ufw --force enable
 # compose das aplicações publica porta: só o proxy abre 80 e 443.
 
 echo "==> fail2ban para tentativas de SSH"
-systemctl enable --now fail2ban
+# O padrão vigia só a porta 22; aqui, as mesmas portas liberadas acima.
+cat > /etc/fail2ban/jail.d/ssh-portas.local << JAIL
+[sshd]
+enabled = true
+port = $(echo "$portas_ssh" | xargs | tr ' ' ',')
+JAIL
+systemctl enable fail2ban
+systemctl restart fail2ban
 
 # Com uma chave autorizada, senha deixa de entrar por SSH: o workflow e quem
 # administra usam chave, e o console do painel da VPS continua funcionando.

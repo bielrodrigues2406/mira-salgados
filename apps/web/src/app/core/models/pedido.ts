@@ -131,4 +131,6 @@ export interface ConsultaPedidos {
   ate?: string;
   ordem?: 'asc' | 'desc';
   clienteId?: string;
+  /** Só confirmados e concluídos que ainda devem algo; o fiado não quita. */
+  faltaPagar?: boolean;
 }

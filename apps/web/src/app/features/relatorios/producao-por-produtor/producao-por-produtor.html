@@ -1,4 +1,8 @@
-<ms-seletor-periodo [periodo]="periodo()" (periodoMudou)="mudarPeriodo($event)" />
+<ms-seletor-periodo
+  [periodo]="periodo()"
+  [atalhosProprios]="atalhos"
+  (periodoMudou)="mudarPeriodo($event)"
+/>
 
 <div class="campo filtro">
   <label class="texto-rotulo" for="filtro-produtor">Produtor</label>
@@ -17,14 +21,18 @@
 
 @switch (estado()) {
   @case ('carregando') {
-    <ms-lista-esqueleto rotulo="Carregando a produção" [quantidade]="3" [comAvatar]="true" />
+    <ms-lista-esqueleto
+      rotulo="Carregando o que cada um tem a receber"
+      [quantidade]="3"
+      [comAvatar]="true"
+    />
   }
   @case ('tentando') {
-    <ms-estado-erro titulo="Não foi possível carregar a produção" [tentando]="true" />
+    <ms-estado-erro titulo="Não foi possível carregar o a receber" [tentando]="true" />
   }
   @case ('erro') {
     <ms-estado-erro
-      titulo="Não foi possível carregar a produção"
+      titulo="Não foi possível carregar o a receber"
       [erro]="recurso.error()"
       (tentarNovamente)="recurso.reload()"
     />
@@ -37,10 +45,12 @@
   }
   @case ('pronto') {
     @if (resultado(); as resultado) {
-      <ms-compartilhar [gerarPlanilha]="planilha" />
-      <p class="texto-legenda numerico">
-        {{ resumo() }} · {{ resultado.resumo.valorCentavos | moeda }} em itens, antes dos descontos
-      </p>
+      <section class="total" aria-labelledby="total-a-receber">
+        <span id="total-a-receber" class="rotulo-pequeno">A receber no período</span>
+        <span class="total-valor numerico">{{ resultado.resumo.aReceberCentavos | moeda }}</span>
+        <span class="texto-legenda numerico">{{ resumo() }} · fiado incluído</span>
+      </section>
+      <ms-compartilhar [mensagem]="mensagem()" [gerarPlanilha]="planilha" />
       <div class="produtores">
         @for (producao of resultado.itens; track producao.produtor.id) {
           <article
@@ -53,18 +63,12 @@
                 <h3 [id]="'produtor-' + producao.produtor.id">{{ producao.produtor.nome }}</h3>
                 <span class="texto-legenda numerico">{{ detalhe(producao) }}</span>
               </div>
-              <div class="participacao">
-                <span class="participacao-valor numerico">{{
-                  percentual(participacao(producao))
+              <div class="a-receber">
+                <span class="a-receber-valor numerico">{{
+                  producao.aReceberCentavos | moeda
                 }}</span>
-                <span class="rotulo-pequeno">Do volume</span>
+                <span class="rotulo-pequeno">A receber</span>
               </div>
-            </div>
-            <div class="barra" aria-hidden="true">
-              <div
-                class="barra-preenchida barra-animada"
-                [style.width.%]="participacao(producao)"
-              ></div>
             </div>
             <ul class="itens">
               @for (item of producao.itens; track item.produto.id + item.preparo) {
@@ -80,10 +84,22 @@
                 </li>
               }
             </ul>
-            <div class="rodape">
-              <span>Valor em itens</span>
-              <span class="valor numerico">{{ producao.valorCentavos | moeda }}</span>
-            </div>
+            <dl class="conta numerico">
+              <div>
+                <dt>Salgados</dt>
+                <dd>{{ producao.valorCentavos | moeda }}</dd>
+              </div>
+              @if (desconto(producao) > 0) {
+                <div>
+                  <dt>Parte nos descontos</dt>
+                  <dd>-{{ desconto(producao) | moeda }}</dd>
+                </div>
+              }
+              <div class="conta-total">
+                <dt>A receber</dt>
+                <dd>{{ producao.aReceberCentavos | moeda }}</dd>
+              </div>
+            </dl>
           </article>
         }
       </div>

@@ -27,7 +27,6 @@ function acerto(data: string): Acerto {
       {
         produtor: { id: 'mira', nome: 'Mira' },
         unidades: 900,
-        participacaoDecimos: 568,
         itens: [
           {
             produto: { id: 'coxinha', nome: 'Coxinha de frango' },
@@ -40,13 +39,10 @@ function acerto(data: string): Acerto {
         valorItensCentavos: 81260,
         descontoCentavos: 760,
         valorProduzidoCentavos: 80500,
-        aReceberCentavos: 35336,
-        pendenteCentavos: 45164,
       },
       {
         produtor: { id: 'celia', nome: 'Célia' },
         unidades: 670,
-        participacaoDecimos: 432,
         itens: [
           {
             produto: { id: 'esfiha', nome: 'Esfiha de carne' },
@@ -59,12 +55,8 @@ function acerto(data: string): Acerto {
         valorItensCentavos: 61200,
         descontoCentavos: 0,
         valorProduzidoCentavos: 61200,
-        aReceberCentavos: 26864,
-        pendenteCentavos: 34336,
       },
     ],
-    somaAReceberCentavos: 62200,
-    somaPendenteCentavos: 79500,
   };
 }
 
@@ -139,19 +131,16 @@ describe('AcertoDiario', () => {
     );
   });
 
-  it('mostra a divisão por produtor e a conferência com o caixa', async () => {
+  it('mostra o que cada produtor fez, sem dividir o caixa', async () => {
     await abrir('/relatorios/acerto');
 
     expect(textos('.cartao-produtor h3')).toEqual(['Mira', 'Célia']);
     expect(textos('.avatar')).toEqual(['MI', 'CÉ']);
-    expect(textos('.participacao-valor')).toEqual(['56,8%', '43,2%']);
-    expect(textos('.a-receber dd')).toEqual(['R$ 353,36', 'R$ 268,64']);
-    expect(textos('.pendente dd')).toEqual(['R$ 451,64', 'R$ 343,36']);
+    expect(textos('.valor-produzido')).toEqual(['R$ 805,00', 'R$ 612,00']);
     expect(textos('.linha-total.desconto .numerico')).toEqual(['− R$ 7,60']);
     expect(textos('.linha-detalhe .texto-legenda')).toEqual(['5 centos', '1 cento + 50 avulsas']);
-    expect(textos('.conferencia-ok')).toEqual([
-      'Distribuição fecha com o caixa líquido, centavo a centavo',
-    ]);
+    expect(tela.textContent).not.toContain('A receber do caixa');
+    expect(tela.querySelector('a[href="/relatorios/producao"]')).not.toBeNull();
   });
 
   it('troca de dia pela URL e volta a hoje sem parâmetro', async () => {

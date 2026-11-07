@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 
-import type { Paginated } from '../common/pagination/pagination.js';
+import { Paginated } from '../common/pagination/pagination.js';
 import { AcertoDiarioService } from './acerto/acerto-diario.service.js';
 import { AcertoDiarioDto } from './dto/acerto-diario.dto.js';
 import { DataDoRelatorioDto } from './dto/data-do-relatorio.dto.js';
@@ -32,7 +32,7 @@ export class RelatoriosController {
     private readonly fiados: FiadosService,
   ) {}
 
-  /** Caixa do dia e divisão entre produtores, proporcional ao valor produzido. */
+  /** O que entrou no dia e o que cada produtor fez, sem divisão do caixa. */
   @Get('acerto')
   async acertoDiario(@Query() { data }: DataDoRelatorioDto): Promise<AcertoDiarioDto> {
     return AcertoDiarioDto.de(data, await this.acerto.daData(data));
@@ -69,13 +69,25 @@ export class RelatoriosController {
     return (await this.periodo.itensVendidos(filtro)).map((item) => ItemVendidoDto.de(item));
   }
 
+  /** Quanto cada produtor fez e tem a receber no período, fiado incluído. */
   @Get('producao')
   async producaoPorProdutor(
     @Query() filtro: FiltroProducaoDto,
   ): Promise<Paginated<ProducaoDoProdutorDto>> {
-    return (await this.periodo.producaoPorProdutor(filtro)).map((producao) =>
-      ProducaoDoProdutorDto.de(producao),
+    const [pagina, aReceber] = await Promise.all([
+      this.periodo.producaoPorProdutor(filtro),
+      this.acerto.aReceberNoPeriodo(filtro.de, filtro.ate),
+    ]);
+    const doFiltro = [...aReceber].filter(
+      ([produtorId]) => filtro.produtorId === undefined || produtorId === filtro.produtorId,
     );
+    const resposta = pagina.map((producao) =>
+      ProducaoDoProdutorDto.de(producao, aReceber.get(producao.produtor.id) ?? 0),
+    );
+    return new Paginated(resposta.items, resposta.total, resposta.page, resposta.pageSize, {
+      ...resposta.resumo,
+      aReceberCentavos: doFiltro.reduce((total, [, valor]) => total + valor, 0),
+    });
   }
 
   /** Clientes com fiado em aberto; o resumo traz o total consolidado. */

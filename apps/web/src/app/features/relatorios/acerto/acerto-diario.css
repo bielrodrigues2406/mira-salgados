@@ -201,6 +201,11 @@
   margin-top: 8px;
 }
 
+.divisao-cabecalho a {
+  color: var(--cor-acao);
+  font-weight: 600;
+}
+
 .divisao-titulo {
   color: var(--cor-texto);
 }
@@ -215,35 +220,4 @@
     grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
     align-items: start;
   }
-}
-
-.conferencia {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-}
-
-.conferencia-linha {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.conferencia-linha span:first-child {
-  color: var(--cor-texto-secundario);
-}
-
-.conferencia-linha span:last-child {
-  font-weight: 600;
-}
-
-.conferencia-ok {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding-top: 4px;
-  color: var(--cor-positivo);
-  font-size: 12px;
-  font-weight: 500;
 }

@@ -2,6 +2,7 @@ import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
@@ -12,7 +13,7 @@ import {
 import { PaginationQueryDto } from '../../common/pagination/pagination.js';
 import { DataDoCalendario } from '../../common/validation/data.js';
 import { comoEnum } from '../../common/validation/enum.js';
-import { Aparar } from '../../common/validation/transforms.js';
+import { Aparar, BooleanoDeQuery } from '../../common/validation/transforms.js';
 import { STATUS_PEDIDO, type StatusPedido } from '../dominio/enums.js';
 
 export const ORDENS = ['asc', 'desc'] as const;
@@ -47,6 +48,12 @@ export class FiltroPedidosDto extends PaginationQueryDto {
   @IsString()
   @MaxLength(120)
   busca?: string;
+
+  /** Só os confirmados e concluídos que ainda devem algo; o fiado não quita. */
+  @IsOptional()
+  @BooleanoDeQuery()
+  @IsBoolean()
+  faltaPagar?: boolean;
 
   /** Por data de entrega e horário: asc para os próximos, desc para os anteriores. */
   @IsOptional()

@@ -44,13 +44,25 @@
     >
       <ms-icone nome="filtro" />
       <span>Filtros</span>
-      @if (statusFiltrados().length > 0) {
-        <span class="contador numerico">{{ statusFiltrados().length }}</span>
+      @if (quantidadeDeFiltros() > 0) {
+        <span class="contador numerico">{{ quantidadeDeFiltros() }}</span>
       }
     </button>
   </div>
   @if (filtrosAbertos()) {
-    <div id="filtros-status" class="opcoes" role="group" aria-label="Filtrar por estado do pedido">
+    <div id="filtros-status" class="opcoes">
+      <button
+        type="button"
+        class="opcao"
+        [attr.aria-pressed]="faltaPagar()"
+        (click)="alternarFaltaPagar()"
+      >
+        @if (faltaPagar()) {
+          <ms-icone nome="confirmado" />
+        }
+        <span>Falta pagar</span>
+      </button>
+      <span class="separador" aria-hidden="true"></span>
       <button
         type="button"
         class="opcao"

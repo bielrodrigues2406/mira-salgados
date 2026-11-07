@@ -30,7 +30,6 @@ export class GanhoDto {
   ate: string;
   unidades: number;
   produzidoCentavos: number;
-  recebidoCentavos: number;
 }
 
 export class PainelDto {
@@ -122,7 +121,6 @@ function ganho(valor: Ganho): GanhoDto {
     ate: valor.ate,
     unidades: valor.unidades,
     produzidoCentavos: valor.produzido,
-    recebidoCentavos: valor.recebido,
   });
 }
 

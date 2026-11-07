@@ -103,6 +103,11 @@ export function ultimoDiaDoMes(texto: string): string {
   return paraTextoDeData(new Date(data.getFullYear(), data.getMonth() + 1, 0));
 }
 
+/** Segunda-feira da semana da data (a semana vai de segunda a domingo). */
+export function segundaDaSemana(data: string): string {
+  return somarDias(data, -((deTextoDeData(data).getDay() + 6) % 7));
+}
+
 /** Quantos dias vão de `de` a `ate`, contando os dois; zero ou menos se `ate` vem antes. */
 export function diasNoIntervalo(de: string, ate: string): number {
   const inicio = deTextoDeData(de);

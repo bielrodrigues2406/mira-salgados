@@ -38,8 +38,6 @@ export interface Ganho extends Intervalo {
   unidades: number;
   /** Valor dos salgados feitos, já com a parte dos descontos. */
   produzido: Centavos;
-  /** Parte do dinheiro e do PIX que entraram: o resto é fiado ou falta receber. */
-  recebido: Centavos;
 }
 
 export interface Painel {
@@ -110,10 +108,12 @@ export function montarPainel(dados: DadosDoPainel): Painel {
         meusSalgados: produtor ? (meu?.salgados ?? []) : null,
       };
     }),
+    // O que a pessoa fez: só até hoje. Pedidos dos próximos dias
+    // aparecem em "próximos dias", não aqui.
     ganhos: produtor
       ? {
-          semana: ganhoNoIntervalo(dados.acertos, dados.semana, produtor.id),
-          mes: ganhoNoIntervalo(dados.acertos, dados.mes, produtor.id),
+          semana: ganhoNoIntervalo(dados.acertos, ateHoje(dados.semana, dados.data), produtor.id),
+          mes: ganhoNoIntervalo(dados.acertos, ateHoje(dados.mes, dados.data), produtor.id),
         }
       : null,
     familia: {
@@ -122,6 +122,10 @@ export function montarPainel(dados: DadosDoPainel): Painel {
       rascunhos: dados.rascunhos,
     },
   };
+}
+
+function ateHoje(intervalo: Intervalo, hoje: string): Intervalo {
+  return { de: intervalo.de, ate: intervalo.ate < hoje ? intervalo.ate : hoje };
 }
 
 function acertosDoIntervalo(
@@ -144,7 +148,6 @@ function ganhoNoIntervalo(
     ...intervalo,
     unidades: partes.reduce((soma, parte) => soma + parte.unidades, 0),
     produzido: somar(...partes.map((parte) => parte.valorProduzido)),
-    recebido: somar(...partes.map((parte) => parte.aReceber)),
   };
 }
 

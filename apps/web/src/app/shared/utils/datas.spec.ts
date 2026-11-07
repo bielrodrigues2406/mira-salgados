@@ -10,6 +10,7 @@ import {
   hoje,
   paraTextoDeData,
   quandoEntregar,
+  segundaDaSemana,
   somarDias,
 } from './datas';
 
@@ -67,5 +68,11 @@ describe('momentoCurto', () => {
     expect(diasNoIntervalo('2026-10-01', '2026-10-31')).toBe(31);
     expect(diasNoIntervalo('2026-01-01', '2026-12-31')).toBe(365);
     expect(diasNoIntervalo('2026-10-05', '2026-10-01')).toBe(-3);
+  });
+
+  it('a semana começa na segunda, inclusive quando a data é domingo', () => {
+    expect(segundaDaSemana('2026-09-28')).toBe('2026-09-28');
+    expect(segundaDaSemana('2026-10-04')).toBe('2026-09-28');
+    expect(segundaDaSemana('2026-10-01')).toBe('2026-09-28');
   });
 });

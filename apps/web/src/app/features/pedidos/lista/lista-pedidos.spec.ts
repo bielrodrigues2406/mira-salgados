@@ -130,6 +130,39 @@ describe('ListaPedidos', () => {
     expect(tela.textContent).toContain('Nenhum pedido ainda');
   });
 
+  it('mostra quanto falta pagar e filtra só os que devem', async () => {
+    montar();
+    await responder({
+      hoje: [
+        pedido(1, {
+          statusPagamento: 'PARCIAL',
+          totalPagoCentavos: 5000,
+          saldoDevedorCentavos: 4500,
+        }),
+        pedido(2, { statusPagamento: 'PAGO', totalPagoCentavos: 9500, saldoDevedorCentavos: 0 }),
+      ],
+    });
+    expect(
+      [...tela.querySelectorAll('.falta')].map((e) => e.textContent.replace(/\s+/g, ' ').trim()),
+    ).toEqual(['falta R$ 45,00']);
+
+    tela.querySelector<HTMLButtonElement>('.filtros')?.click();
+    await fixture.whenStable();
+    [...tela.querySelectorAll<HTMLButtonElement>('.opcao')]
+      .find((opcao) => opcao.textContent.includes('Falta pagar'))
+      ?.click();
+
+    const secoes = await vi.waitFor(() => {
+      const encontradas = requisicoes();
+      if (encontradas.length < 3) throw new Error('filtro ainda não aplicado');
+      return encontradas;
+    });
+    expect(secoes.map((r) => r.request.params.get('faltaPagar'))).toEqual(['true', 'true', 'true']);
+    for (const requisicao of secoes) requisicao.flush(pagina([]));
+    await fixture.whenStable();
+    expect(tela.querySelector('.contador')?.textContent.trim()).toBe('1');
+  });
+
   it('filtra por estado em todas as seções', async () => {
     montar();
     await responder({ hoje: [pedido(1)] });

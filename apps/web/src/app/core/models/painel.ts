@@ -33,8 +33,6 @@ export interface Ganho {
   unidades: number;
   /** Valor dos salgados feitos, já com a parte dos descontos. */
   produzidoCentavos: number;
-  /** Parte do dinheiro e do PIX que já entraram. */
-  recebidoCentavos: number;
 }
 
 /** Tela inicial de quem entrou. */

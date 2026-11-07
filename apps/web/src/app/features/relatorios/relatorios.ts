@@ -10,7 +10,7 @@ interface Aba {
 export const ABAS_DE_RELATORIOS: readonly Aba[] = [
   { rota: 'acerto', rotulo: 'Acerto diário' },
   { rota: 'faturamento', rotulo: 'Faturamento' },
-  { rota: 'producao', rotulo: 'Produção' },
+  { rota: 'producao', rotulo: 'Por produtor' },
   { rota: 'itens-vendidos', rotulo: 'Itens vendidos' },
   { rota: 'fiados', rotulo: 'Fiados' },
 ];

@@ -76,14 +76,17 @@ export class ProducaoDoProdutorDto {
   unidades: number;
   /** Quantidade vezes preço, antes dos descontos. */
   valorCentavos: number;
+  /** O que o produtor tem a receber: o valor com a parte dos descontos, fiado incluído. */
+  aReceberCentavos: number;
   quantidadePedidos: number;
   itens: { produto: ReferenciaDto; preparo: Preparo; unidades: number; valorCentavos: number }[];
 
-  static de(producao: ProducaoDoProdutor): ProducaoDoProdutorDto {
+  static de(producao: ProducaoDoProdutor, aReceber: number): ProducaoDoProdutorDto {
     return Object.assign(new ProducaoDoProdutorDto(), {
       produtor: { id: producao.produtor.id, nome: producao.produtor.nome },
       unidades: producao.unidades,
       valorCentavos: producao.valor,
+      aReceberCentavos: aReceber,
       quantidadePedidos: producao.quantidadePedidos,
       itens: producao.itens.map((item) => ({
         produto: { id: item.produto.id, nome: item.produto.nome },

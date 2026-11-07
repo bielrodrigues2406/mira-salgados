@@ -181,7 +181,12 @@ describe('relatórios de período e fiados', () => {
   });
 
   it('agrega a produção por produtor, com filtro por produtor', async () => {
-    await pedido({ dataEntrega: '2026-10-01', itens: [['coxinha', 'CENTO', 3]] });
+    // R$ 5,00 de desconto: sai do que a Mira tem a receber, não do valor dos itens.
+    await pedido({
+      dataEntrega: '2026-10-01',
+      itens: [['coxinha', 'CENTO', 3]],
+      descontoCentavos: 500,
+    });
     await pedido({ dataEntrega: '2026-10-02', itens: [['kibe', 'CENTO', 2]] });
     // Coxinha feita pela Célia neste pedido: conta para ela, não para a Mira.
     await pedido({
@@ -197,6 +202,7 @@ describe('relatórios de período e fiados', () => {
           produtor: Ref;
           unidades: number;
           valorCentavos: number;
+          aReceberCentavos: number;
           quantidadePedidos: number;
           itens: { produto: Ref; unidades: number }[];
         }[]
@@ -204,6 +210,7 @@ describe('relatórios de período e fiados', () => {
         p.produtor.nome,
         p.unidades,
         p.valorCentavos,
+        p.aReceberCentavos,
         p.quantidadePedidos,
         p.itens.map((i) => [i.produto.nome, i.unidades]),
       ]),
@@ -212,21 +219,27 @@ describe('relatórios de período e fiados', () => {
         'Célia',
         300,
         27500,
+        27500,
         2,
         [
           ['Kibe', 200],
           ['Coxinha de frango', 100],
         ],
       ],
-      ['Mira', 300, 28500, 1, [['Coxinha de frango', 300]]],
+      ['Mira', 300, 28500, 28000, 1, [['Coxinha de frango', 300]]],
     ]);
-    expect(resumoDe(todos)).toEqual({ unidades: 600, valorCentavos: 56000 });
+    expect(resumoDe(todos)).toEqual({
+      unidades: 600,
+      valorCentavos: 56000,
+      aReceberCentavos: 55500,
+    });
 
     const mira = await api
       .get(`/relatorios/producao?de=2026-10-01&ate=2026-10-31&produtorId=${cenario.mira.id}`)
       .expect(200);
     expect(dadosDe<{ produtor: Ref }[]>(mira).map((p) => p.produtor.nome)).toEqual(['Mira']);
     expect(metaDe(mira)?.total).toBe(1);
+    expect(resumoDe(mira)).toMatchObject({ aReceberCentavos: 28000 });
   });
 
   describe('fiados', () => {
