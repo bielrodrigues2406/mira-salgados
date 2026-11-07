@@ -71,12 +71,12 @@ if [ ! -f "$APP/.catalogo-carregado" ]; then
   nome="$(perguntar 'Seu nome')"
   telefone="$(perguntar 'Seu celular com DDD (só números)')"
   while true; do
-    read -r -s -p "Senha (mínimo de 12 caracteres): " senha < /dev/tty
+    read -r -s -p "Senha (mínimo de 8 caracteres): " senha < /dev/tty
     echo
     read -r -s -p "Repita a senha: " confirmacao < /dev/tty
     echo
-    if [ "${#senha}" -lt 12 ]; then
-      echo "A senha precisa ter pelo menos 12 caracteres."
+    if [ "${#senha}" -lt 8 ]; then
+      echo "A senha precisa ter pelo menos 8 caracteres."
     elif [ "$senha" != "$confirmacao" ]; then
       echo "As senhas não conferem."
     else

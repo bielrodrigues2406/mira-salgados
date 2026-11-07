@@ -16,7 +16,7 @@ import { mensagemDeErro } from '../../../core/services/mensagem-de-erro';
 import { ErrosDoCampo } from '../../../shared/components/erros-do-campo/erros-do-campo';
 import { Icone } from '../../../shared/components/icone/icone';
 
-const SENHA_MINIMA = 12;
+const SENHA_MINIMA = 8;
 const SENHA_MAXIMA = 128;
 
 /**
