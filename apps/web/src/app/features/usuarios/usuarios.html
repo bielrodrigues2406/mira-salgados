@@ -85,13 +85,7 @@
       >
         <option value="">Não produz</option>
         @for (produtor of produtores(); track produtor.id) {
-          <option [value]="produtor.id" [disabled]="produtoresOcupados().has(produtor.id)">
-            {{
-              produtoresOcupados().has(produtor.id)
-                ? produtor.nome + ' (já tem conta)'
-                : produtor.nome
-            }}
-          </option>
+          <option [value]="produtor.id">{{ produtor.nome }}</option>
         }
       </select>
       <span id="nova-conta-produtor-ajuda" class="campo-ajuda">
@@ -224,16 +218,7 @@
                 >
                   <option value="">Não produz</option>
                   @for (produtor of produtores(); track produtor.id) {
-                    <option
-                      [value]="produtor.id"
-                      [disabled]="produtoresOcupados().has(produtor.id)"
-                    >
-                      {{
-                        produtoresOcupados().has(produtor.id)
-                          ? produtor.nome + ' (já tem conta)'
-                          : produtor.nome
-                      }}
-                    </option>
+                    <option [value]="produtor.id">{{ produtor.nome }}</option>
                   }
                 </select>
                 <span id="edicao-conta-produtor-ajuda" class="campo-ajuda">

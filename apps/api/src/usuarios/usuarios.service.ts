@@ -20,7 +20,6 @@ import { PasswordHasher } from './password-hasher.js';
 import { Usuario } from './usuario.entity.js';
 
 const UNICIDADE_DO_TELEFONE = 'uq_usuarios_telefone';
-const UNICIDADE_DO_PRODUTOR = 'uq_usuarios_produtor';
 
 export interface NovoUsuario {
   nome: string;
@@ -36,16 +35,11 @@ function telefoneEmUso(): ConflictError {
   return new ConflictError('TELEFONE_EM_USO', 'Já existe uma conta com este telefone.');
 }
 
-function produtorJaVinculado(): ConflictError {
-  return new ConflictError('PRODUTOR_JA_VINCULADO', 'Este produtor já está ligado a outra conta.');
-}
-
 async function traduzirDuplicados<T>(operacao: Promise<T>): Promise<T> {
   try {
     return await operacao;
   } catch (erro) {
     if (ehViolacaoDeUnicidade(erro, UNICIDADE_DO_TELEFONE)) throw telefoneEmUso();
-    if (ehViolacaoDeUnicidade(erro, UNICIDADE_DO_PRODUTOR)) throw produtorJaVinculado();
     throw erro;
   }
 }
@@ -77,7 +71,7 @@ export class UsuariosService {
         const repositorio = manager.getRepository(Usuario);
         if (await repositorio.existsBy({ telefone: dados.telefone })) throw telefoneEmUso();
         const produtorId = dados.produtorId ?? null;
-        if (produtorId) await this.validarProdutor(manager, produtorId, null);
+        if (produtorId) await this.validarProdutor(manager, produtorId);
 
         const usuario = await repositorio.save(
           repositorio.create({
@@ -136,7 +130,7 @@ export class UsuariosService {
         if (dados.papel !== undefined) usuario.papel = dados.papel;
         if (dados.ativo !== undefined) usuario.ativo = dados.ativo;
         if (dados.produtorId !== undefined && dados.produtorId !== usuario.produtorId) {
-          if (dados.produtorId) await this.validarProdutor(manager, dados.produtorId, id);
+          if (dados.produtorId) await this.validarProdutor(manager, dados.produtorId);
           usuario.produtorId = dados.produtorId;
         }
 
@@ -240,12 +234,8 @@ export class UsuariosService {
     return this.usuarios.existsBy({ papel: 'ADMIN', ativo: true });
   }
 
-  /** Produtor ativo e ainda sem conta; a restrição única cobre a corrida entre duas gravações. */
-  private async validarProdutor(
-    manager: EntityManager,
-    produtorId: string,
-    contaId: string | null,
-  ): Promise<void> {
+  /** Produtor ativo; várias contas podem ser o mesmo produtor. */
+  private async validarProdutor(manager: EntityManager, produtorId: string): Promise<void> {
     const produtor = await manager.getRepository(Produtor).findOneBy({ id: produtorId });
     if (!produtor?.ativo) {
       throw new BusinessRuleError(
@@ -253,8 +243,6 @@ export class UsuariosService {
         'O produtor escolhido não existe ou está inativo.',
       );
     }
-    const dono = await manager.getRepository(Usuario).findOneBy({ produtorId });
-    if (dono && dono.id !== contaId) throw produtorJaVinculado();
   }
 
   private async outrosAdminsAtivos(manager: EntityManager, excetoId: string): Promise<number> {
