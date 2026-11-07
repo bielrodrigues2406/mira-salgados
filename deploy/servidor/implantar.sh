@@ -1,12 +1,14 @@
 #!/bin/bash
-# Implanta ou atualiza o Mira Salgados no servidor. Chamado pelo workflow
-# "Implantar" (.github/workflows/implantar.yml), que copia a pasta deploy/ para
-# /opt/mira-salgados/deploy e manda as variáveis num arquivo só do root:
+# Implanta ou atualiza o Mira Salgados no servidor. Chamado por instalar.sh
+# (na própria VPS) ou pelo workflow "Implantar" (.github/workflows/implantar.yml),
+# que deixam a pasta deploy/ em /opt/mira-salgados/deploy e mandam as variáveis
+# num arquivo só do root:
 #   bash /opt/mira-salgados/deploy/servidor/implantar.sh /root/.implantar.env
 # Pode rodar quantas vezes precisar: cada passo só faz o que falta.
 #
-# Variáveis: DOMINIO, ACME_EMAIL, VERSAO, GHCR_USUARIO, GHCR_TOKEN e, para
-# criar o administrador na primeira vez, ADMIN_NOME, ADMIN_TELEFONE e ADMIN_SENHA.
+# Variáveis: DOMINIO, ACME_EMAIL, VERSAO; GHCR_USUARIO e GHCR_TOKEN só se as
+# imagens forem privadas; e, para criar o administrador na primeira vez,
+# ADMIN_NOME, ADMIN_TELEFONE e ADMIN_SENHA.
 set -euo pipefail
 umask 077
 
@@ -17,7 +19,7 @@ set -a
 set +a
 rm -f "$variaveis"
 
-: "${DOMINIO:?}" "${ACME_EMAIL:?}" "${VERSAO:?}" "${GHCR_USUARIO:?}" "${GHCR_TOKEN:?}"
+: "${DOMINIO:?}" "${ACME_EMAIL:?}" "${VERSAO:?}"
 
 origem="$(cd "$(dirname "$0")/.." && pwd)"
 proxy=/srv/proxy
@@ -45,10 +47,13 @@ if ! command -v docker > /dev/null || [ ! -d /srv/proxy ]; then
   bash "$origem/servidor/preparar.sh"
 fi
 
-echo "==> Acesso às imagens"
-echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USUARIO" --password-stdin > /dev/null
-# O token do workflow vence quando ele termina; sai mesmo assim.
-trap 'docker logout ghcr.io > /dev/null 2>&1 || true' EXIT
+# Imagens públicas não pedem login. Com token (imagens privadas, workflow),
+# entra e sai no fim: o token do workflow vence quando ele termina.
+if [ -n "${GHCR_TOKEN:-}" ]; then
+  echo "==> Acesso às imagens"
+  echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USUARIO:?}" --password-stdin > /dev/null
+  trap 'docker logout ghcr.io > /dev/null 2>&1 || true' EXIT
+fi
 
 echo "==> Proxy HTTPS em $proxy"
 install -d -m 755 "$proxy" "$proxy/sites"
