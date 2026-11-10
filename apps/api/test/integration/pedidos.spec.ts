@@ -241,6 +241,73 @@ describe('pedidos', () => {
     ]);
   });
 
+  it.each([0.5, 1, 1.2, 1.5])(
+    'grava e consulta %s centos com preço proporcional',
+    async (quantidade) => {
+      const pedido = await adicionarItem(await novoPedido(), { quantidade });
+      const depois = dadosDe<Pedido>(await api.get(`/pedidos/${pedido.id}`).expect(200));
+      expect(depois.itens[0]?.quantidade).toBe(quantidade);
+      expect(depois.resumo.subtotalCentavos).toBe(Math.round(9500 * quantidade));
+      const editado = dadosDe<Pedido>(
+        await api
+          .patch(`/pedidos/${pedido.id}/itens/${pedido.itens[0]?.id}`, { quantidade: 0.29 })
+          .expect(200),
+      );
+      expect(editado.itens[0]?.quantidade).toBe(0.29);
+      expect(editado.resumo.totalCentavos).toBe(2755);
+    },
+  );
+
+  it('arredonda cada item igualmente no detalhe e na listagem', async () => {
+    await api
+      .post(`/produtos/${cenario.coxinha.id}/precos`, {
+        preparo: 'FRITO',
+        unidadeVenda: 'CENTO',
+        precoCentavos: 9501,
+      })
+      .expect(201);
+    let pedido = await adicionarItem(await novoPedido(), { quantidade: 0.5 });
+    pedido = await adicionarItem(pedido, { quantidade: 0.5 });
+    expect(pedido.resumo.totalCentavos).toBe(9502);
+    const listados = dadosDe<{ id: string; totalCentavos: number }[]>(
+      await api.get('/pedidos').expect(200),
+    );
+    expect(listados.find((p) => p.id === pedido.id)?.totalCentavos).toBe(9502);
+    await mudarStatus(pedido, 'CONFIRMADO').expect(200);
+    const producao = dadosDe<{ unidades: number }>(
+      await api.get('/relatorios/producao-do-dia?data=2026-10-02').expect(200),
+    );
+    expect(producao.unidades).toBe(100);
+    const acerto = dadosDe<{ unidades: number; totalProduzidoCentavos: number }>(
+      await api.get('/relatorios/acerto?data=2026-10-02').expect(200),
+    );
+    expect(acerto).toMatchObject({ unidades: 100, totalProduzidoCentavos: 9502 });
+    const faturamento = dadosDe<{ faturamentoCentavos: number; unidades: number }>(
+      await api.get('/relatorios/faturamento?de=2026-10-02&ate=2026-10-02').expect(200),
+    );
+    expect(faturamento).toMatchObject({ unidades: 100, faturamentoCentavos: 9502 });
+  });
+
+  it('rejeita frações de salgado', async () => {
+    const pedido = await novoPedido();
+    await api
+      .post(`/pedidos/${pedido.id}/itens`, {
+        produtoId: cenario.coxinha.id,
+        preparo: 'FRITO',
+        unidadeVenda: 'CENTO',
+        quantidade: 0.005,
+      })
+      .expect(400);
+    await api
+      .post(`/pedidos/${pedido.id}/itens`, {
+        produtoId: cenario.coxinha.id,
+        preparo: 'FRITO',
+        unidadeVenda: 'UNIDADE',
+        quantidade: 0.5,
+      })
+      .expect(422);
+  });
+
   it('copia o preço vigente e o produtor padrão para o item', async () => {
     const pedido = await novoPedido();
 

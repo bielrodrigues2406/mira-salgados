@@ -1,4 +1,13 @@
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 import { comoEnum } from '../../../common/validation/enum.js';
 import { ApararOuNulo } from '../../../common/validation/transforms.js';
@@ -22,8 +31,8 @@ export class NovoItemDto {
   unidadeVenda: UnidadeVenda;
 
   /** Na unidade de venda: 3 centos, 50 unidades. */
-  @IsInt()
-  @Min(1)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
   @Max(QUANTIDADE_MAXIMA)
   quantidade: number;
 

@@ -166,7 +166,7 @@ describe('mensagens para o WhatsApp', () => {
     const texto = legivel(mensagemDeConfirmacao(pedido));
 
     expect(texto).toContain('Seu pedido *#36*');
-    expect(texto).toContain('• 2 centos de Coxinha\n• 1 unidade de Kibe (assado)');
+    expect(texto).toContain('• 200 unidades de Coxinha\n• 1 unidade de Kibe (assado)');
     expect(texto).toContain('Entrega: *Sex, 2 out às 10:00*');
     expect(texto).toContain('Endereço: Rua das Flores, 10');
     expect(texto).toContain('Já pago: R$ 50,00 · Falta: R$ 150,00');

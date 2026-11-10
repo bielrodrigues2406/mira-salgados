@@ -1,6 +1,6 @@
 import type { PedidoDetalhe } from '../../core/models/pedido';
 import type { ProducaoDoDia, ProducaoPorDia } from '../../core/models/producao';
-import type { Preparo, UnidadeVenda } from '../../core/models/produto';
+import type { Preparo } from '../../core/models/produto';
 import type {
   AcertoDiario,
   ClienteComFiado,
@@ -162,19 +162,15 @@ export function mensagemDeCobranca(fiado: ClienteComFiado): string {
   ].join('\n');
 }
 
-const UNIDADE: Record<UnidadeVenda, [string, string]> = {
-  CENTO: ['cento', 'centos'],
-  UNIDADE: ['unidade', 'unidades'],
-};
-
 /** Confirmação para o cliente: itens, quando e quanto. */
 export function mensagemDeConfirmacao(pedido: PedidoDetalhe): string {
   const quando = pedido.horarioEntrega
     ? `${dataCurta(pedido.dataEntrega)} às ${pedido.horarioEntrega}`
     : dataCurta(pedido.dataEntrega);
   const itens = pedido.itens.map((item) => {
-    const [singular, plural] = UNIDADE[item.unidadeVenda];
-    return `• ${contagem(item.quantidade, singular, plural)} de ${item.produto.nome}${PREPARO[item.preparo]}`;
+    const unidades =
+      item.unidadeVenda === 'CENTO' ? Math.round(item.quantidade * 100) : item.quantidade;
+    return `• ${contagem(unidades, 'unidade', 'unidades')} de ${item.produto.nome}${PREPARO[item.preparo]}`;
   });
   const { resumo } = pedido;
   const linhas = [

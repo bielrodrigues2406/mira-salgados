@@ -93,13 +93,28 @@ describe('ItemFormulario', () => {
     await fixture.whenStable();
     const quantidade = tela.querySelector<HTMLInputElement>('input[type="number"]');
     if (!quantidade) throw new Error('Campo de quantidade não encontrado');
-    quantidade.value = '3';
+    quantidade.value = '300';
     quantidade.dispatchEvent(new Event('input'));
     await fixture.whenStable();
 
     expect(tela.querySelector('.previa')?.textContent.replace(/\s+/g, ' ').trim()).toBe(
-      '3 × R$ 95,00 = R$ 285,00 · 300 salgados',
+      '300 salgados = R$ 285,00',
     );
+  });
+
+  it.each([50, 100, 120, 150])('lança %i salgados pelo preço proporcional', async (unidades) => {
+    await montar();
+    escolherProduto('coxinha');
+    await fixture.whenStable();
+    const campo = tela.querySelector<HTMLInputElement>('input[type="number"]');
+    if (!campo) throw new Error('Campo de quantidade não encontrado');
+    campo.value = String(unidades);
+    campo.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    tela.querySelector('form')?.dispatchEvent(new Event('submit', { cancelable: true }));
+    await fixture.whenStable();
+    expect(enviados[0]?.quantidade).toBe(unidades / 100);
+    expect(tela.textContent).toContain('Quantidade de salgados');
   });
 
   it('envia produto, combinação, quantidade e produtor', async () => {

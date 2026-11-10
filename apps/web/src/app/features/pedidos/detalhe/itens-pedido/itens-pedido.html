@@ -29,12 +29,15 @@
             <span class="item-nome">{{ item.produto.nome }}</span>
             <div class="duas-colunas">
               <div class="campo">
-                <label class="texto-rotulo" for="edicao-item-quantidade">Quantidade</label>
+                <label class="texto-rotulo" for="edicao-item-quantidade"
+                  >Quantidade de salgados</label
+                >
                 <input
                   id="edicao-item-quantidade"
                   class="campo-entrada numerico"
                   type="number"
                   inputmode="numeric"
+                  step="1"
                   [formField]="formularioEdicao.quantidade"
                   aria-describedby="edicao-item-quantidade-erro"
                 />
@@ -96,14 +99,12 @@
               <span class="item-nome">{{ item.produto.nome }}</span>
               <span class="item-combinacao">
                 <ms-chip-preparo [preparo]="item.preparo" />
-                <span class="texto-legenda">{{ rotuloUnidade[item.unidadeVenda] }}</span>
+                <span class="texto-legenda">{{ unidades(item) }} salgados</span>
               </span>
             </div>
             <div class="item-valores">
               <span class="item-subtotal numerico">{{ item.subtotalCentavos | moeda }}</span>
-              <span class="texto-legenda numerico">
-                {{ item.quantidade }} × {{ item.precoUnitarioCentavos | moeda }}
-              </span>
+              <span class="texto-legenda numerico"> {{ unidades(item) }} salgados </span>
             </div>
           </div>
           <div class="item-rodape">

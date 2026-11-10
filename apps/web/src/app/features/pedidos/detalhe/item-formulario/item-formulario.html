@@ -46,6 +46,7 @@
           class="campo-entrada numerico"
           type="number"
           inputmode="numeric"
+          step="1"
           [id]="id + '-quantidade'"
           [formField]="formulario.quantidade"
           [attr.aria-invalid]="
@@ -75,9 +76,8 @@
 
     @if (previa(); as conta) {
       <p class="previa numerico" aria-live="polite">
-        {{ conta.quantidade }} × {{ conta.precoCentavos | moeda }} =
+        {{ conta.salgados }} salgados =
         <strong>{{ conta.subtotalCentavos | moeda }}</strong>
-        <span class="texto-legenda"> · {{ conta.salgados }} salgados</span>
       </p>
     }
 

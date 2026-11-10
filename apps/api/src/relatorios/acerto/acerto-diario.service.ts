@@ -24,7 +24,7 @@ interface ItemCru {
   produtorNome: string;
   preparo: Preparo;
   unidadeVenda: UnidadeVenda;
-  quantidade: number;
+  quantidade: string;
   precoUnitario: string;
 }
 
@@ -144,7 +144,7 @@ function paraItemDoAcerto(item: ItemCru): ItemDoAcerto {
     produtor: { id: item.produtorId, nome: item.produtorNome },
     preparo: item.preparo,
     unidadeVenda: item.unidadeVenda,
-    quantidade: item.quantidade,
+    quantidade: Number(item.quantidade),
     precoUnitario: decimalParaCentavos(item.precoUnitario),
   };
 }

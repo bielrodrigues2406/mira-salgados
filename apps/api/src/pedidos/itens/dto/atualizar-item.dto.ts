@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 import { ApararOuNulo } from '../../../common/validation/transforms.js';
 import { QUANTIDADE_MAXIMA } from '../../dto/limites.js';
@@ -8,8 +8,8 @@ import { Opcional } from '../../../common/validation/opcional.js';
 // item e adicionar outro, com o preço vigente do novo.
 export class AtualizarItemDto {
   @Opcional()
-  @IsInt()
-  @Min(1)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
   @Max(QUANTIDADE_MAXIMA)
   quantidade?: number;
 

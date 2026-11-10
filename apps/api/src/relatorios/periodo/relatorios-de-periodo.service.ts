@@ -109,7 +109,7 @@ export class RelatoriosDePeriodoService {
                COALESCE(pagos.fiado, 0) AS fiado
         FROM pedidos p
         LEFT JOIN LATERAL (
-          SELECT SUM(i.quantidade * i.preco_unitario) AS valor, SUM(${UNIDADES}) AS unidades
+          SELECT SUM(ROUND(i.quantidade * i.preco_unitario, 2)) AS valor, SUM(${UNIDADES}) AS unidades
           FROM itens_pedido i WHERE i.pedido_id = p.id
         ) itens ON true
         LEFT JOIN LATERAL (
@@ -153,7 +153,7 @@ export class RelatoriosDePeriodoService {
         `
         SELECT produto.id AS "produtoId", produto.nome AS "produtoNome", i.preparo,
                SUM(${UNIDADES})::int AS unidades,
-               SUM(i.quantidade * i.preco_unitario) AS valor,
+               SUM(ROUND(i.quantidade * i.preco_unitario, 2)) AS valor,
                COUNT(DISTINCT p.id)::int AS "quantidadePedidos"
         ${itensDoPeriodo(PRODUTOS)}
         GROUP BY produto.id, produto.nome, i.preparo
@@ -193,7 +193,7 @@ export class RelatoriosDePeriodoService {
         `
         SELECT produtor.id AS "produtorId", produtor.nome AS "produtorNome",
                SUM(${UNIDADES})::int AS unidades,
-               SUM(i.quantidade * i.preco_unitario) AS valor,
+               SUM(ROUND(i.quantidade * i.preco_unitario, 2)) AS valor,
                COUNT(DISTINCT p.id)::int AS "quantidadePedidos"
         ${itensDoPeriodo(PRODUTORES)} ${filtroDoProdutor}
         GROUP BY produtor.id, produtor.nome
@@ -213,7 +213,7 @@ export class RelatoriosDePeriodoService {
             SELECT i.produtor_id AS "produtorId", produto.id AS "produtoId",
                    produto.nome AS "produtoNome", i.preparo,
                    SUM(${UNIDADES})::int AS unidades,
-                   SUM(i.quantidade * i.preco_unitario) AS valor,
+                   SUM(ROUND(i.quantidade * i.preco_unitario, 2)) AS valor,
                    COUNT(DISTINCT p.id)::int AS "quantidadePedidos"
             ${itensDoPeriodo(PRODUTOS)}
               AND i.produtor_id = ANY($5::uuid[])
@@ -250,7 +250,7 @@ export class RelatoriosDePeriodoService {
              COALESCE(SUM(grupo.unidades), 0)::int AS unidades,
              COALESCE(SUM(grupo.valor), 0) AS valor
       FROM (
-        SELECT SUM(${UNIDADES}) AS unidades, SUM(i.quantidade * i.preco_unitario) AS valor
+        SELECT SUM(${UNIDADES}) AS unidades, SUM(ROUND(i.quantidade * i.preco_unitario, 2)) AS valor
         ${agrupamento}
       ) grupo`,
       parametros,

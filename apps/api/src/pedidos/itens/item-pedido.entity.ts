@@ -27,6 +27,10 @@ import { Pedido } from '../pedido.entity.js';
 @Index('ix_itens_pedido_produtor_id', ['produtorId'])
 @Index('ix_itens_pedido_produto_id', ['produtoId'])
 @Check('ck_itens_pedido_quantidade_positiva', 'quantidade > 0')
+@Check(
+  'ck_itens_pedido_unidades_inteiras',
+  "unidade_venda = 'CENTO' OR quantidade = trunc(quantidade)",
+)
 @Check('ck_itens_pedido_preco_positivo', 'preco_unitario > 0')
 @Check('ck_itens_pedido_observacao_preenchida', "btrim(observacao) <> ''")
 export class ItemPedido {
@@ -62,7 +66,12 @@ export class ItemPedido {
   unidadeVenda: UnidadeVenda;
 
   /** Na unidade de venda: 3 com unidade CENTO são 300 salgados. */
-  @Column({ type: 'integer' })
+  @Column({
+    type: 'numeric',
+    precision: 8,
+    scale: 2,
+    transformer: { to: (valor: number) => valor, from: (valor: string) => Number(valor) },
+  })
   quantidade: number;
 
   /** Copiado do preço vigente na criação; mudanças na tabela não retroagem. */

@@ -58,8 +58,16 @@ describe('operações', () => {
     expect(subtrair(subtotal, centavos(2000))).toBe(35_500);
   });
 
-  it('recusa quantidade fracionária', () => {
-    expect(() => multiplicar(centavos(100), 1.5)).toThrow(RangeError);
+  it('calcula frações de cento e arredonda por item', () => {
+    expect(multiplicar(centavos(9500), 0.5)).toBe(4750);
+    expect(multiplicar(centavos(9500), 1.2)).toBe(11400);
+    expect(multiplicar(centavos(9500), 1.5)).toBe(14250);
+    expect(multiplicar(centavos(9501), 0.5)).toBe(4751);
+    expect(multiplicar(centavos(9500), 0.29)).toBe(2755);
+  });
+
+  it('recusa frações menores que um salgado por cento', () => {
+    expect(() => multiplicar(centavos(100), 1.005)).toThrow(RangeError);
   });
 
   it('recusa valores fora do intervalo seguro', () => {

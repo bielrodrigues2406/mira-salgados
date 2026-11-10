@@ -36,7 +36,7 @@ interface LinhaCrua {
   produtorNome: string;
   preparo: Preparo;
   unidadeVenda: UnidadeVenda;
-  quantidade: number;
+  quantidade: string;
   observacaoItem: string | null;
 }
 
@@ -121,7 +121,7 @@ interface ItemCru {
   produtorNome: string;
   preparo: Preparo;
   unidadeVenda: UnidadeVenda;
-  quantidade: number;
+  quantidade: string;
 }
 
 function paraItemDoIntervalo(item: ItemCru): ItemDoIntervalo {
@@ -132,7 +132,7 @@ function paraItemDoIntervalo(item: ItemCru): ItemDoIntervalo {
     produtor: { id: item.produtorId, nome: item.produtorNome },
     preparo: item.preparo,
     unidadeVenda: item.unidadeVenda,
-    quantidade: item.quantidade,
+    quantidade: Number(item.quantidade),
   };
 }
 
@@ -151,7 +151,7 @@ function paraLinhaDeProducao(linha: LinhaCrua): LinhaDeProducao {
     produtor: { id: linha.produtorId, nome: linha.produtorNome },
     preparo: linha.preparo,
     unidadeVenda: linha.unidadeVenda,
-    quantidade: linha.quantidade,
+    quantidade: Number(linha.quantidade),
     observacaoItem: linha.observacaoItem,
   };
 }

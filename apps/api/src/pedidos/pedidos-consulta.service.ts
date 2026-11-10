@@ -67,7 +67,7 @@ export class PedidosConsultaService {
       this.dataSource
         .createQueryBuilder(ItemPedido, 'item')
         .select('item.pedidoId', 'pedidoId')
-        .addSelect('SUM(item.quantidade * item.precoUnitario)', 'subtotal')
+        .addSelect('SUM(ROUND(item.quantidade * item.precoUnitario, 2))', 'subtotal')
         .addSelect('COUNT(*)', 'quantidade')
         .where({ pedidoId: In(ids) })
         .groupBy('item.pedidoId')
@@ -121,7 +121,7 @@ function aplicarFiltros(consulta: SelectQueryBuilder<Pedido>, filtro: FiltroPedi
   if (filtro.faltaPagar) {
     // A mesma conta do saldo devedor: itens menos desconto menos PIX e dinheiro.
     consulta.andWhere({ status: In(STATUS_EM_VIGOR) }).andWhere(
-      `(SELECT COALESCE(SUM(i.quantidade * i.preco_unitario), 0)
+      `(SELECT COALESCE(SUM(ROUND(i.quantidade * i.preco_unitario, 2)), 0)
           FROM itens_pedido i WHERE i.pedido_id = pedido.id)
         - pedido.desconto
         - (SELECT COALESCE(SUM(g.valor), 0) FROM pagamentos g

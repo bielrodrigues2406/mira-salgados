@@ -94,7 +94,7 @@ export interface ProducaoDoDia {
 const ordemAlfabetica = new Intl.Collator('pt-BR', { sensitivity: 'base' });
 
 export function unidadesDe(unidadeVenda: UnidadeVenda, quantidade: number): number {
-  return unidadeVenda === 'CENTO' ? quantidade * UNIDADES_POR_CENTO : quantidade;
+  return unidadeVenda === 'CENTO' ? Math.round(quantidade * UNIDADES_POR_CENTO) : quantidade;
 }
 
 /**

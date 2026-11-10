@@ -1,9 +1,18 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { form, FormField, FormRoot, max, maxLength, min, required } from '@angular/forms/signals';
+import {
+  form,
+  FormField,
+  FormRoot,
+  max,
+  maxLength,
+  min,
+  required,
+  validate,
+} from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 
 import type { ItemPedido, NovoItem, PedidoDetalhe } from '../../../../core/models/pedido';
-import { type Produto, ROTULO_UNIDADE } from '../../../../core/models/produto';
+import type { Produto } from '../../../../core/models/produto';
 import { mensagemDeErro } from '../../../../core/services/mensagem-de-erro';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { Chip } from '../../../../shared/components/chip/chip';
@@ -32,7 +41,8 @@ export class ItensPedido {
   readonly produtores = input.required<readonly OpcaoProdutor[]>();
   readonly alterado = output<AlteracaoDoPedido>();
 
-  protected readonly rotuloUnidade = ROTULO_UNIDADE;
+  protected readonly unidades = (item: ItemPedido): number =>
+    item.unidadeVenda === 'CENTO' ? Math.round(item.quantidade * 100) : item.quantidade;
   protected readonly adicionando = signal(false);
   protected readonly emEdicao = signal<ItemPedido | null>(null);
   protected readonly removendo = signal<string | null>(null);
@@ -45,7 +55,14 @@ export class ItensPedido {
     (campo) => {
       required(campo.quantidade, { message: 'Informe a quantidade.' });
       min(campo.quantidade, 1, { message: 'A quantidade mínima é 1.' });
-      max(campo.quantidade, 1000, { message: 'A quantidade máxima é 1000.' });
+      max(campo.quantidade, () => (this.emEdicao()?.unidadeVenda === 'CENTO' ? 100000 : 1000), {
+        message: 'Quantidade acima do limite permitido.',
+      });
+      validate(campo.quantidade, ({ value }) =>
+        Number.isInteger(value())
+          ? null
+          : { kind: 'inteira', message: 'Informe uma quantidade inteira de salgados.' },
+      );
       maxLength(campo.observacao, 300, { message: 'Use no máximo 300 caracteres.' });
     },
     {
@@ -56,7 +73,7 @@ export class ItensPedido {
           const { quantidade, produtorId, observacao } = this.edicao();
           await this.gravar(
             this.pedidos.atualizarItem(this.pedido().id, item.id, {
-              quantidade,
+              quantidade: item.unidadeVenda === 'CENTO' ? quantidade / 100 : quantidade,
               produtorId,
               observacao: observacao.trim() || null,
             }),
@@ -83,7 +100,7 @@ export class ItensPedido {
     this.removendo.set(null);
     this.adicionando.set(false);
     this.formularioEdicao().reset({
-      quantidade: item.quantidade,
+      quantidade: this.unidades(item),
       produtorId: item.produtor.id,
       observacao: item.observacao ?? '',
     });

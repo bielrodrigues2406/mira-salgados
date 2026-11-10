@@ -61,7 +61,7 @@ const FIADOS_EM_ABERTO = `
            ) AS em_aberto
     FROM pedidos p
     LEFT JOIN LATERAL (
-      SELECT SUM(i.quantidade * i.preco_unitario) AS valor
+      SELECT SUM(ROUND(i.quantidade * i.preco_unitario, 2)) AS valor
       FROM itens_pedido i WHERE i.pedido_id = p.id
     ) itens ON true
     LEFT JOIN LATERAL (

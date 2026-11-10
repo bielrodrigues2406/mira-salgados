@@ -8,10 +8,19 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { form, FormField, FormRoot, max, maxLength, min, required } from '@angular/forms/signals';
+import {
+  form,
+  FormField,
+  FormRoot,
+  max,
+  maxLength,
+  min,
+  required,
+  validate,
+} from '@angular/forms/signals';
 
 import type { NovoItem } from '../../../../core/models/pedido';
-import { type Produto, ROTULO_UNIDADE } from '../../../../core/models/produto';
+import type { Produto } from '../../../../core/models/produto';
 import { APARENCIA_DO_PREPARO } from '../../../../shared/components/chip-preparo/chip-preparo';
 import { ErrosDoCampo } from '../../../../shared/components/erros-do-campo/erros-do-campo';
 import { Icone } from '../../../../shared/components/icone/icone';
@@ -64,7 +73,16 @@ export class ItemFormulario {
       required(campo.precoId, { message: 'Escolha o preparo e a unidade.' });
       required(campo.quantidade, { message: 'Informe a quantidade.' });
       min(campo.quantidade, 1, { message: 'A quantidade mínima é 1.' });
-      max(campo.quantidade, 1000, { message: 'A quantidade máxima é 1000.' });
+      max(
+        campo.quantidade,
+        () => (this.precoEscolhido()?.unidadeVenda === 'CENTO' ? 100000 : 1000),
+        { message: 'Quantidade acima do limite permitido.' },
+      );
+      validate(campo.quantidade, ({ value }) =>
+        Number.isInteger(value())
+          ? null
+          : { kind: 'inteira', message: 'Informe uma quantidade inteira de salgados.' },
+      );
       required(campo.produtorId, { message: 'Escolha quem prepara.' });
       maxLength(campo.observacao, 300, { message: 'Use no máximo 300 caracteres.' });
     },
@@ -87,7 +105,7 @@ export class ItemFormulario {
   protected readonly precos = computed(() =>
     (this.produto()?.precosVigentes ?? []).map((preco) => ({
       ...preco,
-      rotulo: `${APARENCIA_DO_PREPARO[preco.preparo].rotulo} · ${ROTULO_UNIDADE[preco.unidadeVenda]}`,
+      rotulo: `${APARENCIA_DO_PREPARO[preco.preparo].rotulo} · ${preco.unidadeVenda === 'CENTO' ? 'Preço para 100 salgados' : 'Preço por salgado'}`,
     })),
   );
   protected readonly precoEscolhido = computed(() =>
@@ -101,14 +119,15 @@ export class ItemFormulario {
     return {
       quantidade,
       precoCentavos: preco.precoCentavos,
-      subtotalCentavos: preco.precoCentavos * quantidade,
-      salgados: preco.unidadeVenda === 'CENTO' ? quantidade * UNIDADES_POR_CENTO : quantidade,
+      subtotalCentavos: Math.round(
+        (preco.precoCentavos * quantidade) /
+          (preco.unidadeVenda === 'CENTO' ? UNIDADES_POR_CENTO : 1),
+      ),
+      salgados: quantidade,
     };
   });
   protected readonly rotuloDaQuantidade = computed(() => {
-    const unidade = this.precoEscolhido()?.unidadeVenda;
-    if (!unidade) return 'Quantidade';
-    return unidade === 'CENTO' ? 'Quantidade (centos)' : 'Quantidade (unidades)';
+    return 'Quantidade de salgados';
   });
   protected readonly produtoresDoItem = computed(() => {
     const padrao = this.produto()?.produtorPadrao;
@@ -140,7 +159,7 @@ export class ItemFormulario {
       produtoId,
       preparo: preco.preparo,
       unidadeVenda: preco.unidadeVenda,
-      quantidade,
+      quantidade: preco.unidadeVenda === 'CENTO' ? quantidade / UNIDADES_POR_CENTO : quantidade,
       produtorId,
       observacao: observacao.trim() || null,
     };

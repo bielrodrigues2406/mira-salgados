@@ -51,10 +51,17 @@ export function subtrair(minuendo: Centavos, subtraendo: Centavos): Centavos {
 }
 
 export function multiplicar(valor: Centavos, quantidade: number): Centavos {
-  if (!Number.isInteger(quantidade)) {
-    throw new RangeError(`Quantidade precisa ser inteira; recebida: ${quantidade}.`);
+  const centesimos = Math.round(quantidade * 100);
+  if (!Number.isSafeInteger(centesimos) || Math.abs(quantidade * 100 - centesimos) > 1e-8) {
+    throw new RangeError(
+      `Quantidade precisa ter até duas casas decimais; recebida: ${quantidade}.`,
+    );
   }
-  return centavos(valor * quantidade);
+  // Arredonda uma única vez por item, como ROUND(..., 2) no PostgreSQL.
+  const produto = BigInt(valor) * BigInt(centesimos);
+  const absoluto = produto < 0n ? -produto : produto;
+  const arredondado = (absoluto + 50n) / 100n;
+  return centavos(Number(produto < 0n ? -arredondado : arredondado));
 }
 
 /**

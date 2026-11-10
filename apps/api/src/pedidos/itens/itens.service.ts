@@ -44,6 +44,7 @@ export class ItensService {
       const pedido = await this.agregados.bloquear(manager, pedidoId);
       garantirEditavel(pedido);
 
+      validarQuantidade(dados.unidadeVenda, dados.quantidade);
       const produto = await manager.getRepository(Produto).findOneBy({ id: dados.produtoId });
       if (!produto?.ativo) {
         throw new BusinessRuleError('PRODUTO_INVALIDO', 'Escolha um produto ativo.');
@@ -94,7 +95,10 @@ export class ItensService {
       const item = await this.buscarDoPedido(manager, pedidoId, itemId);
       const antes = Object.assign(new ItemPedido(), item);
 
-      if (dados.quantidade !== undefined) item.quantidade = dados.quantidade;
+      if (dados.quantidade !== undefined) {
+        validarQuantidade(item.unidadeVenda, dados.quantidade);
+        item.quantidade = dados.quantidade;
+      }
       if (dados.produtorId !== undefined && dados.produtorId !== item.produtorId) {
         await garantirProdutorAtivo(manager, dados.produtorId);
         item.produtorId = dados.produtorId;
@@ -162,5 +166,14 @@ export class ItensService {
       depois,
       usuarioId: autorId,
     });
+  }
+}
+
+function validarQuantidade(unidade: string, quantidade: number): void {
+  if (unidade === 'UNIDADE' && !Number.isInteger(quantidade)) {
+    throw new BusinessRuleError(
+      'QUANTIDADE_INVALIDA',
+      'Informe uma quantidade inteira de salgados.',
+    );
   }
 }
