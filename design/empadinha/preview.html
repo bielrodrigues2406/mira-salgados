@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Empadinha em movimento · Mira Salgados</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --font-size-base: 1rem;
+        font-family: system-ui, sans-serif;
+        color: #0f2440;
+        background: #f5f6f8;
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        box-sizing: border-box;
+        width: min(100%, 48rem);
+        margin-inline: auto;
+        padding: clamp(12px, 4vw, 32px);
+      }
+      h2 {
+        margin: 0;
+      }
+      .text-small {
+        margin-top: 6px;
+        color: #5a6472;
+      }
+      .btn {
+        min-height: 44px;
+        border: 1px solid #8a94a0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        background: #fff;
+        color: #0f2440;
+        font: inherit;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: #e9eff6;
+      }
+      .btn[aria-pressed='true'] {
+        background: #1e3a5f;
+        color: #fff;
+      }
+      .btn:focus-visible {
+        outline: 2px solid #1e3a5f;
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section id="mira-empadinha-previa">
+        <style>
+          #mira-empadinha-previa {
+            display: grid;
+            gap: calc(var(--font-size-base, 14px) * 0.8);
+          }
+          #mira-empadinha-previa canvas {
+            display: block;
+            width: min(100%, 560px);
+            height: auto;
+            margin-inline: auto;
+          }
+          #mira-empadinha-previa .gestos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+          }
+        </style>
+        <h2>Empadinha em movimento</h2>
+        <canvas
+          width="1120"
+          height="820"
+          role="img"
+          aria-label="Empadinha dourada de borda ondulada e prancheta azul-marinho"
+          >Empadinha com prancheta.</canvas
+        >
+        <div class="gestos" role="group" aria-label="Gestos da Empadinha">
+          <button class="btn btn-primary" type="button" data-gesto="conferir">
+            Conferir prancheta
+          </button>
+          <button class="btn" type="button" data-gesto="marcar">Marcar item</button>
+          <button class="btn" type="button" data-gesto="folhear">Folhear</button>
+          <button class="btn" type="button" data-gesto="acenar">Acenar</button>
+          <button class="btn" type="button" data-gesto="concluir">Tudo certo</button>
+          <button class="btn" type="button" data-gesto="revisar">Revisar</button>
+        </div>
+        <div role="status" aria-live="polite" class="text-small">Pronta para conferir.</div>
+        <script>
+          (() => {
+            const root = document.getElementById('mira-empadinha-previa');
+            const canvas = root.querySelector('canvas');
+            const status = root.querySelector('[role="status"]');
+            const ctx = canvas.getContext('2d');
+            const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+            const navy = '#0f2440';
+            const blue = '#1e3a5f';
+            const darkCrust = '#b35421';
+            const golden = '#ffb451';
+            const paper = '#fff0d6';
+            const rest = {
+              tilt: 0,
+              nod: 0,
+              crown: 0,
+              lean: 0,
+              board: 0,
+              gaze: 0,
+              blink: 0,
+              handX: 397,
+              handY: 263,
+              handAngle: 0.35,
+              palm: 0,
+              write: 0,
+              check: 0,
+              page: 0,
+              turn: 0,
+              grip: 0,
+              think: 0,
+              smile: 0,
+            };
+            const reading = { tilt: -5, nod: 2, crown: 2, lean: -4, board: 1, gaze: 1 };
+            const writing = { ...reading, write: 1, handAngle: 0.48 };
+            const marked = { ...writing, check: 1 };
+            const done = { check: 1, tilt: 2, nod: 4, crown: 5, smile: 1 };
+            const paging = { ...reading, page: 1, check: 1 };
+            const wave = { tilt: 2, handX: 440, handY: 182, palm: 1, smile: 1 };
+            const reviewing = { ...reading, handX: 319, handY: 254, handAngle: -0.42, think: 1 };
+            const gestures = {
+              conferir: {
+                description: 'Ergue a prancheta, lê, marca um item e confirma com a cabeça.',
+                frames: [
+                  [0, {}],
+                  [440, reading],
+                  [610, reading],
+                  [675, { ...reading, blink: 1 }],
+                  [735, reading],
+                  [980, reading],
+                  [1290, writing],
+                  [1420, { ...writing, check: 0.32 }],
+                  [1600, marked],
+                  [1730, { ...marked, write: 0.88 }],
+                  [1980, { check: 1 }],
+                  [2200, done],
+                  [2340, { ...done, nod: 2, crown: 2 }],
+                  [2600, { check: 1 }],
+                ],
+                still: { ...reading, check: 1 },
+              },
+              marcar: {
+                description: 'Faz um tique no papel, com a prancheta firme na outra mão.',
+                frames: [
+                  [0, {}],
+                  [340, reading],
+                  [630, writing],
+                  [760, { ...writing, check: 0.32 }],
+                  [960, marked],
+                  [1090, { ...marked, write: 0.88 }],
+                  [1370, { ...reading, check: 1 }],
+                  [1700, { check: 1 }],
+                ],
+                still: { ...reading, check: 1 },
+              },
+              folhear: {
+                description: 'Levanta o canto da folha, vira a página e retoma a leitura.',
+                frames: [
+                  [0, { page: 1, check: 1 }],
+                  [370, paging],
+                  [650, { ...paging, grip: 1 }],
+                  [820, { ...paging, grip: 1, turn: 0.13 }],
+                  [1000, { ...paging, grip: 1, turn: 0.29 }],
+                  [1080, { ...paging, grip: 0.82, turn: 0.37, handX: 205, handY: 175 }],
+                  [1210, { ...paging, grip: 0.22, turn: 0.63, handX: 220, handY: 201 }],
+                  [1430, { ...paging, turn: 1, handX: 332, handY: 247 }],
+                  [1770, { ...reading, page: 1, turn: 1 }],
+                  [2120, { page: 1, turn: 1 }],
+                ],
+                still: { ...reading, page: 1, turn: 1 },
+              },
+              acenar: {
+                description: 'Cumprimenta com a mão livre. A prancheta fica na outra mão.',
+                frames: [
+                  [0, {}],
+                  [240, { ...wave, handX: 429, handY: 206, palm: 0.55 }],
+                  [460, { ...wave, handX: 441, handAngle: -0.36 }],
+                  [655, { ...wave, handX: 450, handY: 179, handAngle: 0.33 }],
+                  [845, { ...wave, handX: 440, handY: 178, handAngle: -0.29 }],
+                  [1020, { ...wave, handX: 448, handY: 184, handAngle: 0.23 }],
+                  [1180, { ...wave, handY: 200, handAngle: 0.08, palm: 0.7 }],
+                  [1510, {}],
+                ],
+                still: wave,
+              },
+              concluir: {
+                description: 'Dá um aceno curto com a cabeça, com o item marcado.',
+                frames: [
+                  [0, { check: 1 }],
+                  [180, { check: 1, crown: -3, smile: 0.45 }],
+                  [365, { ...done, blink: 0.78 }],
+                  [460, { ...done, blink: 0.1 }],
+                  [660, { ...done, crown: 1, nod: 1 }],
+                  [1010, { check: 1 }],
+                ],
+                still: done,
+              },
+              revisar: {
+                description: 'Inclina a cabeça, leva a mão ao rosto e confere a prancheta de novo.',
+                frames: [
+                  [0, {}],
+                  [360, { ...reading, think: 0.35 }],
+                  [700, reviewing],
+                  [925, { ...reviewing, gaze: 0.62 }],
+                  [1200, { ...reviewing, tilt: -7, gaze: 1.23, handX: 316 }],
+                  [1400, { ...reviewing, gaze: 1.15 }],
+                  [1630, reading],
+                  [1960, {}],
+                ],
+                still: reviewing,
+              },
+            };
+
+            const paths = new Map();
+            function path(data, fill, stroke = navy, width = 5) {
+              if (!paths.has(data) && paths.size < 80) paths.set(data, new Path2D(data));
+              const shape = paths.get(data) ?? new Path2D(data);
+              if (fill) {
+                ctx.fillStyle = fill;
+                ctx.fill(shape);
+              }
+              if (stroke && width) {
+                ctx.strokeStyle = stroke;
+                ctx.lineWidth = width;
+                ctx.stroke(shape);
+              }
+            }
+            function ellipse(x, y, rx, ry, fill) {
+              ctx.beginPath();
+              ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+              ctx.fillStyle = fill;
+              ctx.fill();
+            }
+            function grad(x1, y1, x2, y2, stops) {
+              const paint = ctx.createLinearGradient(x1, y1, x2, y2);
+              stops.forEach(([at, color]) => paint.addColorStop(at, color));
+              return paint;
+            }
+            function arm(sx, sy, cx, cy, x, y) {
+              const line = `M${sx} ${sy} Q${cx} ${cy} ${x} ${y}`;
+              path(line, null, navy, 26);
+              path(line, null, golden, 17);
+            }
+            function glove(x, y, angle, palm = 0, scale = 1) {
+              ctx.save();
+              ctx.translate(x, y);
+              ctx.rotate(angle);
+              ctx.scale(scale * (1 + 0.2 * palm), scale * (1 + 0.2 * palm));
+              const lift = 10 * palm;
+              const form = `M-11 7C-16 3-16-4-12-6Q-9-7-6-3L-7 ${-9 - lift}
+                Q-7 ${-14 - lift} -3 ${-13 - lift}L0 ${-6 - lift}
+                L2 ${-12 - lift}Q5 ${-16 - lift} 8 ${-12 - lift}L7 ${-6 - lift}
+                L11 ${-8 - lift}Q15 ${-10 - lift} 16 ${-6 - lift}L12 5
+                Q10 13 0 13Q-6 13-11 7Z`;
+              path(form, '#ffc268', navy, 4.6);
+              if (palm > 0.45) {
+                path('M-7 6Q-5 2-1 2', null, '#c26b34', 2.2);
+              }
+              ctx.restore();
+            }
+            function blendValue(from, to, amount) {
+              return from + (to - from) * amount;
+            }
+            function boardPosition(p) {
+              return {
+                x: 132 + p.board * 23,
+                y: 245 - p.board * 30,
+                angle: ((-13 + p.board * 19) * Math.PI) / 180,
+              };
+            }
+            function fromBoard(board, x, y) {
+              const c = Math.cos(board.angle);
+              const s = Math.sin(board.angle);
+              return [board.x + x * c - y * s, board.y + x * s + y * c];
+            }
+            const markStart = [-23, 16];
+            const markKnee = [-15, 25];
+            const markEnd = [5, 3];
+            function markPoint(progress) {
+              const beforeKnee = progress <= 0.32;
+              const from = beforeKnee ? markStart : markKnee;
+              const to = beforeKnee ? markKnee : markEnd;
+              const amount = beforeKnee ? progress / 0.32 : (progress - 0.32) / 0.68;
+              return from.map((value, index) => blendValue(value, to[index], amount));
+            }
+            function sheet(check, nextPage, back = false) {
+              path('M-32-43H32V35Q32 46 22 47H-32Z', back ? '#e9d2ad' : paper, '#a98b6e', 1.65);
+              if (back) return;
+              const rows = nextPage ? 'M-22-24H15M-22-9H22M-22 6H4' : 'M-21-24H18M-21-10H10';
+              path(rows, null, '#a6856a', 3.1);
+              if (check <= 0) return;
+              const corner = check > 0.32 ? `L${markKnee.join(' ')}` : '';
+              path(
+                `M${markStart.join(' ')} ${corner} L${markPoint(check).join(' ')}`,
+                null,
+                '#345536',
+                5.2,
+              );
+            }
+            const hingeY = -43;
+            function leafMotion(turn) {
+              const angle = turn * 2 * Math.PI;
+              return { shear: 0.19 * Math.sin(angle), height: Math.cos(angle) };
+            }
+            function leaf(turn, check) {
+              const { shear, height } = leafMotion(turn);
+              ctx.save();
+              ctx.translate(0, hingeY);
+              ctx.transform(1, 0, shear, height, 0, 0);
+              ctx.translate(0, -hingeY);
+              sheet(check, false, height < 0);
+              ctx.restore();
+            }
+            function pageGrip(board, turn) {
+              const { shear, height } = leafMotion(turn);
+              const depth = 84;
+              return fromBoard(board, 29 + depth * shear, hingeY + depth * height);
+            }
+            function drawBoard(p, board) {
+              ctx.save();
+              ctx.translate(board.x, board.y);
+              ctx.rotate(board.angle);
+              if (p.page && p.turn >= 0.5 && p.turn < 1) {
+                leaf(p.turn, p.check);
+              }
+              path(
+                'M-43-50Q-43-58-35-58H34Q43-58 43-49V48Q43 58 34 58H-35Q-43 58-43 48Z',
+                blue,
+                navy,
+                5.5,
+              );
+              sheet(p.page ? 0 : p.check, p.page);
+              if (p.page && p.turn < 0.5) {
+                leaf(p.turn, p.check);
+              }
+              path(
+                'M-17-49Q-18-55-10-55H-6A6 6 0 0 1 6-55H10Q18-55 17-49V-39H-17Z',
+                '#d5d1c4',
+                navy,
+                3.7,
+              );
+              ctx.restore();
+            }
+            function drawFreeArm(p, board) {
+              const [tipX, tipY] = fromBoard(board, ...markPoint(p.check));
+              const [pageX, pageY] = pageGrip(board, p.turn);
+              const x = blendValue(blendValue(p.handX, tipX + 36, p.write), pageX + 8, p.grip);
+              const y = blendValue(blendValue(p.handY, tipY + 24, p.write), pageY - 3, p.grip);
+              const reach = Math.max(0, Math.min(1, (390 - x) / 126));
+              const waveUp = p.palm;
+              const forearm = `M378 239 C${390 + 14 * waveUp} ${250 + 60 * reach}
+                ${x + 49 * reach - 12 * waveUp} ${y + Math.max(48, 281 - y) * reach + 15 * waveUp} ${x} ${y}`;
+              path(forearm, null, navy, 25 - 4 * reach);
+              path(forearm, null, golden, 16.5 - 3 * reach);
+              if (p.write > 0.18) {
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, (p.write - 0.18) / 0.22);
+                const pencilX = x - 36;
+                const pencilY = y - 24;
+                const shaft = `M${pencilX + 6} ${pencilY + 4}L${x + 11} ${y + 7}`;
+                path(shaft, null, navy, 7);
+                path(shaft, null, '#e9a348', 3.6);
+                path(`M${pencilX} ${pencilY}l7 3l-3 4Z`, navy, null);
+                ctx.restore();
+              }
+              const angle = blendValue(p.handAngle, -0.48, p.grip);
+              glove(x, y, angle, p.palm);
+            }
+            function draw(p) {
+              ctx.setTransform(2, 0, 0, 2, 0, 0);
+              ctx.clearRect(0, 0, 560, 410);
+              ctx.lineJoin = 'round';
+              ctx.lineCap = 'round';
+              ellipse(279, 368, 144, 13, 'rgba(126,65,34,0.12)');
+              path(
+                'M222 305L244 309L243 351Q235 366 205 363Q184 363 185 355Q187 345 216 341Z',
+                navy,
+                null,
+              );
+              path(
+                'M304 305L327 300L336 343Q358 342 367 354Q370 365 347 365Q323 365 315 355Z',
+                navy,
+                null,
+              );
+              ctx.save();
+              ctx.translate(277 + p.lean, 306 + p.nod);
+              ctx.rotate((p.tilt * Math.PI) / 180);
+              ctx.scale(1 + p.nod * 0.0018, 1 - p.nod * 0.0027);
+              ctx.translate(-277, -306);
+
+              const board = boardPosition(p);
+              const [supportX, supportY] = fromBoard(board, -42, 1);
+              arm(162, 206, Math.min(108, supportX - 8), supportY - 15, supportX, supportY);
+              const body =
+                'M122 158C140 199 168 241 192 289C202 311 221 321 274 322Q331 321 349 308C372 292 396 226 419 151Z';
+              const crust = grad(127, 158, 385, 309, [
+                [0, '#d46b2e'],
+                [0.28, '#f5a247'],
+                [0.57, '#ffbc5c'],
+                [1, '#e57c32'],
+              ]);
+              path(body, crust, navy, 6.8);
+              ctx.save();
+              ctx.clip(new Path2D(body));
+              path('M139 158L193 158Q210 244 238 302L207 316Q169 240 139 158Z', '#e78837', null);
+              path('M353 151L414 151Q383 251 343 302L313 308Q335 251 353 151Z', '#ed913c', null);
+              path('M179 179Q263 136 373 166L328 290Q287 314 231 294Z', '#ffb856', null);
+              path(
+                'M166 270Q268 323 365 276Q360 334 265 331Q186 330 166 270Z',
+                'rgba(190,82,29,.21)',
+                null,
+              );
+              for (let index = 0; index < 150; index++) {
+                const x = 129 + ((index * 197 + 89) % 284);
+                const y = 180 + ((index * 97 + 27) % 139);
+                ellipse(
+                  x,
+                  y,
+                  0.45 + (index % 3) * 0.32,
+                  0.65,
+                  index % 4 === 0 ? 'rgba(255,220,150,.30)' : 'rgba(155,62,23,.10)',
+                );
+              }
+              ctx.restore();
+              ctx.save();
+              ctx.translate(0, p.crown);
+              const lid =
+                'M102 134Q97 116 116 97C153 61 218 43 287 49Q338 49 371 60Q403 50 429 70Q454 89 455 111Q458 132 443 142Q431 150 416 138Q404 126 389 143Q371 163 350 162Q331 161 318 154Q297 149 280 166Q262 186 237 185Q215 184 201 174Q183 163 165 173Q147 183 133 174Q125 170 123 155Q108 153 102 134Z';
+              const top = grad(260, 51, 282, 176, [
+                [0, '#ffcc76'],
+                [0.38, '#ffb653'],
+                [0.73, '#ed912f'],
+                [1, '#bd5423'],
+              ]);
+              path(lid, top, navy, 7);
+              ctx.save();
+              ctx.clip(new Path2D(lid));
+              path(
+                'M109 129Q132 150 157 142Q182 128 203 147Q232 175 258 151Q283 126 310 135Q339 145 360 131Q384 107 410 117Q429 131 447 115L449 153Q332 191 195 188L114 176Z',
+                darkCrust,
+                null,
+              );
+              path(
+                'M111 122Q119 139 145 137Q156 136 165 131Q181 123 201 136Q232 160 253 141Q280 115 305 125Q334 139 355 122Q383 100 407 110Q428 119 448 110',
+                null,
+                '#ffc771',
+                10,
+              );
+              path(
+                'M141 108Q175 70 238 65Q282 58 324 68M351 71Q361 73 370 76M387 70Q415 66 432 88',
+                null,
+                '#ffda91',
+                5.5,
+              );
+              for (let index = 0; index < 78; index++) {
+                const x = 110 + ((index * 233 + 29) % 338);
+                const y = 55 + ((index * 89 + 41) % 99);
+                ellipse(
+                  x,
+                  y,
+                  0.55 + (index % 5) * 0.42,
+                  0.6 + (index % 3) * 0.32,
+                  index % 3 ? 'rgba(174,79,28,.24)' : 'rgba(255,224,154,.42)',
+                );
+              }
+              ctx.restore();
+              ctx.restore();
+
+              const gazeX = -7 * p.gaze;
+              const gazeY = 8 * p.gaze + p.crown * 0.35;
+              const open = 1 - p.blink;
+              path(
+                `M225 ${203 + 5 * p.gaze}Q236 ${194 + 7 * p.gaze} 248 ${198 + 6 * p.gaze}`,
+                null,
+                navy,
+                4.2,
+              );
+              path(
+                `M304 ${197 - 6 * p.think}Q315 ${190 - 10 * p.think} 326 ${194 - 4 * p.think}`,
+                null,
+                navy,
+                4.2,
+              );
+              for (const [x, y] of [
+                [237, 221],
+                [316, 215],
+              ]) {
+                if (open < 0.21) {
+                  path(`M${x - 8} ${y}q8 6 16 0`, null, navy, 4);
+                } else {
+                  ellipse(x + gazeX, y + gazeY, 8.1, Math.max(1, 12 * open), navy);
+                  if (open > 0.55) ellipse(x - 2 + gazeX, y - 4 + gazeY, 2.5, 2.8, '#fff5df');
+                }
+              }
+              path(
+                `M266 242Q${285 + 6 * p.think} ${259 + 6 * p.smile - 17 * p.think} 298 ${239 + 6 * p.think}`,
+                null,
+                navy,
+                4.4,
+              );
+              [
+                [216, 237],
+                [207, 243],
+                [222, 245],
+                [334, 228],
+                [344, 224],
+                [343, 234],
+              ].forEach(([x, y], index) =>
+                ellipse(x, y, 1.6 + (index % 2), 1.15 + (index % 2) * 0.45, '#d57937'),
+              );
+
+              drawBoard(p, board);
+              glove(supportX, supportY, -0.43, 0, 0.82);
+              drawFreeArm(p, board);
+              ctx.restore();
+            }
+            function frameAt(frames, time) {
+              const next = frames.findIndex(([at]) => at > time);
+              if (next < 1) return { ...rest, ...frames.at(-1)[1] };
+              const [fromTime, from] = frames[next - 1];
+              const [toTime, to] = frames[next];
+              const amount = (time - fromTime) / (toTime - fromTime);
+              const blend = amount * amount * (3 - 2 * amount);
+              return Object.fromEntries(
+                Object.entries(rest).map(([key, neutral]) => {
+                  const before = from[key] ?? neutral;
+                  const after = to[key] ?? neutral;
+                  return [key, before + (after - before) * blend];
+                }),
+              );
+            }
+            let animation = 0;
+            let selected;
+            function play(name) {
+              const gesture = gestures[name];
+              selected = name;
+              cancelAnimationFrame(animation);
+              status.textContent = gesture.description;
+              if (reduced.matches) {
+                draw({ ...rest, ...gesture.still });
+                return;
+              }
+              const begin = performance.now();
+              const end = gesture.frames.at(-1)[0];
+              function render(now) {
+                const elapsed = Math.max(0, now - begin);
+                draw(frameAt(gesture.frames, elapsed));
+                if (elapsed < end) animation = requestAnimationFrame(render);
+              }
+              animation = requestAnimationFrame(render);
+            }
+            root.querySelectorAll('button[data-gesto]').forEach((button) => {
+              button.addEventListener('click', () => {
+                root
+                  .querySelectorAll('button[aria-pressed="true"]')
+                  .forEach((active) => active.setAttribute('aria-pressed', 'false'));
+                button.setAttribute('aria-pressed', 'true');
+                play(button.dataset.gesto);
+              });
+              button.setAttribute('aria-pressed', 'false');
+            });
+            reduced.addEventListener('change', () => {
+              cancelAnimationFrame(animation);
+              draw(selected ? { ...rest, ...gestures[selected].still } : rest);
+            });
+            draw(rest);
+          })();
+        </script>
+      </section>
+    </main>
+  </body>
+</html>

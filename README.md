@@ -93,4 +93,5 @@ contra PostgreSQL 18, build e construção das imagens Docker.
 - [Convenções de idioma, código e git](docs/convencoes.md)
 - [Decisões de arquitetura](docs/adr)
 - [Análise crítica da especificação](docs/analise-critica.md)
+- [Proposta de encomendas e notificações](docs/proposta-encomendas-e-notificacoes.md)
 - [Design de interface](design/README.md)
