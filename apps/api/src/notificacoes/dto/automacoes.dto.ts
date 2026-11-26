@@ -220,3 +220,17 @@ export class ReconciliarOutboxDto {
   @IsEnum(comoEnum(ACOES_RECONCILIACAO_NOTIFICACAO))
   acao: AcaoReconciliacaoNotificacao;
 }
+
+export const METODOS_PAREAMENTO = ['QR', 'CODIGO'] as const;
+export type MetodoPareamento = (typeof METODOS_PAREAMENTO)[number];
+
+export class IniciarPareamentoDto {
+  @IsEnum(comoEnum(METODOS_PAREAMENTO))
+  metodo: MetodoPareamento;
+
+  @IsOptional()
+  @ApararOuNulo()
+  @IsString()
+  @MaxLength(24)
+  telefone?: string | null;
+}

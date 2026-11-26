@@ -277,4 +277,108 @@ describe('Automacoes', () => {
     await fixture.whenStable();
     expect(tela.textContent).toContain('Teste real enviado para Equipe Mira');
   });
+
+  it('pareia WhatsApp por QR ou código de 8 dígitos, verifica conexão, seleciona grupo e atualiza pose da Empadinha', async () => {
+    await montar();
+
+    // Com 1 envio incerto na fila, a Empadinha aparece em modo revisar.
+    expect(tela.querySelector('ms-empadinha img')?.getAttribute('src')).toBe(
+      '/empadinha/revisar.webp',
+    );
+
+    // Abre painel de pareamento e solicita QR Code.
+    botao('Conectar WhatsApp').click();
+    fixture.detectChanges();
+
+    botao('Gerar QR Code').click();
+    const reqQr = await aguardar((url) => url === '/api/v1/automacoes/conexao/parear');
+    expect(reqQr.request.method).toBe('POST');
+    expect(reqQr.request.body).toEqual({ metodo: 'QR' });
+    reqQr.flush({
+      data: {
+        qrCode: 'data:image/png;base64,iVBORw0KGgo=',
+        mensagem: 'Escaneie o QR Code no aparelho.',
+      },
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(tela.querySelector('.qr-imagem')?.getAttribute('src')).toBe(
+        'data:image/png;base64,iVBORw0KGgo=',
+      );
+      expect(tela.querySelector('ms-empadinha img')?.getAttribute('src')).toBe(
+        '/empadinha/marcando.webp',
+      );
+    });
+
+    // Gera código de 8 dígitos informando o número do chip.
+    const campoTelefone = tela.querySelector<HTMLInputElement>('#pareamento-telefone');
+    if (!campoTelefone) throw new Error('Campo de telefone não encontrado');
+    campoTelefone.value = '5511999998888';
+    campoTelefone.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    botao('Gerar código de 8 dígitos').click();
+    const reqCodigo = await aguardar((url) => url === '/api/v1/automacoes/conexao/parear');
+    expect(reqCodigo.request.body).toEqual({ metodo: 'CODIGO', telefone: '5511999998888' });
+    reqCodigo.flush({
+      data: {
+        codigo: 'ABCD-1234',
+        mensagem: 'Digite este código no WhatsApp.',
+      },
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(tela.querySelector('.codigo-pareamento')?.textContent.trim()).toBe('ABCD-1234');
+    });
+
+    // Verifica conexão: ao ficar CONECTADO e sem pendências, fecha pareamento e muda pose para tudo-certo.
+    botao('Verificar conexão').click();
+    const reqVerificar = await aguardar((url) => url === '/api/v1/automacoes/conexao/verificar');
+    expect(reqVerificar.request.method).toBe('POST');
+    reqVerificar.flush({
+      data: { ...PAINEL_BASE.estado, modo: 'GOWA', estado: 'CONECTADO' },
+    });
+    (await aguardar((url) => url === '/api/v1/automacoes')).flush({
+      data: {
+        ...PAINEL_BASE,
+        estado: { ...PAINEL_BASE.estado, modo: 'GOWA', estado: 'CONECTADO' },
+        fila: { pendentes: 0, incertos: 0, falhas: 0 },
+      },
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(tela.querySelector('.pareamento-bloco')).toBeNull();
+      expect(tela.querySelector('ms-empadinha img')?.getAttribute('src')).toBe(
+        '/empadinha/tudo-certo.webp',
+      );
+    });
+
+    // Carrega grupos do WhatsApp e preenche destino ao selecionar um grupo.
+    botao('Carregar grupos').click();
+    const reqGrupos = await aguardar((url) => url === '/api/v1/automacoes/grupos');
+    expect(reqGrupos.request.method).toBe('GET');
+    reqGrupos.flush({
+      data: [
+        { id: '120363999@g.us', nome: 'Forno & Cozinha Mira' },
+        { id: '120363111@g.us', nome: 'Entregas' },
+      ],
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(tela.querySelector('#destino-grupo-lista')).not.toBeNull();
+    });
+
+    const seletorGrupo = tela.querySelector<HTMLSelectElement>('#destino-grupo-lista');
+    if (!seletorGrupo) throw new Error('Seletor de grupo não encontrado');
+    seletorGrupo.value = '120363999@g.us';
+    seletorGrupo.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(tela.querySelector<HTMLInputElement>('#destino-nome')?.value).toBe(
+      'Forno & Cozinha Mira',
+    );
+    expect(tela.querySelector<HTMLInputElement>('#destino-identificador')?.value).toBe(
+      '120363999@g.us',
+    );
+  });
 });

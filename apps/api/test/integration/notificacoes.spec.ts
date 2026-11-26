@@ -704,7 +704,7 @@ describe('notificações, outbox, worker e automações', () => {
     conector.definirComportamento(async () => {
       const ack = await webhooks.processarEvento({
         evento: 'message.ack',
-        idExterno: 'msg-ack-antecipado-1',
+        idsExternos: ['msg-ack-antecipado-1'],
         entregue: true,
       });
       expect(ack.aplicado).toBe(true);
@@ -878,5 +878,112 @@ describe('notificações, outbox, worker e automações', () => {
     expect(fila[1]?.tipoEvento).toBe('CORRECAO');
     expect(fila[1]?.textoRenderizado).toContain('• *150 Esfiha de carne (assado)*');
     expect(fila[1]?.textoRenderizado).toContain('• 200 Coxinha de frango (frito)');
+  });
+
+  it('expõe verificação de conexão, pareamento auditado sem vazamento de QR/código, grupos WhatsApp e webhooks GoWA v9.11', async () => {
+    await membro.post('/automacoes/conexao/verificar', {}).expect(403);
+    await membro.post('/automacoes/conexao/parear', { metodo: 'QR' }).expect(403);
+    await membro.get('/automacoes/grupos').expect(403);
+
+    const verificado = dadosDe<{ estado: string; ultimaVerificacaoEm: string | null }>(
+      await admin.post('/automacoes/conexao/verificar', {}).expect(200),
+    );
+    expect(verificado.estado).toBe('SIMULADO');
+    expect(verificado.ultimaVerificacaoEm).toBeTruthy();
+
+    const grupos = dadosDe<{ id: string; nome: string }[]>(
+      await admin.get('/automacoes/grupos').expect(200),
+    );
+    expect(grupos).toEqual([{ id: 'simulado:equipe-mira@g.us', nome: 'Equipe Mira (Simulado)' }]);
+
+    // Mock temporário no conector para garantir que qrCode e codigo nunca vazam na auditoria.
+    const spyParear = vi.spyOn(conector, 'iniciarPareamento').mockResolvedValueOnce({
+      qrCode: 'data:image/png;base64,iVBORw0KGgo=',
+      codigo: 'ABCD-1234',
+      mensagem: 'Escaneie o QR Code no aparelho.',
+    });
+    const pareamento = dadosDe<{ qrCode?: string; codigo?: string; mensagem: string }>(
+      await admin.post('/automacoes/conexao/parear', { metodo: 'QR' }).expect(200),
+    );
+    spyParear.mockRestore();
+
+    expect(pareamento.qrCode).toBe('data:image/png;base64,iVBORw0KGgo=');
+    const logsPareamento = await dataSource.getRepository(LogAuditoria).findBy({
+      entidade: 'estado_conector_notificacao',
+    });
+    expect(logsPareamento.length).toBeGreaterThanOrEqual(1);
+    const ultimoLog = logsPareamento[logsPareamento.length - 1];
+    expect(ultimoLog?.dadosDepois?.['metodoPareamento']).toBe('QR');
+    expect(ultimoLog?.dadosDepois?.['qrCode']).toBeUndefined();
+    expect(ultimoLog?.dadosDepois?.['codigo']).toBeUndefined();
+
+    // Testa payload exato do GoWA v9.11 (ids[] + receipt_type + device.reachout_timelock).
+    const regraId = await ligarRegra('AVISO_IMEDIATO');
+    const simulacao = dadosDe<{ id: string }>(
+      await admin.post(`/automacoes/regras/${regraId}/simular`, {}).expect(200),
+    );
+    const registro = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+      id: simulacao.id,
+    });
+
+    const segredo = 'segredo-webhook-gowa-v9-integracao-0123456789';
+    const servidor = criarServidorWebhookPrivado(app.get(WebhookNotificacoesService), segredo);
+    await new Promise<void>((resolve) => {
+      servidor.listen(0, '127.0.0.1', resolve);
+    });
+    const porta = (servidor.address() as AddressInfo).port;
+    const url = `http://127.0.0.1:${String(porta)}/webhooks/whatsapp`;
+
+    try {
+      const corpoAckGowa = JSON.stringify({
+        event: 'message.ack',
+        payload: {
+          ids: [registro.idExterno],
+          receipt_type: 'delivered',
+        },
+      });
+      const hmacAck = createHmac('sha256', segredo).update(corpoAckGowa).digest('hex');
+      const resAck = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-hub-signature-256': `sha256=${hmacAck}`,
+        },
+        body: corpoAckGowa,
+      });
+      expect(resAck.status).toBe(200);
+
+      const entregue = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+        id: simulacao.id,
+      });
+      expect(entregue.status).toBe('ENTREGUE');
+
+      const corpoTimelock = JSON.stringify({
+        event: 'device.reachout_timelock',
+        payload: { reason: 'Limite temporário de envio' },
+      });
+      const hmacTimelock = createHmac('sha256', segredo).update(corpoTimelock).digest('hex');
+      const resTimelock = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-hub-signature-256': `sha256=${hmacTimelock}`,
+        },
+        body: corpoTimelock,
+      });
+      expect(resTimelock.status).toBe(200);
+
+      const estado = await dataSource
+        .getRepository(EstadoConectorNotificacao)
+        .findOneByOrFail({ canal: 'WHATSAPP' });
+      expect(estado.estado).toBe('DESCONECTADO');
+      expect(estado.pausado).toBe(true);
+    } finally {
+      await new Promise<void>((resolve) => {
+        servidor.close(() => {
+          resolve();
+        });
+      });
+    }
   });
 });

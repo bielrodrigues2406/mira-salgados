@@ -1,9 +1,12 @@
-<header class="cabecalho">
-  <h1 class="texto-display">Automações</h1>
-  <p class="descricao">
-    Avisos automáticos da equipe no WhatsApp. Nunca incluem nome de cliente, telefone, endereço ou
-    valores.
-  </p>
+<header class="cabecalho-linha">
+  <div class="cabecalho">
+    <h1 class="texto-display">Automações</h1>
+    <p class="descricao">
+      Avisos automáticos da equipe no WhatsApp. Nunca incluem nome de cliente, telefone, endereço ou
+      valores.
+    </p>
+  </div>
+  <ms-empadinha [pose]="poseEmpadinha()" tamanho="media" />
 </header>
 
 <p class="somente-leitor-de-tela" role="status">{{ aviso() }}</p>
@@ -45,17 +48,36 @@
             @let chip = aparenciaConexao(dados.estado.estado);
             <ms-chip [tom]="chip.tom" [icone]="chip.icone">{{ chip.rotulo }}</ms-chip>
           </div>
-          <button
-            type="button"
-            class="botao nao-imprimir"
-            [class.botao-secundario]="!dados.estado.pausado"
-            [class.botao-primario]="dados.estado.pausado"
-            [disabled]="ocupacao() === 'conexao'"
-            (click)="alternarPausa()"
-          >
-            <ms-icone [nome]="dados.estado.pausado ? 'confirmado' : 'pausado'" />
-            <span>{{ dados.estado.pausado ? 'Retomar envios' : 'Pausar envios' }}</span>
-          </button>
+          <div class="acoes-linha nao-imprimir">
+            <button
+              type="button"
+              class="botao botao-terciario"
+              [disabled]="ocupacao() === 'verificar'"
+              (click)="verificarConexao()"
+            >
+              <ms-icone nome="recarregar" [tamanho]="16" />
+              <span>Verificar conexão</span>
+            </button>
+            <button
+              type="button"
+              class="botao botao-secundario"
+              (click)="alternarPainelPareamento()"
+            >
+              <ms-icone nome="whatsapp" [tamanho]="16" />
+              <span>{{ mostrarPareamento() ? 'Ocultar pareamento' : 'Conectar WhatsApp' }}</span>
+            </button>
+            <button
+              type="button"
+              class="botao"
+              [class.botao-secundario]="!dados.estado.pausado"
+              [class.botao-primario]="dados.estado.pausado"
+              [disabled]="ocupacao() === 'conexao'"
+              (click)="alternarPausa()"
+            >
+              <ms-icone [nome]="dados.estado.pausado ? 'confirmado' : 'pausado'" />
+              <span>{{ dados.estado.pausado ? 'Retomar envios' : 'Pausar envios' }}</span>
+            </button>
+          </div>
         </div>
 
         <div class="metricas numerico">
@@ -71,6 +93,12 @@
             <span class="texto-rotulo">Falhas</span>
             <strong>{{ dados.fila.falhas }}</strong>
           </span>
+          @if (dados.estado.ultimaVerificacaoEm; as verificadoEm) {
+            <span class="metrica">
+              <span class="texto-rotulo">Última verificação</span>
+              <span class="texto-legenda">{{ momentoCurto(verificadoEm) }}</span>
+            </span>
+          }
         </div>
 
         @if (dados.estado.motivoPausa; as motivo) {
@@ -80,9 +108,117 @@
           </div>
         }
 
+        @if (dados.estado.ultimoErro && dados.estado.ultimoErro !== dados.estado.motivoPausa) {
+          <div class="alerta alerta-negativo">
+            <ms-icone nome="alerta" [tamanho]="20" />
+            <span>{{ dados.estado.ultimoErro }}</span>
+          </div>
+        }
+
+        @if (mostrarPareamento()) {
+          <div class="pareamento-bloco nao-imprimir" aria-label="Pareamento do WhatsApp">
+            <div class="pareamento-topo">
+              <div>
+                <h3 class="texto-subtitulo">Conectar aparelho no WhatsApp</h3>
+                <p class="texto-legenda">
+                  Vincule o número dedicado da Mira Salgados usando QR Code ou código de 8 dígitos.
+                </p>
+              </div>
+              <button
+                type="button"
+                class="botao botao-primario"
+                [disabled]="ocupacao() === 'parear'"
+                (click)="iniciarPareamento('QR')"
+              >
+                Gerar QR Code
+              </button>
+            </div>
+
+            <div class="pareamento-codigo-linha">
+              <div class="campo pareamento-telefone">
+                <label class="texto-rotulo" for="pareamento-telefone">
+                  Ou conectar com código (DDI + DDD + número)
+                </label>
+                <input
+                  id="pareamento-telefone"
+                  type="tel"
+                  class="campo-entrada numerico"
+                  autocomplete="off"
+                  placeholder="5511999998888"
+                  [value]="telefonePareamento()"
+                  (input)="telefonePareamento.set(campoTelefoneParear.value)"
+                  #campoTelefoneParear
+                />
+              </div>
+              <button
+                type="button"
+                class="botao botao-secundario"
+                [disabled]="ocupacao() === 'parear'"
+                (click)="iniciarPareamento('CODIGO')"
+              >
+                Gerar código de 8 dígitos
+              </button>
+            </div>
+
+            @if (pareamento(); as resultado) {
+              <div class="pareamento-resultado">
+                <p>{{ resultado.mensagem }}</p>
+                @if (resultado.qrCode; as qr) {
+                  <img
+                    class="qr-imagem"
+                    [src]="qr"
+                    alt="QR Code para parear o WhatsApp"
+                    width="220"
+                    height="220"
+                  />
+                }
+                @if (resultado.codigo; as codigo) {
+                  <p class="codigo-pareamento numerico">{{ codigo }}</p>
+                }
+                <div class="acoes-linha">
+                  <button
+                    type="button"
+                    class="botao botao-secundario"
+                    [disabled]="ocupacao() === 'verificar'"
+                    (click)="verificarConexao()"
+                  >
+                    Já conectei, verificar
+                  </button>
+                  <button
+                    type="button"
+                    class="botao botao-terciario"
+                    (click)="pareamento.set(null)"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
         @if (dados.destinos[0]; as destino) {
           @if (rascunhoDestino(); as formDestino) {
             <div class="destino-grade">
+              @if (gruposWhatsApp().length > 0) {
+                <div class="campo destino-seletor">
+                  <label class="texto-rotulo" for="destino-grupo-lista">
+                    Escolher grupo do WhatsApp conectado
+                  </label>
+                  <select
+                    id="destino-grupo-lista"
+                    class="campo-entrada campo-selecao"
+                    [value]="formDestino.identificadorExterno"
+                    (change)="selecionarGrupo(campoGrupoLista.value)"
+                    #campoGrupoLista
+                  >
+                    <option value="">Selecione um grupo...</option>
+                    @for (grupo of gruposWhatsApp(); track grupo.id) {
+                      <option [value]="grupo.id">{{ grupo.nome }}</option>
+                    }
+                  </select>
+                </div>
+              }
               <div class="campo">
                 <label class="texto-rotulo" for="destino-nome">Grupo de destino</label>
                 <input
@@ -102,7 +238,7 @@
                   id="destino-identificador"
                   class="campo-entrada numerico"
                   autocomplete="off"
-                  placeholder="simulado:equipe-mira@g.us"
+                  placeholder="120363000000000000@g.us"
                   [value]="formDestino.identificadorExterno"
                   (input)="atualizarCampoDestino('identificadorExterno', campoDestinoId.value)"
                   #campoDestinoId
@@ -118,6 +254,15 @@
                 <span>Destino ativo</span>
               </label>
               <div class="acoes-linha nao-imprimir">
+                <button
+                  type="button"
+                  class="botao botao-terciario"
+                  [disabled]="ocupacao() === 'grupos'"
+                  (click)="carregarGrupos()"
+                >
+                  <ms-icone nome="clientes" [tamanho]="16" />
+                  <span>Carregar grupos</span>
+                </button>
                 <button
                   type="button"
                   class="botao botao-secundario"

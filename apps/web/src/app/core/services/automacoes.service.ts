@@ -11,10 +11,13 @@ import type {
   ConsultaHistoricoNotificacoes,
   DestinoNotificacao,
   EstadoConexao,
+  GrupoWhatsApp,
   ItemHistoricoNotificacao,
+  MetodoPareamento,
   PainelAutomacoes,
   PreviaRegra,
   RegraNotificacao,
+  ResultadoPareamento,
 } from '../models/automacoes';
 import { paginaDe, parametros } from './respostas';
 
@@ -91,6 +94,29 @@ export class AutomacoesService {
         `${AUTOMACOES}/regras/${encodeURIComponent(id)}/testar-envio`,
         dados,
       )
+      .pipe(map(({ data }) => data));
+  }
+
+  verificarConexao(): Observable<EstadoConexao> {
+    return this.http
+      .post<ApiEnvelope<EstadoConexao>>(`${AUTOMACOES}/conexao/verificar`, {})
+      .pipe(map(({ data }) => data));
+  }
+
+  iniciarPareamento(
+    metodo: MetodoPareamento,
+    telefone?: string | null,
+  ): Observable<ResultadoPareamento> {
+    const telefoneLimpo = telefone?.trim();
+    const corpo = telefoneLimpo?.length ? { metodo, telefone: telefoneLimpo } : { metodo };
+    return this.http
+      .post<ApiEnvelope<ResultadoPareamento>>(`${AUTOMACOES}/conexao/parear`, corpo)
+      .pipe(map(({ data }) => data));
+  }
+
+  listarGrupos(): Observable<GrupoWhatsApp[]> {
+    return this.http
+      .get<ApiEnvelope<GrupoWhatsApp[]>>(`${AUTOMACOES}/grupos`)
       .pipe(map(({ data }) => data));
   }
 

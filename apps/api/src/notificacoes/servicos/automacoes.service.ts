@@ -23,6 +23,7 @@ import type {
   AtualizarRegraDto,
   CriarDestinoDto,
   FiltroHistoricoNotificacoesDto,
+  IniciarPareamentoDto,
   PausarConexaoDto,
   PreviaRegraDto,
   ReconciliarOutboxDto,
@@ -578,6 +579,74 @@ export class AutomacoesService {
     salvo.regra = regra;
     salvo.destino = destino;
     return ItemHistoricoNotificacaoDto.de(salvo);
+  }
+
+  async verificarConexao(): Promise<EstadoConexaoDto> {
+    const verificado = await this.conector.obterEstado();
+    return this.dataSource.transaction(async (manager) => {
+      const { estado } = await this.configuracao.garantirPadroes(manager);
+      estado.ultimaVerificacaoEm = new Date();
+      if (estado.modo !== 'DESLIGADO') {
+        estado.estado =
+          estado.pausado && verificado.estado === 'CONECTADO' ? 'PAUSADO' : verificado.estado;
+        estado.ultimoErro =
+          verificado.estado === 'DESCONECTADO' ? (verificado.detalhe ?? null) : null;
+      }
+      const salvo = await manager.getRepository(EstadoConectorNotificacao).save(estado);
+      return EstadoConexaoDto.de(salvo);
+    });
+  }
+
+  async iniciarPareamento(
+    dados: IniciarPareamentoDto,
+    autorId: string,
+  ): Promise<{ qrCode?: string; codigo?: string; mensagem: string }> {
+    let resultado: { qrCode?: string; codigo?: string; mensagem: string };
+    try {
+      resultado = await this.conector.iniciarPareamento(dados.metodo, dados.telefone ?? undefined);
+    } catch (erro) {
+      throw new BusinessRuleError(
+        'PAREAMENTO_INDISPONIVEL',
+        erro instanceof Error ? erro.message : 'Não foi possível iniciar o pareamento no WhatsApp.',
+      );
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      const { estado } = await this.configuracao.garantirPadroes(manager);
+      const antes = Object.assign(new EstadoConectorNotificacao(), estado);
+      estado.ultimaVerificacaoEm = new Date();
+      const salvo = await manager.getRepository(EstadoConectorNotificacao).save(estado);
+      await this.auditoria.registrar(manager, {
+        entidade: 'estado_conector_notificacao',
+        entidadeId: salvo.canal,
+        acao: 'ATUALIZACAO',
+        antes,
+        depois: {
+          canal: salvo.canal,
+          modo: salvo.modo,
+          estado: salvo.estado,
+          pausado: salvo.pausado,
+          ultimaVerificacaoEm: salvo.ultimaVerificacaoEm,
+          metodoPareamento: dados.metodo,
+        },
+        usuarioId: autorId,
+      });
+    });
+
+    return resultado;
+  }
+
+  async listarGrupos(): Promise<readonly { id: string; nome: string }[]> {
+    try {
+      return await this.conector.listarGrupos();
+    } catch (erro) {
+      throw new BusinessRuleError(
+        'GRUPOS_INDISPONIVEIS',
+        erro instanceof Error
+          ? erro.message
+          : 'Não foi possível carregar os grupos do WhatsApp agora.',
+      );
+    }
   }
 
   pausarConexao(dados: PausarConexaoDto, autorId: string): Promise<EstadoConexaoDto> {

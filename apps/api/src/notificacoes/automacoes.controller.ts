@@ -16,11 +16,13 @@ import {
   type UsuarioAutenticado,
 } from '../common/auth/usuario-autenticado.js';
 import type { Paginated } from '../common/pagination/pagination.js';
+import type { GrupoWhatsApp, ResultadoPareamento } from './conector/conector-whatsapp.js';
 import {
   AtualizarDestinoDto,
   AtualizarRegraDto,
   CriarDestinoDto,
   FiltroHistoricoNotificacoesDto,
+  IniciarPareamentoDto,
   PausarConexaoDto,
   PreviaRegraDto,
   ReconciliarOutboxDto,
@@ -38,7 +40,7 @@ import { AutomacoesService } from './servicos/automacoes.service.js';
 
 /**
  * Painel de automações e notificações (WhatsApp). Toda operação de configuração,
- * simulação, pausa e reconciliação é restrita a administradores (ADR 0019).
+ * pareamento, simulação, pausa e reconciliação é restrita a administradores (ADR 0019).
  */
 @Controller('automacoes')
 @SomenteAdmin()
@@ -48,6 +50,11 @@ export class AutomacoesController {
   @Get()
   obterPainel(): Promise<PainelAutomacoesResposta> {
     return this.automacoes.obterPainel();
+  }
+
+  @Get('grupos')
+  listarGrupos(): Promise<readonly GrupoWhatsApp[]> {
+    return this.automacoes.listarGrupos();
   }
 
   @Post('destinos')
@@ -103,6 +110,21 @@ export class AutomacoesController {
     @CurrentUser() autor: UsuarioAutenticado,
   ): Promise<ItemHistoricoNotificacaoDto> {
     return this.automacoes.testarEnvioReal(id, dados, autor.id);
+  }
+
+  @Post('conexao/verificar')
+  @HttpCode(200)
+  verificarConexao(): Promise<EstadoConexaoDto> {
+    return this.automacoes.verificarConexao();
+  }
+
+  @Post('conexao/parear')
+  @HttpCode(200)
+  iniciarPareamento(
+    @Body() dados: IniciarPareamentoDto,
+    @CurrentUser() autor: UsuarioAutenticado,
+  ): Promise<ResultadoPareamento> {
+    return this.automacoes.iniciarPareamento(dados, autor.id);
   }
 
   @Post('conexao/pausar')

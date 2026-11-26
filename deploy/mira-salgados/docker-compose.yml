@@ -55,10 +55,60 @@ services:
       TRUST_PROXY: 2
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no .env}
       COOKIE_SECURE: 'true'
+      NOTIFICACOES_MODO: ${NOTIFICACOES_MODO:-SIMULADO}
+      NOTIFICACOES_CONECTOR_URL: ${NOTIFICACOES_CONECTOR_URL:-}
+      NOTIFICACOES_CONECTOR_TOKEN: ${NOTIFICACOES_CONECTOR_TOKEN:-}
+      NOTIFICACOES_CONECTOR_DEVICE_ID: ${NOTIFICACOES_CONECTOR_DEVICE_ID:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
     mem_limit: 384m
+
+  # Worker isolado e gateway GoWA (opcional: ative com `--profile notificacoes`).
+  # Ficam apenas na rede interna Docker, sem nenhuma porta publicada no host.
+  worker:
+    image: *imagem-api
+    profiles: ['notificacoes']
+    command: ['node', 'dist/worker.js']
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: *database-url
+      CORS_ORIGINS: ${WEB_ORIGIN:?defina WEB_ORIGIN no .env, como https://mirasalgados.com.br}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no .env}
+      NOTIFICACOES_MODO: ${NOTIFICACOES_MODO:-GOWA}
+      NOTIFICACOES_CONECTOR_URL: ${NOTIFICACOES_CONECTOR_URL:-http://gowa:3000}
+      # Obrigatórios quando o perfil notificacoes está ativo (validados no boot pelo env.schema.ts).
+      NOTIFICACOES_CONECTOR_TOKEN: ${NOTIFICACOES_CONECTOR_TOKEN:-}
+      NOTIFICACOES_CONECTOR_DEVICE_ID: ${NOTIFICACOES_CONECTOR_DEVICE_ID:-}
+      NOTIFICACOES_WEBHOOK_HOST: 0.0.0.0
+      NOTIFICACOES_WEBHOOK_PORT: 3001
+      NOTIFICACOES_WEBHOOK_SECRET: ${NOTIFICACOES_WEBHOOK_SECRET:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    mem_limit: 192m
+
+  gowa:
+    image: ghcr.io/aldinokemal/go-whatsapp-web-multidevice:v9.11.0
+    profiles: ['notificacoes']
+    restart: unless-stopped
+    command: ['rest']
+    environment:
+      APP_PORT: 3000
+      APP_OS: MiraSalgados
+      APP_BASIC_AUTH: ${NOTIFICACOES_CONECTOR_TOKEN:-}
+      WHATSAPP_WEBHOOK: http://worker:3001/webhooks/whatsapp
+      WHATSAPP_WEBHOOK_EVENTS: message.ack,device.logged_out,device.temporary_ban,device.reachout_timelock
+      WHATSAPP_WEBHOOK_SECRET: ${NOTIFICACOES_WEBHOOK_SECRET:-}
+      WHATSAPP_AUTO_REJECT_CALL: 'true'
+    volumes:
+      # Volume próprio de sessão WhatsApp, fora do backup do PostgreSQL (ADR 0019).
+      - gowa_session:/app/storages
+    mem_limit: 128m
 
   web:
     image: ghcr.io/bielrodrigues2406/mira-salgados-web:${VERSAO:-latest}
@@ -79,3 +129,4 @@ networks:
 
 volumes:
   pgdata:
+  gowa_session:

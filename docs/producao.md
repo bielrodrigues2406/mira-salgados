@@ -118,6 +118,34 @@ novas rodam sozinhas antes da API.
 - [ ] Backup agendado, copiado para fora da máquina, e uma restauração testada.
 - [ ] Porta do banco (5432) não aparece para a internet (`127.0.0.1` no compose).
 
+## Notificações no WhatsApp (GoWA)
+
+As notificações automáticas rodam de forma opcional atrás do profile
+`notificacoes` (`worker` + `gowa` na rede interna Docker, sem nenhuma porta
+publicada para a internet — veja [ADR 0019](adr/0019-notificacoes-outbox-e-conector-whatsapp.md)):
+
+1. No `.env`, defina:
+
+   ```sh
+   NOTIFICACOES_MODO=GOWA
+   NOTIFICACOES_CONECTOR_URL=http://gowa:3000
+   NOTIFICACOES_CONECTOR_TOKEN=mira:$(openssl rand -hex 16)
+   NOTIFICACOES_WEBHOOK_SECRET=$(openssl rand -hex 32)
+   ```
+
+2. Suba a pilha com o profile `notificacoes`:
+
+   ```sh
+   docker compose --profile notificacoes up -d
+   ```
+
+3. Entre como administrador em **Automações**, abra **Conectar WhatsApp**, faça
+   o pareamento único do chip dedicado (por **QR Code** ou **código de 8
+   dígitos**), clique em **Carregar grupos** para escolher o grupo de destino
+   (comece por um grupo de teste), rode **Simular envio** e só então ative as
+   regras desejadas. A sessão fica salva no volume `gowa_session` e reconecta
+   sozinha após reinícios.
+
 ## E sem internet?
 
 O sistema é um site: os pedidos ficam no servidor, que é o que permite todo

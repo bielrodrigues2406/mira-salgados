@@ -34,7 +34,9 @@ function comoObjeto(valor: unknown): Record<string, unknown> | null {
     : null;
 }
 
-/** Traduz payload de webhook (GoWA/WAHA ou formato interno) em evento tipado. */
+const TIPOS_RECIBO_ENTREGUE = new Set(['delivered', 'read', 'read-self', 'played']);
+
+/** Traduz payload de webhook (GoWA v9.x/WAHA ou formato interno) em evento tipado. */
 export function extrairEventoWebhook(payload: unknown): EventoWebhookConector | null {
   const raiz = comoObjeto(payload);
   if (!raiz) return null;
@@ -43,7 +45,10 @@ export function extrairEventoWebhook(payload: unknown): EventoWebhookConector | 
   const dados = comoObjeto(raiz['payload']) ?? raiz;
 
   if (tipo === 'message.ack') {
-    const idExterno =
+    const idsBrutos = Array.isArray(dados['ids'])
+      ? dados['ids'].filter((item): item is string => typeof item === 'string' && item.length > 0)
+      : [];
+    const unico =
       typeof dados['idExterno'] === 'string'
         ? dados['idExterno']
         : typeof dados['message_id'] === 'string'
@@ -51,17 +56,26 @@ export function extrairEventoWebhook(payload: unknown): EventoWebhookConector | 
           : typeof dados['id'] === 'string'
             ? dados['id']
             : '';
-    if (!idExterno) return null;
+    const idsExternos = idsBrutos.length > 0 ? idsBrutos : unico ? [unico] : [];
+    if (idsExternos.length === 0) return null;
+
     const ack = dados['ack'];
+    const receiptType =
+      typeof dados['receipt_type'] === 'string' ? dados['receipt_type'].toLowerCase() : '';
     const entregue =
       dados['entregue'] === true ||
+      TIPOS_RECIBO_ENTREGUE.has(receiptType) ||
       (typeof ack === 'number' && ack >= 2) ||
       ack === 'DELIVERED' ||
       ack === 'READ';
-    return { evento: 'message.ack', idExterno, entregue };
+    return { evento: 'message.ack', idsExternos, entregue };
   }
 
-  if (tipo === 'device.logged_out' || tipo === 'device.temporary_ban') {
+  if (
+    tipo === 'device.logged_out' ||
+    tipo === 'device.temporary_ban' ||
+    tipo === 'device.reachout_timelock'
+  ) {
     const motivo =
       typeof dados['motivo'] === 'string'
         ? dados['motivo']
