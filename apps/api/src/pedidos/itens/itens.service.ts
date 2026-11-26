@@ -3,6 +3,7 @@ import { DataSource, type EntityManager } from 'typeorm';
 
 import { AuditoriaService } from '../../auditoria/auditoria.service.js';
 import { BusinessRuleError, NotFoundError } from '../../common/errors/domain.errors.js';
+import { EnfileiradorNotificacoesService } from '../../notificacoes/servicos/enfileirador-notificacoes.service.js';
 import {
   AgregadoPedidoService,
   garantirConsistenciaFinanceira,
@@ -23,6 +24,7 @@ export class ItensService {
     private readonly dataSource: DataSource,
     private readonly agregados: AgregadoPedidoService,
     private readonly auditoria: AuditoriaService,
+    private readonly notificacoes: EnfileiradorNotificacoesService,
   ) {}
 
   /**
@@ -34,12 +36,26 @@ export class ItensService {
     return this.dataSource.transaction(async (manager) => {
       const pedido = await this.agregados.bloquear(manager, pedidoId);
       garantirEditavel(pedido);
+      const projecaoAntes =
+        pedido.status === 'CONFIRMADO'
+          ? await this.notificacoes.projetarAtual(manager, pedido)
+          : null;
 
       const resolvido = await resolverItemParaPedido(manager, dados);
       const repositorio = manager.getRepository(ItemPedido);
       const item = await repositorio.save(repositorio.create({ pedidoId, ...resolvido }));
       await this.registrar(manager, 'CRIACAO', item.id, null, item, autorId);
       await this.verificarInvariantes(manager, pedido);
+
+      if (pedido.status === 'CONFIRMADO') {
+        const projecaoDepois = await this.notificacoes.projetarAtual(manager, pedido);
+        await this.notificacoes.registrarMudancaDePedido(manager, {
+          pedido,
+          antes: projecaoAntes,
+          depois: projecaoDepois,
+        });
+      }
+
       return this.agregados.carregar(manager, pedidoId);
     });
   }
@@ -53,6 +69,10 @@ export class ItensService {
     return this.dataSource.transaction(async (manager) => {
       const pedido = await this.agregados.bloquear(manager, pedidoId);
       garantirEditavel(pedido);
+      const projecaoAntes =
+        pedido.status === 'CONFIRMADO'
+          ? await this.notificacoes.projetarAtual(manager, pedido)
+          : null;
       const item = await this.buscarDoPedido(manager, pedidoId, itemId);
       const antes = Object.assign(new ItemPedido(), item);
 
@@ -69,6 +89,16 @@ export class ItensService {
       const salvo = await manager.getRepository(ItemPedido).save(item);
       await this.registrar(manager, 'ATUALIZACAO', itemId, antes, salvo, autorId);
       await this.verificarInvariantes(manager, pedido);
+
+      if (pedido.status === 'CONFIRMADO') {
+        const projecaoDepois = await this.notificacoes.projetarAtual(manager, pedido);
+        await this.notificacoes.registrarMudancaDePedido(manager, {
+          pedido,
+          antes: projecaoAntes,
+          depois: projecaoDepois,
+        });
+      }
+
       return this.agregados.carregar(manager, pedidoId);
     });
   }
@@ -77,6 +107,10 @@ export class ItensService {
     return this.dataSource.transaction(async (manager) => {
       const pedido = await this.agregados.bloquear(manager, pedidoId);
       garantirEditavel(pedido);
+      const projecaoAntes =
+        pedido.status === 'CONFIRMADO'
+          ? await this.notificacoes.projetarAtual(manager, pedido)
+          : null;
       const item = await this.buscarDoPedido(manager, pedidoId, itemId);
 
       const antes = Object.assign(new ItemPedido(), item);
@@ -91,6 +125,16 @@ export class ItensService {
         );
       }
       await this.verificarInvariantes(manager, pedido);
+
+      if (pedido.status === 'CONFIRMADO') {
+        const projecaoDepois = await this.notificacoes.projetarAtual(manager, pedido);
+        await this.notificacoes.registrarMudancaDePedido(manager, {
+          pedido,
+          antes: projecaoAntes,
+          depois: projecaoDepois,
+        });
+      }
+
       return this.agregados.carregar(manager, pedidoId);
     });
   }

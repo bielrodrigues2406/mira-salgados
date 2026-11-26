@@ -41,6 +41,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/usuarios/usuarios').then((m) => m.Usuarios),
       },
       {
+        path: 'automacoes',
+        title: `Automações · ${TITULO}`,
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/automacoes/automacoes').then((m) => m.Automacoes),
+      },
+      {
         path: 'alteracoes',
         title: `Alterações · ${TITULO}`,
         canActivate: [adminGuard],

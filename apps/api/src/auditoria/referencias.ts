@@ -10,6 +10,10 @@ const TABELAS = {
   pedidos:
     "SELECT id::text, 'Pedido #' || numero AS rotulo FROM pedidos WHERE id = ANY($1::uuid[])",
   usuarios: 'SELECT id::text, nome AS rotulo FROM usuarios WHERE id = ANY($1::uuid[])',
+  destinos_notificacao:
+    'SELECT id::text, nome AS rotulo FROM destinos_notificacao WHERE id = ANY($1::uuid[])',
+  regras_notificacao:
+    'SELECT id::text, nome AS rotulo FROM regras_notificacao WHERE id = ANY($1::uuid[])',
 } as const;
 
 type Tabela = keyof typeof TABELAS;
@@ -23,6 +27,9 @@ const TABELA_DO_CAMPO: Record<string, Tabela> = {
   usuarioId: 'usuarios',
   registradoPorId: 'usuarios',
   estornadoPorId: 'usuarios',
+  aprovadoPorId: 'usuarios',
+  destinoId: 'destinos_notificacao',
+  regraId: 'regras_notificacao',
 };
 
 const TABELA_DA_ENTIDADE: Record<string, Tabela> = {
@@ -31,6 +38,8 @@ const TABELA_DA_ENTIDADE: Record<string, Tabela> = {
   produto: 'produtos',
   pedido: 'pedidos',
   usuario: 'usuarios',
+  destino_notificacao: 'destinos_notificacao',
+  regra_notificacao: 'regras_notificacao',
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

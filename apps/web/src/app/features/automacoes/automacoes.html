@@ -1,0 +1,584 @@
+<header class="cabecalho">
+  <h1 class="texto-display">Automações</h1>
+  <p class="descricao">
+    Avisos automáticos da equipe no WhatsApp. Nunca incluem nome de cliente, telefone, endereço ou
+    valores.
+  </p>
+</header>
+
+<p class="somente-leitor-de-tela" role="status">{{ aviso() }}</p>
+
+@if (aviso(); as mensagemAviso) {
+  <div class="alerta alerta-positivo nao-imprimir" role="status">
+    <ms-icone nome="confirmado" [tamanho]="20" />
+    <span>{{ mensagemAviso }}</span>
+  </div>
+}
+
+@if (erroAcao(); as mensagemErro) {
+  <div class="alerta alerta-negativo nao-imprimir" role="alert">
+    <ms-icone nome="alerta" [tamanho]="20" />
+    <span>{{ mensagemErro }}</span>
+  </div>
+}
+
+@switch (estadoPainel()) {
+  @case ('carregando') {
+    <ms-lista-esqueleto rotulo="Carregando automações" [quantidade]="3" />
+  }
+  @case ('tentando') {
+    <ms-estado-erro titulo="Não foi possível carregar as automações" [tentando]="true" />
+  }
+  @case ('erro') {
+    <ms-estado-erro
+      titulo="Não foi possível carregar as automações"
+      [erro]="painelRecurso.error()"
+      (tentarNovamente)="painelRecurso.reload()"
+    />
+  }
+  @default {
+    @if (painel(); as dados) {
+      <section class="cartao bloco" aria-labelledby="titulo-canal">
+        <div class="bloco-topo">
+          <div class="bloco-titulo">
+            <h2 id="titulo-canal" class="texto-titulo">Canal e destino</h2>
+            @let chip = aparenciaConexao(dados.estado.estado);
+            <ms-chip [tom]="chip.tom" [icone]="chip.icone">{{ chip.rotulo }}</ms-chip>
+          </div>
+          <button
+            type="button"
+            class="botao nao-imprimir"
+            [class.botao-secundario]="!dados.estado.pausado"
+            [class.botao-primario]="dados.estado.pausado"
+            [disabled]="ocupacao() === 'conexao'"
+            (click)="alternarPausa()"
+          >
+            <ms-icone [nome]="dados.estado.pausado ? 'confirmado' : 'pausado'" />
+            <span>{{ dados.estado.pausado ? 'Retomar envios' : 'Pausar envios' }}</span>
+          </button>
+        </div>
+
+        <div class="metricas numerico">
+          <span class="metrica">
+            <span class="texto-rotulo">Pendentes</span>
+            <strong>{{ dados.fila.pendentes }}</strong>
+          </span>
+          <span class="metrica">
+            <span class="texto-rotulo">Incertos</span>
+            <strong>{{ dados.fila.incertos }}</strong>
+          </span>
+          <span class="metrica">
+            <span class="texto-rotulo">Falhas</span>
+            <strong>{{ dados.fila.falhas }}</strong>
+          </span>
+        </div>
+
+        @if (dados.estado.motivoPausa; as motivo) {
+          <div class="alerta alerta-atencao">
+            <ms-icone nome="atencao" [tamanho]="20" />
+            <span>{{ motivo }}</span>
+          </div>
+        }
+
+        @if (dados.destinos[0]; as destino) {
+          @if (rascunhoDestino(); as formDestino) {
+            <div class="destino-grade">
+              <div class="campo">
+                <label class="texto-rotulo" for="destino-nome">Grupo de destino</label>
+                <input
+                  id="destino-nome"
+                  class="campo-entrada"
+                  autocomplete="off"
+                  [value]="formDestino.nome"
+                  (input)="atualizarCampoDestino('nome', campoDestinoNome.value)"
+                  #campoDestinoNome
+                />
+              </div>
+              <div class="campo">
+                <label class="texto-rotulo" for="destino-identificador">
+                  Identificador do grupo (JID)
+                </label>
+                <input
+                  id="destino-identificador"
+                  class="campo-entrada numerico"
+                  autocomplete="off"
+                  placeholder="simulado:equipe-mira@g.us"
+                  [value]="formDestino.identificadorExterno"
+                  (input)="atualizarCampoDestino('identificadorExterno', campoDestinoId.value)"
+                  #campoDestinoId
+                />
+              </div>
+              <label class="opcao-linha">
+                <input
+                  type="checkbox"
+                  [checked]="formDestino.ativo"
+                  (change)="atualizarCampoDestino('ativo', campoDestinoAtivo.checked)"
+                  #campoDestinoAtivo
+                />
+                <span>Destino ativo</span>
+              </label>
+              <div class="acoes-linha nao-imprimir">
+                <button
+                  type="button"
+                  class="botao botao-secundario"
+                  [disabled]="ocupacao() === 'destino:' + destino.id"
+                  (click)="salvarDestino(destino)"
+                >
+                  Salvar destino
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </section>
+
+      @if (previa(); as amostra) {
+        <section class="cartao bloco previa-bloco" aria-labelledby="titulo-previa">
+          <div class="bloco-topo">
+            <div class="bloco-titulo">
+              <h2 id="titulo-previa" class="texto-titulo">Prévia da mensagem</h2>
+              <span class="texto-legenda">
+                {{
+                  amostra.usouExemplo
+                    ? 'Exemplo ilustrativo (nenhuma encomenda correspondente encontrada)'
+                    : 'Montada com encomendas reais'
+                }}
+              </span>
+            </div>
+            <div class="acoes-linha nao-imprimir">
+              <button
+                type="button"
+                class="botao botao-secundario"
+                (click)="copiarTexto(amostra.texto)"
+              >
+                <ms-icone nome="copiar" />
+                <span>Copiar</span>
+              </button>
+              <button type="button" class="botao botao-terciario" (click)="previa.set(null)">
+                Fechar
+              </button>
+            </div>
+          </div>
+          <pre class="previa-texto">{{ amostra.texto }}</pre>
+        </section>
+      }
+
+      @for (regra of dados.regras; track regra.id) {
+        @let rascunho = rascunhoDaRegra(regra);
+        <section class="cartao bloco" [attr.aria-labelledby]="'regra-' + regra.id">
+          <div class="bloco-topo">
+            <div class="bloco-titulo">
+              <h2 [id]="'regra-' + regra.id" class="texto-titulo">{{ regra.nome }}</h2>
+              <ms-chip
+                [tom]="rascunho.ativa ? 'positivo' : 'neutro'"
+                [icone]="rascunho.ativa ? 'confirmado' : 'pausado'"
+                [compacto]="true"
+              >
+                {{ rascunho.ativa ? 'Ativa' : 'Desligada' }}
+              </ms-chip>
+            </div>
+            <label class="opcao-linha">
+              <input
+                type="checkbox"
+                [checked]="rascunho.ativa"
+                (change)="atualizarCampoRegra(regra, 'ativa', toggleRegra.checked)"
+                #toggleRegra
+              />
+              <span>{{ rascunho.ativa ? 'Ligada' : 'Desligada' }}</span>
+            </label>
+          </div>
+
+          <div class="campos-grade">
+            <div class="campo">
+              <label class="texto-rotulo" [for]="'filtro-' + regra.id"
+                >Quais encomendas entram</label
+              >
+              <select
+                [id]="'filtro-' + regra.id"
+                class="campo-entrada campo-selecao"
+                [value]="rascunho.filtroEncomenda"
+                (change)="
+                  atualizarCampoRegra(
+                    regra,
+                    'filtroEncomenda',
+                    campoFiltro.value === 'TODAS' ? 'TODAS' : 'POR_PREPARO'
+                  )
+                "
+                #campoFiltro
+              >
+                <option value="POR_PREPARO">
+                  Somente com preparos escolhidos (padrão: assados)
+                </option>
+                <option value="TODAS">Todas as encomendas</option>
+              </select>
+            </div>
+
+            @if (regra.tipo === 'AVISO_IMEDIATO') {
+              <div class="campo">
+                <label class="texto-rotulo" [for]="'escopo-' + regra.id">Itens na mensagem</label>
+                <select
+                  [id]="'escopo-' + regra.id"
+                  class="campo-entrada campo-selecao"
+                  [value]="rascunho.escopoItens"
+                  (change)="
+                    atualizarCampoRegra(
+                      regra,
+                      'escopoItens',
+                      campoEscopo.value === 'APENAS_FILTRADOS' ? 'APENAS_FILTRADOS' : 'TODOS'
+                    )
+                  "
+                  #campoEscopo
+                >
+                  <option value="TODOS">Pedido inteiro (com assados destacados)</option>
+                  <option value="APENAS_FILTRADOS">Somente os itens filtrados</option>
+                </select>
+              </div>
+            } @else {
+              <div class="campo">
+                <label class="texto-rotulo" [for]="'horario-' + regra.id">
+                  Horário do resumo ({{ rascunho.fusoHorario }})
+                </label>
+                <input
+                  [id]="'horario-' + regra.id"
+                  type="time"
+                  class="campo-entrada numerico"
+                  [value]="rascunho.horarioResumo"
+                  (input)="atualizarCampoRegra(regra, 'horarioResumo', campoHorario.value)"
+                  #campoHorario
+                />
+              </div>
+            }
+          </div>
+
+          @if (regra.tipo === 'RESUMO_DIARIO') {
+            <div class="campo">
+              <span class="texto-rotulo">Dias da semana</span>
+              <div class="dias-grupo" role="group" aria-label="Dias do resumo diário">
+                @for (dia of diasSemana; track dia.valor) {
+                  @let selecionado = rascunho.diasSemana.includes(dia.valor);
+                  <button
+                    type="button"
+                    class="botao-dia"
+                    [class.ativo]="selecionado"
+                    [attr.aria-pressed]="selecionado"
+                    [attr.aria-label]="dia.longo"
+                    (click)="alternarDiaSemana(regra, dia.valor)"
+                  >
+                    {{ dia.curto }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <label class="opcao-linha">
+              <input
+                type="checkbox"
+                [checked]="rascunho.omitirDiasVazios"
+                (change)="atualizarCampoRegra(regra, 'omitirDiasVazios', campoOmitir.checked)"
+                #campoOmitir
+              />
+              <span
+                >Omitir dias vazios (não enviar quando não houver encomendas correspondentes)</span
+              >
+            </label>
+          }
+
+          <details class="avancado">
+            <summary class="texto-rotulo">Avançado</summary>
+            <div class="avancado-corpo">
+              @if (rascunho.filtroEncomenda === 'POR_PREPARO') {
+                <div class="campo">
+                  <span class="texto-rotulo">Preparos monitorados</span>
+                  <div class="opcoes-inline">
+                    @for (opcao of opcoesPreparo; track opcao.valor) {
+                      <label class="opcao-linha">
+                        <input
+                          type="checkbox"
+                          [checked]="rascunho.preparos.includes(opcao.valor)"
+                          (change)="alternarPreparo(regra, opcao.valor)"
+                        />
+                        <span>{{ opcao.rotulo }}</span>
+                      </label>
+                    }
+                  </div>
+                </div>
+              }
+
+              <div class="campo">
+                <span class="texto-rotulo">Modalidades (vazio = ambas)</span>
+                <div class="opcoes-inline">
+                  @for (mod of opcoesModalidade; track mod.valor) {
+                    <label class="opcao-linha">
+                      <input
+                        type="checkbox"
+                        [checked]="rascunho.modalidades.includes(mod.valor)"
+                        (change)="alternarModalidade(regra, mod.valor)"
+                      />
+                      <span>{{ mod.rotulo }}</span>
+                    </label>
+                  }
+                </div>
+              </div>
+
+              @if (regra.tipo === 'AVISO_IMEDIATO') {
+                <div class="opcoes-inline">
+                  <label class="opcao-linha">
+                    <input
+                      type="checkbox"
+                      [checked]="rascunho.enviarCorrecoes"
+                      (change)="atualizarCampoRegra(regra, 'enviarCorrecoes', campoCorr.checked)"
+                      #campoCorr
+                    />
+                    <span>Enviar correções após alteração</span>
+                  </label>
+                  <label class="opcao-linha">
+                    <input
+                      type="checkbox"
+                      [checked]="rascunho.enviarCancelamentos"
+                      (change)="
+                        atualizarCampoRegra(regra, 'enviarCancelamentos', campoCanc.checked)
+                      "
+                      #campoCanc
+                    />
+                    <span>Avisar cancelamentos</span>
+                  </label>
+                </div>
+
+                <div class="campo campo-curto">
+                  <label class="texto-rotulo" [for]="'debounce-' + regra.id">
+                    Espera de agrupamento em edições (segundos)
+                  </label>
+                  <input
+                    [id]="'debounce-' + regra.id"
+                    type="number"
+                    min="0"
+                    max="600"
+                    class="campo-entrada numerico"
+                    [value]="rascunho.debounceSegundos"
+                    (input)="
+                      atualizarCampoRegra(regra, 'debounceSegundos', inteiro(campoDebounce.value))
+                    "
+                    #campoDebounce
+                  />
+                </div>
+              } @else {
+                <div class="opcoes-inline">
+                  <label class="opcao-linha">
+                    <input
+                      type="checkbox"
+                      [checked]="rascunho.incluirConcluidos"
+                      (change)="atualizarCampoRegra(regra, 'incluirConcluidos', campoConcl.checked)"
+                      #campoConcl
+                    />
+                    <span>Incluir encomendas concluídas sinalizadas como (concluído)</span>
+                  </label>
+                  <label class="opcao-linha">
+                    <input
+                      type="checkbox"
+                      [checked]="rascunho.enviarComplementos"
+                      (change)="atualizarCampoRegra(regra, 'enviarComplementos', campoComp.checked)"
+                      #campoComp
+                    />
+                    <span>Enviar complementos quando entrarem encomendas após o resumo</span>
+                  </label>
+                </div>
+
+                <div class="campos-grade">
+                  <div class="campo">
+                    <label class="texto-rotulo" [for]="'escopo-resumo-' + regra.id">
+                      Itens no resumo
+                    </label>
+                    <select
+                      [id]="'escopo-resumo-' + regra.id"
+                      class="campo-entrada campo-selecao"
+                      [value]="rascunho.escopoItens"
+                      (change)="
+                        atualizarCampoRegra(
+                          regra,
+                          'escopoItens',
+                          campoEscopoResumo.value === 'APENAS_FILTRADOS'
+                            ? 'APENAS_FILTRADOS'
+                            : 'TODOS'
+                        )
+                      "
+                      #campoEscopoResumo
+                    >
+                      <option value="APENAS_FILTRADOS">Somente os itens filtrados</option>
+                      <option value="TODOS">Pedido inteiro (com assados destacados)</option>
+                    </select>
+                  </div>
+
+                  <div class="campo">
+                    <label class="texto-rotulo" [for]="'tolerancia-' + regra.id">
+                      Janela de recuperação no dia (minutos)
+                    </label>
+                    <input
+                      [id]="'tolerancia-' + regra.id"
+                      type="number"
+                      min="0"
+                      max="1440"
+                      class="campo-entrada numerico"
+                      [value]="rascunho.toleranciaAtrasoMinutos"
+                      (input)="
+                        atualizarCampoRegra(
+                          regra,
+                          'toleranciaAtrasoMinutos',
+                          inteiro(campoTol.value)
+                        )
+                      "
+                      #campoTol
+                    />
+                  </div>
+                </div>
+              }
+            </div>
+          </details>
+
+          <div class="acoes-linha nao-imprimir">
+            <button
+              type="button"
+              class="botao botao-primario"
+              [disabled]="ocupacao() === 'regra:' + regra.id"
+              (click)="salvarRegra(regra)"
+            >
+              Salvar regra
+            </button>
+            <button
+              type="button"
+              class="botao botao-secundario"
+              [disabled]="ocupacao() === 'previa:' + regra.id"
+              (click)="verPrevia(regra)"
+            >
+              Ver prévia
+            </button>
+            <button
+              type="button"
+              class="botao botao-terciario"
+              [disabled]="ocupacao() === 'simular:' + regra.id"
+              (click)="simular(regra)"
+            >
+              Simular envio
+            </button>
+          </div>
+        </section>
+      }
+    }
+  }
+}
+
+<section class="cartao bloco" aria-labelledby="titulo-historico">
+  <div class="bloco-topo">
+    <h2 id="titulo-historico" class="texto-titulo">Histórico de envios</h2>
+    <div class="filtro-status">
+      <label class="somente-leitor-de-tela" for="filtro-status-envio">Filtrar por status</label>
+      <select
+        id="filtro-status-envio"
+        class="campo-entrada campo-selecao"
+        [value]="filtroStatus()"
+        (change)="filtrarStatus(campoStatus.value)"
+        #campoStatus
+      >
+        @for (opcao of filtrosStatus; track opcao.valor) {
+          <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @switch (estadoHistorico()) {
+    @case ('carregando') {
+      <ms-lista-esqueleto rotulo="Carregando histórico de envios" [quantidade]="3" />
+    }
+    @case ('erro') {
+      <ms-estado-erro
+        titulo="Não foi possível carregar o histórico de envios"
+        [erro]="historicoRecurso.error()"
+        (tentarNovamente)="historicoRecurso.reload()"
+      />
+    }
+    @case ('vazio') {
+      <ms-estado-vazio icone="whatsapp" titulo="Nenhum envio registrado">
+        Use "Simular envio" em uma regra acima ou ative uma regra para acompanhar a fila por aqui.
+      </ms-estado-vazio>
+    }
+    @default {
+      <ol class="historico-lista">
+        @for (item of itensHistorico(); track item.id) {
+          <li class="historico-item">
+            <div class="historico-topo">
+              <div class="bloco-titulo">
+                <span class="historico-evento">{{ rotuloEvento(item.tipoEvento) }}</span>
+                @let chipEnvio = aparenciaEnvio(item.status);
+                <ms-chip [tom]="chipEnvio.tom" [icone]="chipEnvio.icone" [compacto]="true">
+                  {{ chipEnvio.rotulo }}
+                </ms-chip>
+                @if (item.pedidoId && item.pedidoNumero) {
+                  <a class="link-pedido numerico" [routerLink]="['/pedidos', item.pedidoId]">
+                    Pedido #{{ item.pedidoNumero }}
+                  </a>
+                }
+              </div>
+              <span class="texto-legenda numerico">{{ momentoCurto(item.criadoEm) }}</span>
+            </div>
+
+            <span class="texto-legenda">
+              {{ item.destinoNome ?? 'Destino' }}
+              @if (item.regraNome) {
+                · {{ item.regraNome }}
+              }
+              @if (item.tentativas > 0) {
+                · {{ item.tentativas }}/{{ item.maxTentativas }} tentativa(s)
+              }
+            </span>
+
+            @if (item.ultimoErro; as erro) {
+              <p class="texto-erro">{{ erro }}</p>
+            }
+
+            @if (item.textoRenderizado; as texto) {
+              <pre class="previa-texto previa-compacta">{{ texto }}</pre>
+            } @else {
+              <p class="texto-legenda">Texto removido pela política de retenção de 30 dias.</p>
+            }
+
+            <div class="acoes-linha nao-imprimir">
+              @if (item.textoRenderizado; as textoCopia) {
+                <button
+                  type="button"
+                  class="botao botao-terciario"
+                  (click)="copiarTexto(textoCopia, item.id)"
+                >
+                  <ms-icone nome="copiar" [tamanho]="16" />
+                  <span>Copiar mensagem</span>
+                </button>
+              }
+              @if (podeReconciliar(item)) {
+                <button
+                  type="button"
+                  class="botao botao-secundario"
+                  [disabled]="ocupacao() === 'reconciliar:' + item.id"
+                  (click)="reconciliar(item, 'MARCAR_ENTREGUE')"
+                >
+                  Marcar entregue
+                </button>
+                @if (item.textoRenderizado) {
+                  <button
+                    type="button"
+                    class="botao botao-primario"
+                    [disabled]="ocupacao() === 'reconciliar:' + item.id"
+                    (click)="reconciliar(item, 'REENVIAR')"
+                  >
+                    Reenviar
+                  </button>
+                }
+              }
+            </div>
+          </li>
+        }
+      </ol>
+      @if (metaHistorico(); as meta) {
+        <ms-paginacao [meta]="meta" (paginaMudou)="paginaHistorico.set($event)" />
+      }
+    }
+  }
+</section>

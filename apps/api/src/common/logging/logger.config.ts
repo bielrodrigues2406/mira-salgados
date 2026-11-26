@@ -18,6 +18,12 @@ export const SENSITIVE_FIELDS = [
   'refreshToken',
   'authorization',
   'cookie',
+  'apiKey',
+  'webhookSecret',
+  'texto',
+  'mensagem',
+  'textoRenderizado',
+  'qrCode',
 ] as const;
 
 const MAX_DEPTH = 3;
@@ -26,6 +32,9 @@ export function buildRedactPaths(): string[] {
   const paths: string[] = [
     'req.headers.authorization',
     'req.headers.cookie',
+    'req.headers["x-api-key"]',
+    'req.headers["x-webhook-hmac"]',
+    'req.headers["x-hub-signature-256"]',
     'res.headers["set-cookie"]',
   ];
   for (const field of SENSITIVE_FIELDS) {

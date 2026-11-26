@@ -168,6 +168,17 @@
             Enviar resumo ao cliente
           </a>
         }
+        @if (pedido.status !== 'RASCUNHO' && pedido.itens.length > 0) {
+          <button
+            type="button"
+            class="botao botao-terciario botao-copiar-equipe nao-imprimir"
+            [disabled]="copiandoEquipe()"
+            (click)="copiarAvisoEquipe(pedido)"
+          >
+            <ms-icone nome="copiar" />
+            <span>{{ copiandoEquipe() ? 'Copiando…' : 'Copiar aviso da equipe' }}</span>
+          </button>
+        }
         @for (outro of outrasEncomendas(); track outro.id) {
           <a class="outra-encomenda nao-imprimir" [routerLink]="['/pedidos', outro.id]">
             <ms-icone nome="alerta" />

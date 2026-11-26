@@ -8,6 +8,8 @@ describe('sanitizarSnapshot', () => {
       id: 'u1',
       nome: 'Lúcia',
       senhaHash: '$argon2id$...',
+      textoRenderizado: '*Nova encomenda #1043*',
+      webhookSecret: 'hmac-secreto',
       sessao: { tokenHash: 'abc', refreshToken: 'def', criadaEm: 'x' },
     });
 

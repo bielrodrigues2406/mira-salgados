@@ -30,6 +30,15 @@ export const envObjectSchema = z.object({
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(300).max(3600).default(900),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(60).default(14),
   COOKIE_SECURE: z.stringbool().default(true),
+
+  // Notificações e worker (opcionais: por padrão roda em modo simulado).
+  NOTIFICACOES_MODO: z.enum(['DESLIGADO', 'SIMULADO', 'GOWA', 'WAHA']).default('SIMULADO'),
+  NOTIFICACOES_WORKER_INTERVALO_MS: z.coerce.number().int().min(1000).max(60_000).default(5000),
+  NOTIFICACOES_WEBHOOK_HOST: z.string().min(1).default('127.0.0.1'),
+  NOTIFICACOES_WEBHOOK_PORT: z.coerce.number().int().min(0).max(65_535).default(0),
+  NOTIFICACOES_WEBHOOK_SECRET: z.string().min(32).optional(),
+  NOTIFICACOES_CONECTOR_URL: z.url({ protocol: /^https?$/ }).optional(),
+  NOTIFICACOES_CONECTOR_TOKEN: z.string().min(1).optional(),
 });
 
 /** Origem local, que os navegadores tratam como segura mesmo em http. */
@@ -40,6 +49,13 @@ const CARACTERES_DISTINTOS_MINIMOS = 16;
 // Regras que só valem em produção: em desenvolvimento e nos testes, http e
 // segredos simples são aceitos para não atrapalhar.
 export const envSchema = envObjectSchema.superRefine((env, contexto) => {
+  if (env.NOTIFICACOES_WEBHOOK_PORT > 0 && !env.NOTIFICACOES_WEBHOOK_SECRET) {
+    contexto.addIssue({
+      code: 'custom',
+      path: ['NOTIFICACOES_WEBHOOK_SECRET'],
+      message: 'Defina NOTIFICACOES_WEBHOOK_SECRET quando o listener de webhook estiver ativo.',
+    });
+  }
   if (env.NODE_ENV !== 'production') return;
   if (!env.COOKIE_SECURE) {
     contexto.addIssue({

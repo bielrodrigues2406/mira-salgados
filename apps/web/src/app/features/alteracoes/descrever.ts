@@ -16,6 +16,10 @@ export const AREAS: readonly { entidade: string; rotulo: string }[] = [
   { entidade: 'preco_produto', rotulo: 'Preços' },
   { entidade: 'produtor', rotulo: 'Produtores' },
   { entidade: 'usuario', rotulo: 'Contas' },
+  { entidade: 'regra_notificacao', rotulo: 'Regras de automação' },
+  { entidade: 'destino_notificacao', rotulo: 'Destinos de automação' },
+  { entidade: 'outbox_notificacao', rotulo: 'Envios de automação' },
+  { entidade: 'estado_conector_notificacao', rotulo: 'Canal de automação' },
 ];
 
 /** Verbo no masculino e no feminino: "Pedido alterado", "Conta alterada". */
@@ -34,7 +38,7 @@ const ACAO: Record<AcaoAuditoria, { verbo: [string, string]; icone: NomeIcone }>
 };
 
 /** Entidades cujo assunto é feminino ("Conta de ..."). */
-const FEMININAS = new Set(['usuario']);
+const FEMININAS = new Set(['usuario', 'regra_notificacao']);
 
 const ROTULO_DO_CAMPO: Record<string, string> = {
   nome: 'Nome',
@@ -42,6 +46,7 @@ const ROTULO_DO_CAMPO: Record<string, string> = {
   endereco: 'Endereço',
   enderecoEntrega: 'Endereço de entrega',
   ativo: 'Situação',
+  ativa: 'Ativa',
   status: 'Status',
   tipoEntrega: 'Entrega',
   dataEntrega: 'Data de entrega',
@@ -67,6 +72,25 @@ const ROTULO_DO_CAMPO: Record<string, string> = {
   estornadoPorId: 'Estornado por',
   papel: 'Papel',
   trocarSenha: 'Senha provisória',
+  destinoId: 'Destino',
+  regraId: 'Regra',
+  identificadorExterno: 'Identificador do grupo',
+  filtroEncomenda: 'Filtro',
+  preparos: 'Preparos',
+  modalidades: 'Modalidades',
+  escopoItens: 'Itens na mensagem',
+  enviarCorrecoes: 'Enviar correções',
+  enviarCancelamentos: 'Enviar cancelamentos',
+  debounceSegundos: 'Espera de agrupamento (s)',
+  diasSemana: 'Dias da semana',
+  horarioResumo: 'Horário do resumo',
+  fusoHorario: 'Fuso horário',
+  omitirDiasVazios: 'Omitir dias vazios',
+  incluirConcluidos: 'Incluir concluídos',
+  enviarComplementos: 'Enviar complementos',
+  toleranciaAtrasoMinutos: 'Tolerância de atraso (min)',
+  pausado: 'Pausado',
+  motivoPausa: 'Motivo da pausa',
 };
 
 /** Campos técnicos, que não dizem nada a quem lê o histórico. */
@@ -143,6 +167,14 @@ export function assunto(registro: RegistroDeAlteracao): string {
       return nome ? `Produtor ${nome}` : 'Produtor';
     case 'usuario':
       return nome ? `Conta de ${nome}` : 'Conta';
+    case 'destino_notificacao':
+      return nome ? `Destino ${nome}` : 'Destino de automação';
+    case 'regra_notificacao':
+      return nome ? `Regra ${nome}` : 'Regra de automação';
+    case 'outbox_notificacao':
+      return pedido ? `Envio do ${pedido}` : 'Envio de automação';
+    case 'estado_conector_notificacao':
+      return 'Canal WhatsApp';
     default:
       return registro.entidade;
   }

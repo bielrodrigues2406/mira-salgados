@@ -181,3 +181,8 @@ ms-pagamentos-pedido {
 .endereco-entrega {
   overflow-wrap: anywhere;
 }
+
+.botao-copiar-equipe {
+  align-self: flex-start;
+  padding-left: 4px;
+}

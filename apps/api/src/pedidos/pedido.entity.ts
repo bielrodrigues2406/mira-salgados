@@ -29,6 +29,7 @@ import {
 @Check('ck_pedidos_desconto_nao_negativo', 'desconto >= 0')
 @Check('ck_pedidos_observacao_preenchida', "btrim(observacao) <> ''")
 @Check('ck_pedidos_endereco_entrega_preenchido', "btrim(endereco_entrega) <> ''")
+@Check('ck_pedidos_notificacao_revisao_nao_negativa', 'notificacao_revisao >= 0')
 export class Pedido {
   @PrimaryGeneratedColumn('uuid', { primaryKeyConstraintName: 'pk_pedidos' })
   id: string;
@@ -82,6 +83,14 @@ export class Pedido {
   /** HH:MM:SS; nulo quando o cliente não marcou horário. */
   @Column({ type: 'time', nullable: true })
   horarioEntrega: string | null;
+
+  /** Revisão notificável incrementada apenas quando mudam campos operacionais permitidos. */
+  @Column({ type: 'integer', default: 0 })
+  notificacaoRevisao: number;
+
+  /** Hash SHA-256 dos campos notificáveis da última revisão. */
+  @Column({ type: 'char', length: 64, nullable: true })
+  notificacaoHash: string | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   criadoEm: Date;

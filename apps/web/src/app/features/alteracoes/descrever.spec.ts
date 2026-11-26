@@ -122,11 +122,22 @@ describe('descrever alterações', () => {
     ]);
   });
 
-  it('trata ação futura desconhecida sem quebrar a tela', () => {
-    const futuro = registro({
+  it('descreve regras, destinos e envios de automação e trata ação futura sem quebrar', () => {
+    const regra = registro({
       entidade: 'regra_notificacao',
+      entidadeId: 'reg-1',
+      acao: 'ATUALIZACAO',
+      referencias: { 'reg-1': 'Aviso imediato' },
+      dadosAntes: { ativa: false },
+      dadosDepois: { ativa: true },
+    });
+    expect(titulo(regra)).toBe('Regra Aviso imediato alterada');
+    expect(mudancas(regra)).toEqual([{ campo: 'Ativa', antes: 'Não', depois: 'Sim' }]);
+
+    const futuro = registro({
+      entidade: 'entidade_futura',
       acao: 'ACAO_FUTURA' as RegistroDeAlteracao['acao'],
     });
-    expect(titulo(futuro)).toBe('regra_notificacao atualizado');
+    expect(titulo(futuro)).toBe('entidade_futura atualizado');
   });
 });

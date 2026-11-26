@@ -224,4 +224,37 @@ describe('PedidoDetalhe', () => {
     expect(tela.querySelector('.lateral')).toBeNull();
     expect(tela.querySelector('.acoes.nao-imprimir')).not.toBeNull();
   });
+
+  it('copia o aviso da equipe sem dados do cliente como contingência', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+
+    await montar(
+      pedido({ status: 'CONFIRMADO', transicoesPermitidas: ['CONCLUIDO', 'CANCELADO'] }),
+    );
+
+    botao('Copiar aviso da equipe').click();
+    const req = await aguardar('/api/v1/pedidos/p1/mensagem-equipe');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      data: {
+        pedidoId: 'p1',
+        numero: 1043,
+        texto:
+          '*Nova encomenda #1043*\nSex, 2 out · 11:30 · Retirada\n• 300 Coxinha de frango (frito)',
+      },
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(writeText).toHaveBeenCalledWith(
+        '*Nova encomenda #1043*\nSex, 2 out · 11:30 · Retirada\n• 300 Coxinha de frango (frito)',
+      );
+      expect(tela.querySelector('[role="status"]')?.textContent).toContain(
+        'Aviso da equipe copiado.',
+      );
+    });
+  });
 });

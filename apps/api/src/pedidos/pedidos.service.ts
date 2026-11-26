@@ -22,6 +22,7 @@ import type { AtualizarPedidoDto } from './dto/atualizar-pedido.dto.js';
 import type { CriarPedidoConfirmadoDto } from './dto/criar-pedido-confirmado.dto.js';
 import type { CriarPedidoDto } from './dto/criar-pedido.dto.js';
 import { Cliente } from '../clientes/cliente.entity.js';
+import { EnfileiradorNotificacoesService } from '../notificacoes/servicos/enfileirador-notificacoes.service.js';
 import { ItemPedido } from './itens/item-pedido.entity.js';
 import { type ItemResolvido, resolverItemParaPedido } from './itens/resolver-item.js';
 import { Pedido } from './pedido.entity.js';
@@ -37,6 +38,7 @@ export class PedidosService {
     private readonly dataSource: DataSource,
     private readonly agregados: AgregadoPedidoService,
     private readonly auditoria: AuditoriaService,
+    private readonly notificacoes: EnfileiradorNotificacoesService,
   ) {}
 
   criar(dados: CriarPedidoDto, autorId: string): Promise<PedidoAgregado> {
@@ -171,6 +173,13 @@ export class PedidosService {
           );
         }
 
+        const depois = await this.notificacoes.projetarAtual(manager, pedido);
+        await this.notificacoes.registrarMudancaDePedido(manager, {
+          pedido,
+          antes: null,
+          depois,
+        });
+
         return this.agregados.carregar(manager, pedido.id);
       });
     } catch (erro) {
@@ -214,6 +223,10 @@ export class PedidosService {
     return this.dataSource.transaction(async (manager) => {
       const pedido = await this.agregados.bloquear(manager, id);
       garantirEditavel(pedido);
+      const projecaoAntes =
+        pedido.status === 'CONFIRMADO'
+          ? await this.notificacoes.projetarAtual(manager, pedido)
+          : null;
       const antes = Object.assign(new Pedido(), pedido);
 
       await aplicarAlteracoes(manager, pedido, dados);
@@ -230,6 +243,16 @@ export class PedidosService {
         depois: salvo,
         usuarioId: autorId,
       });
+
+      if (salvo.status === 'CONFIRMADO') {
+        const projecaoDepois = await this.notificacoes.projetarAtual(manager, salvo);
+        await this.notificacoes.registrarMudancaDePedido(manager, {
+          pedido: salvo,
+          antes: projecaoAntes,
+          depois: projecaoDepois,
+        });
+      }
+
       return this.agregados.carregar(manager, id);
     });
   }
@@ -251,6 +274,7 @@ export class PedidosService {
         pagamentosAtivos: pagamentosAtivos(pagamentos).length,
       });
 
+      const projecaoAntes = await this.notificacoes.projetarAtual(manager, pedido);
       const antes = Object.assign(new Pedido(), pedido);
       pedido.status = novoStatus;
       garantirConsistenciaFinanceira(pedido, resumo);
@@ -264,6 +288,14 @@ export class PedidosService {
         depois: salvo,
         usuarioId: autorId,
       });
+
+      const projecaoDepois = await this.notificacoes.projetarAtual(manager, salvo);
+      await this.notificacoes.registrarMudancaDePedido(manager, {
+        pedido: salvo,
+        antes: projecaoAntes,
+        depois: projecaoDepois,
+      });
+
       return this.agregados.carregar(manager, id);
     });
   }

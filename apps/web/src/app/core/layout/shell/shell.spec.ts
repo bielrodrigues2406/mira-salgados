@@ -104,13 +104,15 @@ describe('Shell', () => {
     expect(tela.querySelector('[role="dialog"]')).toBeNull();
   });
 
-  it('administrador vê Usuários em Mais', async () => {
+  it('administrador vê Usuários e Automações em Mais', async () => {
     const { tela, detectar } = await abrir('/inicio', { admin: true });
 
     botaoMais(tela).click();
     await detectar();
 
-    expect(tela.querySelector('[role="dialog"]')?.textContent).toContain('Usuários');
+    const texto = tela.querySelector('[role="dialog"]')?.textContent ?? '';
+    expect(texto).toContain('Usuários');
+    expect(texto).toContain('Automações');
   });
 
   it('com senha provisória, esconde a navegação', async () => {
