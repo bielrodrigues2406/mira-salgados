@@ -213,4 +213,15 @@ describe('PedidoDetalhe', () => {
     expect(texto()).not.toContain('Adicionar item');
     expect(texto()).not.toContain('Editar');
   });
+
+  it('oferece impressão e não oculta o resumo financeiro na folha impressa', async () => {
+    await montar(
+      pedido({ status: 'CONFIRMADO', transicoesPermitidas: ['CONCLUIDO', 'CANCELADO'] }),
+    );
+
+    expect(tela.querySelector('ms-compartilhar')).not.toBeNull();
+    expect(tela.querySelector('.coluna-lateral')).not.toBeNull();
+    expect(tela.querySelector('.lateral')).toBeNull();
+    expect(tela.querySelector('.acoes.nao-imprimir')).not.toBeNull();
+  });
 });

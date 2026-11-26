@@ -19,7 +19,7 @@ export function configureApp(app: NestExpressApplication): void {
     origin: config.get('CORS_ORIGINS', { infer: true }),
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
     exposedHeaders: ['X-Request-Id'],
   });
   app.setGlobalPrefix(API_PREFIX);

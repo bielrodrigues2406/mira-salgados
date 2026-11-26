@@ -100,6 +100,10 @@ export interface DadosPedido {
   enderecoEntrega: string | null;
 }
 
+export interface DadosPedidoConfirmado extends DadosPedido {
+  itens: NovoItem[];
+}
+
 export type AlteracaoPedido = Partial<DadosPedido>;
 
 export interface NovoItem {

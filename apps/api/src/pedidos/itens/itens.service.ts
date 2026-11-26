@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, type EntityManager, IsNull } from 'typeorm';
+import { DataSource, type EntityManager } from 'typeorm';
 
 import { AuditoriaService } from '../../auditoria/auditoria.service.js';
 import { BusinessRuleError, NotFoundError } from '../../common/errors/domain.errors.js';
-import { PrecoProduto } from '../../produtos/preco-produto.entity.js';
-import { Produto } from '../../produtos/produto.entity.js';
 import {
   AgregadoPedidoService,
   garantirConsistenciaFinanceira,
@@ -17,14 +15,7 @@ import { garantirProdutorAtivo } from '../validacoes.js';
 import type { AtualizarItemDto } from './dto/atualizar-item.dto.js';
 import type { NovoItemDto } from './dto/novo-item.dto.js';
 import { ItemPedido } from './item-pedido.entity.js';
-
-const ROTULOS = {
-  FRITO: 'Frito',
-  ASSADO: 'Assado',
-  CONGELADO: 'Congelado',
-  UNIDADE: 'Unidade',
-  CENTO: 'Cento',
-} as const;
+import { resolverItemParaPedido, validarQuantidadeDoItem } from './resolver-item.js';
 
 @Injectable()
 export class ItensService {
@@ -44,39 +35,9 @@ export class ItensService {
       const pedido = await this.agregados.bloquear(manager, pedidoId);
       garantirEditavel(pedido);
 
-      validarQuantidade(dados.unidadeVenda, dados.quantidade);
-      const produto = await manager.getRepository(Produto).findOneBy({ id: dados.produtoId });
-      if (!produto?.ativo) {
-        throw new BusinessRuleError('PRODUTO_INVALIDO', 'Escolha um produto ativo.');
-      }
-      const preco = await manager.getRepository(PrecoProduto).findOneBy({
-        produtoId: produto.id,
-        preparo: dados.preparo,
-        unidadeVenda: dados.unidadeVenda,
-        vigenteAte: IsNull(),
-      });
-      if (!preco) {
-        throw new BusinessRuleError(
-          'PRECO_INEXISTENTE',
-          `${produto.nome} não tem preço vigente para ${ROTULOS[dados.preparo]} · ${ROTULOS[dados.unidadeVenda]}.`,
-        );
-      }
-      const produtorId = dados.produtorId ?? produto.produtorPadraoId;
-      if (dados.produtorId) await garantirProdutorAtivo(manager, dados.produtorId);
-
+      const resolvido = await resolverItemParaPedido(manager, dados);
       const repositorio = manager.getRepository(ItemPedido);
-      const item = await repositorio.save(
-        repositorio.create({
-          pedidoId,
-          produtoId: produto.id,
-          produtorId,
-          preparo: dados.preparo,
-          unidadeVenda: dados.unidadeVenda,
-          quantidade: dados.quantidade,
-          precoUnitario: preco.preco,
-          observacao: dados.observacao ?? null,
-        }),
-      );
+      const item = await repositorio.save(repositorio.create({ pedidoId, ...resolvido }));
       await this.registrar(manager, 'CRIACAO', item.id, null, item, autorId);
       await this.verificarInvariantes(manager, pedido);
       return this.agregados.carregar(manager, pedidoId);
@@ -96,7 +57,7 @@ export class ItensService {
       const antes = Object.assign(new ItemPedido(), item);
 
       if (dados.quantidade !== undefined) {
-        validarQuantidade(item.unidadeVenda, dados.quantidade);
+        validarQuantidadeDoItem(item.unidadeVenda, dados.quantidade);
         item.quantidade = dados.quantidade;
       }
       if (dados.produtorId !== undefined && dados.produtorId !== item.produtorId) {
@@ -166,14 +127,5 @@ export class ItensService {
       depois,
       usuarioId: autorId,
     });
-  }
-}
-
-function validarQuantidade(unidade: string, quantidade: number): void {
-  if (unidade === 'UNIDADE' && !Number.isInteger(quantidade)) {
-    throw new BusinessRuleError(
-      'QUANTIDADE_INVALIDA',
-      'Informe uma quantidade inteira de salgados.',
-    );
   }
 }

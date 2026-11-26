@@ -7,6 +7,7 @@ import { PrecoProduto } from '../produtos/preco-produto.entity.js';
 import { Produto } from '../produtos/produto.entity.js';
 import { Produtor } from '../produtores/produtor.entity.js';
 import { AgregadoPedidoService } from './agregado-pedido.js';
+import { ChaveIdempotencia } from './chave-idempotencia.entity.js';
 import { ItemPedido } from './itens/item-pedido.entity.js';
 import { ItensController } from './itens/itens.controller.js';
 import { ItensService } from './itens/itens.service.js';
@@ -27,6 +28,7 @@ import { SaldoDevedorService } from './saldo-devedor.service.js';
       Pedido,
       ItemPedido,
       Pagamento,
+      ChaveIdempotencia,
       Cliente,
       Produto,
       PrecoProduto,

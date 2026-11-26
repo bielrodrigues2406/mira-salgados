@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, type EntityManager } from 'typeorm';
 
 import { AuditoriaService } from '../auditoria/auditoria.service.js';
+import { ConflictError } from '../common/errors/domain.errors.js';
+import { ehViolacaoDeUnicidade } from '../common/errors/postgres-errors.js';
 import { centavos } from '../common/utils/dinheiro.js';
 import {
   AgregadoPedidoService,
@@ -11,13 +13,22 @@ import {
   pagamentosAtivos,
   resumir,
 } from './agregado-pedido.js';
+import { ChaveIdempotencia, RESTRICAO_CHAVE_IDEMPOTENCIA } from './chave-idempotencia.entity.js';
+import { resumoFinanceiro } from './dominio/calculos.js';
 import type { StatusPedido } from './dominio/enums.js';
+import { hashCanonicaRequisicao, normalizarChaveIdempotencia } from './dominio/idempotencia.js';
 import { validarCondicoesDaTransicao, validarTransicao } from './dominio/maquina-de-estados.js';
 import type { AtualizarPedidoDto } from './dto/atualizar-pedido.dto.js';
+import type { CriarPedidoConfirmadoDto } from './dto/criar-pedido-confirmado.dto.js';
 import type { CriarPedidoDto } from './dto/criar-pedido.dto.js';
 import { Cliente } from '../clientes/cliente.entity.js';
+import { ItemPedido } from './itens/item-pedido.entity.js';
+import { type ItemResolvido, resolverItemParaPedido } from './itens/resolver-item.js';
 import { Pedido } from './pedido.entity.js';
 import { garantirClienteAtivo } from './validacoes.js';
+
+const ROTA_PEDIDOS_CONFIRMADOS = 'POST /pedidos/confirmados';
+const TTL_CHAVE_IDEMPOTENCIA_MS = 72 * 60 * 60 * 1000;
 
 /** Alterações de dados do pedido (não de itens nem pagamentos) e de status. */
 @Injectable()
@@ -61,6 +72,142 @@ export class PedidosService {
       });
       return this.agregados.carregar(manager, salvo.id);
     });
+  }
+
+  /**
+   * Cria encomenda já confirmada com seus itens e auditoria numa única
+   * transação. Valida todos os dados antes do INSERT do pedido para não
+   * queimar números sequenciais em entradas inválidas. Com `Idempotency-Key`,
+   * protege contra duplo clique e retentativas de rede.
+   */
+  async criarConfirmado(
+    dados: CriarPedidoConfirmadoDto,
+    autorId: string,
+    chaveBruta?: string,
+  ): Promise<PedidoAgregado> {
+    const chave = normalizarChaveIdempotencia(chaveBruta);
+    const hash = chave ? hashCanonicaRequisicao(dados) : undefined;
+
+    if (chave && hash) {
+      const repetido = await this.resolverIdempotenciaExistente(
+        this.dataSource.manager,
+        autorId,
+        chave,
+        hash,
+      );
+      if (repetido) return repetido;
+    }
+
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        if (chave && hash) {
+          const repetido = await this.resolverIdempotenciaExistente(manager, autorId, chave, hash);
+          if (repetido) return repetido;
+        }
+
+        const cliente = await garantirClienteAtivo(manager, dados.clienteId);
+        const itensResolvidos: ItemResolvido[] = [];
+        for (const itemDto of dados.itens) {
+          itensResolvidos.push(await resolverItemParaPedido(manager, itemDto));
+        }
+
+        const desconto = centavos(dados.descontoCentavos ?? 0);
+        const resumo = resumoFinanceiro(itensResolvidos, desconto, []);
+        garantirConsistenciaFinanceira({ status: 'CONFIRMADO' }, resumo);
+
+        const repoPedido = manager.getRepository(Pedido);
+        const pedido = await repoPedido.save(
+          repoPedido.create({
+            clienteId: dados.clienteId,
+            usuarioId: autorId,
+            status: 'CONFIRMADO',
+            tipoEntrega: dados.tipoEntrega,
+            desconto,
+            observacao: dados.observacao ?? null,
+            enderecoEntrega:
+              dados.tipoEntrega === 'ENTREGA'
+                ? dados.enderecoEntrega === undefined
+                  ? cliente.endereco
+                  : dados.enderecoEntrega
+                : null,
+            dataEntrega: dados.dataEntrega,
+            horarioEntrega: dados.horarioEntrega ?? null,
+          }),
+        );
+
+        await this.auditoria.registrar(manager, {
+          entidade: 'pedido',
+          entidadeId: pedido.id,
+          acao: 'CRIACAO',
+          antes: null,
+          depois: pedido,
+          usuarioId: autorId,
+        });
+
+        const repoItem = manager.getRepository(ItemPedido);
+        for (const resolvido of itensResolvidos) {
+          const item = await repoItem.save(repoItem.create({ pedidoId: pedido.id, ...resolvido }));
+          await this.auditoria.registrar(manager, {
+            entidade: 'item_pedido',
+            entidadeId: item.id,
+            acao: 'CRIACAO',
+            antes: null,
+            depois: item,
+            usuarioId: autorId,
+          });
+        }
+
+        if (chave && hash) {
+          const repoChave = manager.getRepository(ChaveIdempotencia);
+          await repoChave.save(
+            repoChave.create({
+              usuarioId: autorId,
+              rota: ROTA_PEDIDOS_CONFIRMADOS,
+              chave,
+              hashRequisicao: hash,
+              pedidoId: pedido.id,
+              expiraEm: new Date(Date.now() + TTL_CHAVE_IDEMPOTENCIA_MS),
+            }),
+          );
+        }
+
+        return this.agregados.carregar(manager, pedido.id);
+      });
+    } catch (erro) {
+      // Corrida simultânea com a mesma Idempotency-Key: a transação perdedora
+      // sofre rollback e lê o pedido comitado pela vencedora (ou devolve 409).
+      if (chave && hash && ehViolacaoDeUnicidade(erro, RESTRICAO_CHAVE_IDEMPOTENCIA)) {
+        const existente = await this.resolverIdempotenciaExistente(
+          this.dataSource.manager,
+          autorId,
+          chave,
+          hash,
+        );
+        if (existente) return existente;
+      }
+      throw erro;
+    }
+  }
+
+  private async resolverIdempotenciaExistente(
+    manager: EntityManager,
+    usuarioId: string,
+    chave: string,
+    hash: string,
+  ): Promise<PedidoAgregado | null> {
+    const existente = await manager.getRepository(ChaveIdempotencia).findOneBy({
+      usuarioId,
+      rota: ROTA_PEDIDOS_CONFIRMADOS,
+      chave,
+    });
+    if (!existente) return null;
+    if (existente.hashRequisicao !== hash) {
+      throw new ConflictError(
+        'CHAVE_IDEMPOTENCIA_CONFLITANTE',
+        'Esta tentativa já foi usada com outros dados de encomenda. Envie novamente com uma nova chave.',
+      );
+    }
+    return this.agregados.carregar(manager, existente.pedidoId);
   }
 
   atualizar(id: string, dados: AtualizarPedidoDto, autorId: string): Promise<PedidoAgregado> {

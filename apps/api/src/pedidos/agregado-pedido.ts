@@ -93,19 +93,18 @@ export class AgregadoPedidoService {
     manager: EntityManager,
     pedidoId: string,
   ): Promise<Omit<PedidoAgregado, 'pedido'>> {
-    const id = pedidoId;
-    const [itens, pagamentos] = await Promise.all([
-      manager.getRepository(ItemPedido).find({
-        where: { pedidoId: id },
-        relations: { produto: { produtorPadrao: true }, produtor: true },
-        order: { criadoEm: 'ASC', id: 'ASC' },
-      }),
-      manager.getRepository(Pagamento).find({
-        where: { pedidoId: id },
-        relations: { registradoPor: true, estornadoPor: true },
-        order: { criadoEm: 'ASC', id: 'ASC' },
-      }),
-    ]);
+    // Consultas sequenciais no mesmo EntityManager evitam concorrência na
+    // mesma conexão pg.Client dentro de uma transação (incompatível com pg@9).
+    const itens = await manager.getRepository(ItemPedido).find({
+      where: { pedidoId },
+      relations: { produto: { produtorPadrao: true }, produtor: true },
+      order: { criadoEm: 'ASC', id: 'ASC' },
+    });
+    const pagamentos = await manager.getRepository(Pagamento).find({
+      where: { pedidoId },
+      relations: { registradoPor: true, estornadoPor: true },
+      order: { criadoEm: 'ASC', id: 'ASC' },
+    });
     return { itens, pagamentos };
   }
 }
