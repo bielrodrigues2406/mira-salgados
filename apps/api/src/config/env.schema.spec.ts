@@ -47,6 +47,41 @@ describe('validateEnv', () => {
     ).not.toThrow();
   });
 
+  it('exige URL e credencial do conector quando NOTIFICACOES_MODO=GOWA', () => {
+    const erro = mensagemDeErro({
+      ...ambienteValido,
+      NOTIFICACOES_MODO: 'GOWA',
+      NOTIFICACOES_CONECTOR_URL: '',
+      NOTIFICACOES_CONECTOR_TOKEN: '   ',
+    });
+    expect(erro).toContain('NOTIFICACOES_CONECTOR_URL');
+    expect(erro).toContain('NOTIFICACOES_CONECTOR_TOKEN');
+    expect(() =>
+      validateEnv({
+        ...ambienteValido,
+        NOTIFICACOES_MODO: 'GOWA',
+        NOTIFICACOES_CONECTOR_URL: 'http://gowa:3000',
+        NOTIFICACOES_CONECTOR_TOKEN: 'mira:segredo',
+        NOTIFICACOES_CONECTOR_DEVICE_ID: '',
+      }),
+    ).not.toThrow();
+  });
+
+  it('trata variáveis opcionais vazias do Docker Compose como indefinidas em modo SIMULADO', () => {
+    const env = validateEnv({
+      ...ambienteValido,
+      NOTIFICACOES_WEBHOOK_SECRET: '',
+      NOTIFICACOES_CONECTOR_URL: '',
+      NOTIFICACOES_CONECTOR_TOKEN: '',
+      NOTIFICACOES_CONECTOR_DEVICE_ID: '',
+    });
+
+    expect(env.NOTIFICACOES_WEBHOOK_SECRET).toBeUndefined();
+    expect(env.NOTIFICACOES_CONECTOR_URL).toBeUndefined();
+    expect(env.NOTIFICACOES_CONECTOR_TOKEN).toBeUndefined();
+    expect(env.NOTIFICACOES_CONECTOR_DEVICE_ID).toBeUndefined();
+  });
+
   it('converte a lista de origens separada por vírgula', () => {
     const env = validateEnv({
       ...ambienteValido,

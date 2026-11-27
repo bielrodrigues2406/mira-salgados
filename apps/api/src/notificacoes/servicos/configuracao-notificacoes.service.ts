@@ -33,7 +33,7 @@ export class ConfiguracaoNotificacoesService {
 
     const modo = this.config.get('NOTIFICACOES_MODO', { infer: true });
     const repoEstado = manager.getRepository(EstadoConectorNotificacao);
-    const estado =
+    let estado =
       (await repoEstado.findOneBy({ canal: 'WHATSAPP' })) ??
       (await repoEstado.save(
         repoEstado.create({
@@ -46,6 +46,11 @@ export class ConfiguracaoNotificacoesService {
           ultimaVerificacaoEm: null,
         }),
       ));
+    if (estado.modo !== modo) {
+      estado.modo = modo;
+      estado.estado = estadoInicialPara(modo);
+      estado = await repoEstado.save(estado);
+    }
 
     const repoDestino = manager.getRepository(DestinoNotificacao);
     let destinos = await repoDestino.find({ order: { criadoEm: 'ASC', id: 'ASC' } });

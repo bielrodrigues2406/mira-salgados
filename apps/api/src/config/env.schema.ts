@@ -14,6 +14,12 @@ const listaDeOrigens = z
   // exporia a API a qualquer site.
   .pipe(z.array(z.url({ protocol: /^https?$/ })).min(1));
 
+const textoOpcional = <T extends z.ZodType<string>>(schema: T) =>
+  z.preprocess(
+    (valor) => (typeof valor === 'string' && valor.trim() === '' ? undefined : valor),
+    schema.optional(),
+  );
+
 export const envObjectSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
@@ -36,9 +42,10 @@ export const envObjectSchema = z.object({
   NOTIFICACOES_WORKER_INTERVALO_MS: z.coerce.number().int().min(1000).max(60_000).default(5000),
   NOTIFICACOES_WEBHOOK_HOST: z.string().min(1).default('127.0.0.1'),
   NOTIFICACOES_WEBHOOK_PORT: z.coerce.number().int().min(0).max(65_535).default(0),
-  NOTIFICACOES_WEBHOOK_SECRET: z.string().min(32).optional(),
-  NOTIFICACOES_CONECTOR_URL: z.url({ protocol: /^https?$/ }).optional(),
-  NOTIFICACOES_CONECTOR_TOKEN: z.string().min(1).optional(),
+  NOTIFICACOES_WEBHOOK_SECRET: textoOpcional(z.string().min(32)),
+  NOTIFICACOES_CONECTOR_URL: textoOpcional(z.url({ protocol: /^https?$/ })),
+  NOTIFICACOES_CONECTOR_TOKEN: textoOpcional(z.string().min(1)),
+  NOTIFICACOES_CONECTOR_DEVICE_ID: textoOpcional(z.string().min(1)),
 });
 
 /** Origem local, que os navegadores tratam como segura mesmo em http. */
@@ -55,6 +62,23 @@ export const envSchema = envObjectSchema.superRefine((env, contexto) => {
       path: ['NOTIFICACOES_WEBHOOK_SECRET'],
       message: 'Defina NOTIFICACOES_WEBHOOK_SECRET quando o listener de webhook estiver ativo.',
     });
+  }
+  if (env.NOTIFICACOES_MODO === 'GOWA') {
+    if (!env.NOTIFICACOES_CONECTOR_URL) {
+      contexto.addIssue({
+        code: 'custom',
+        path: ['NOTIFICACOES_CONECTOR_URL'],
+        message: 'Defina NOTIFICACOES_CONECTOR_URL quando NOTIFICACOES_MODO=GOWA.',
+      });
+    }
+    if (!env.NOTIFICACOES_CONECTOR_TOKEN) {
+      contexto.addIssue({
+        code: 'custom',
+        path: ['NOTIFICACOES_CONECTOR_TOKEN'],
+        message:
+          'Defina NOTIFICACOES_CONECTOR_TOKEN (usuario:senha) quando NOTIFICACOES_MODO=GOWA.',
+      });
+    }
   }
   if (env.NODE_ENV !== 'production') return;
   if (!env.COOKIE_SECURE) {

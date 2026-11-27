@@ -14,11 +14,11 @@ export const TRAVA_RECIBO_EXTERNO = 78_123_457;
 export type EventoWebhookConector =
   | {
       evento: 'message.ack';
-      idExterno: string;
+      idsExternos: readonly string[];
       entregue: boolean;
     }
   | {
-      evento: 'device.logged_out' | 'device.temporary_ban';
+      evento: 'device.logged_out' | 'device.temporary_ban' | 'device.reachout_timelock';
       motivo?: string;
     }
   | {
@@ -88,8 +88,8 @@ export class WebhookNotificacoesService {
     agora = new Date(),
   ): Promise<{ aplicado: boolean }> {
     if (evento.evento === 'message.ack') {
-      if (!evento.entregue || !evento.idExterno) return { aplicado: false };
-      return this.aplicarRecibosEntrega([evento.idExterno], agora);
+      if (!evento.entregue || evento.idsExternos.length === 0) return { aplicado: false };
+      return this.aplicarRecibosEntrega(evento.idsExternos, agora);
     }
 
     await this.dataSource.transaction(async (manager) => {
@@ -110,7 +110,9 @@ export class WebhookNotificacoesService {
         evento.motivo ??
         (evento.evento === 'device.temporary_ban'
           ? 'Sessão do WhatsApp sofreu bloqueio temporário. Envios pausados.'
-          : 'Sessão do WhatsApp desconectada. Faça novo pareamento.');
+          : evento.evento === 'device.reachout_timelock'
+            ? 'WhatsApp restringiu novos envios temporariamente. Envios pausados.'
+            : 'Sessão do WhatsApp desconectada. Faça novo pareamento.');
       await manager.getRepository(EstadoConectorNotificacao).update(
         { canal: 'WHATSAPP' },
         {

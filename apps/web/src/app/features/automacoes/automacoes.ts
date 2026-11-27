@@ -6,9 +6,12 @@ import type {
   AcaoReconciliacaoNotificacao,
   DestinoNotificacao,
   EstadoConexaoNotificacao,
+  GrupoWhatsApp,
   ItemHistoricoNotificacao,
+  MetodoPareamento,
   PreviaRegra,
   RegraNotificacao,
+  ResultadoPareamento,
   StatusEnvioNotificacao,
   TipoEventoNotificacao,
 } from '../../core/models/automacoes';
@@ -17,6 +20,7 @@ import type { Preparo } from '../../core/models/produto';
 import { AutomacoesService } from '../../core/services/automacoes.service';
 import { mensagemDeErro } from '../../core/services/mensagem-de-erro';
 import { Chip, type TomDoChip } from '../../shared/components/chip/chip';
+import { Empadinha, type PoseEmpadinha } from '../../shared/components/empadinha/empadinha';
 import { EstadoErro } from '../../shared/components/estado-erro/estado-erro';
 import { EstadoVazio } from '../../shared/components/estado-vazio/estado-vazio';
 import { Icone } from '../../shared/components/icone/icone';
@@ -150,12 +154,12 @@ function rascunhoDeDestino(destino: DestinoNotificacao): RascunhoDestino {
 
 /**
  * Painel de automações e notificações (WhatsApp) para administradores:
- * controle do canal, regras independentes (aviso imediato e resumo diário),
- * prévia/simulação e histórico com contingência de cópia e reconciliação.
+ * controle do canal, pareamento GoWA, regras independentes (aviso imediato
+ * e resumo diário), prévia/simulação e histórico com contingência de cópia.
  */
 @Component({
   selector: 'ms-automacoes',
-  imports: [Chip, EstadoErro, EstadoVazio, Icone, ListaEsqueleto, Paginacao, RouterLink],
+  imports: [Chip, Empadinha, EstadoErro, EstadoVazio, Icone, ListaEsqueleto, Paginacao, RouterLink],
   templateUrl: './automacoes.html',
   styleUrl: './automacoes.css',
 })
@@ -198,6 +202,11 @@ export class Automacoes {
   protected readonly testeRealAberto = signal(false);
   protected readonly regraTesteRealId = signal('');
   protected readonly destinoTesteRealId = signal('');
+  protected readonly painelPareamentoAberto = signal<boolean | null>(null);
+  protected readonly telefonePareamento = signal('');
+  protected readonly pareamento = signal<ResultadoPareamento | null>(null);
+  protected readonly gruposWhatsApp = signal<GrupoWhatsApp[]>([]);
+  protected readonly gruposRecemCarregados = signal(false);
   protected readonly aviso = signal('');
   protected readonly erroAcao = signal<string | null>(null);
   protected readonly ocupacao = signal<string | null>(null);
@@ -220,6 +229,42 @@ export class Automacoes {
       return false;
     }
     return Boolean(destino.ativo && destino.identificadorExterno && this.regraTesteRealId());
+  });
+
+  protected readonly poseEmpadinha = computed<PoseEmpadinha>(() => {
+    const emCurso = this.ocupacao();
+    if (emCurso === 'grupos' || emCurso?.startsWith('previa:')) {
+      return 'folhear';
+    }
+    if (emCurso === 'verificar' || emCurso === 'parear') {
+      return 'conferir';
+    }
+    if (emCurso?.startsWith('simular:') || emCurso === 'teste-real' || this.pareamento()) {
+      return 'marcar';
+    }
+    if (this.previa() !== null || this.gruposRecemCarregados()) {
+      return 'folhear';
+    }
+    const atual = this.painel();
+    if (!atual || atual.estado.estado === 'DESLIGADO') return 'pronta';
+    if (
+      atual.estado.estado === 'DESCONECTADO' ||
+      atual.estado.estado === 'PAUSADO' ||
+      atual.fila.incertos > 0 ||
+      atual.fila.falhas > 0
+    ) {
+      return 'revisar';
+    }
+    if (atual.estado.estado === 'CONECTADO') return 'concluir';
+    return 'acenar';
+  });
+
+  protected readonly mostrarPareamento = computed(() => {
+    if (this.pareamento() !== null) return true;
+    const manual = this.painelPareamentoAberto();
+    if (manual !== null) return manual;
+    const atual = this.painel();
+    return atual?.estado.modo === 'GOWA' && atual.estado.estado === 'DESCONECTADO';
   });
 
   constructor() {
@@ -329,6 +374,67 @@ export class Automacoes {
     this.testeRealAberto.update((aberto) => !aberto);
   }
 
+  protected alternarPainelPareamento(): void {
+    const abrir = !this.mostrarPareamento();
+    this.painelPareamentoAberto.set(abrir);
+    if (!abrir) {
+      this.pareamento.set(null);
+    }
+  }
+
+  protected async verificarConexao(): Promise<void> {
+    await this.executar('verificar', async () => {
+      const estado = await firstValueFrom(this.servico.verificarConexao());
+      this.gruposRecemCarregados.set(false);
+      if (estado.estado === 'CONECTADO') {
+        this.pareamento.set(null);
+        this.painelPareamentoAberto.set(false);
+        this.aviso.set('WhatsApp conectado e pronto para envios.');
+      } else {
+        this.aviso.set(`Status verificado: ${this.aparenciaConexao(estado.estado).rotulo}.`);
+      }
+      this.painelRecurso.reload();
+    });
+  }
+
+  protected async iniciarPareamento(metodo: MetodoPareamento): Promise<void> {
+    const telefone = this.telefonePareamento().trim();
+    if (metodo === 'CODIGO' && !telefone) {
+      this.erroAcao.set('Informe o número do WhatsApp com DDI e DDD (ex.: 5511999998888).');
+      return;
+    }
+    await this.executar('parear', async () => {
+      const resultado = await firstValueFrom(
+        this.servico.iniciarPareamento(metodo, metodo === 'CODIGO' ? telefone : undefined),
+      );
+      this.pareamento.set(resultado);
+      this.painelPareamentoAberto.set(true);
+      this.aviso.set(resultado.mensagem);
+    });
+  }
+
+  protected async carregarGrupos(): Promise<void> {
+    await this.executar('grupos', async () => {
+      const grupos = await firstValueFrom(this.servico.listarGrupos());
+      this.gruposWhatsApp.set(grupos);
+      this.gruposRecemCarregados.set(grupos.length > 0);
+      this.aviso.set(
+        grupos.length > 0
+          ? `${String(grupos.length)} grupo(s) carregado(s). Selecione um abaixo e salve o destino.`
+          : 'Nenhum grupo encontrado na conta conectada.',
+      );
+    });
+  }
+
+  protected selecionarGrupo(grupoId: string): void {
+    const grupo = this.gruposWhatsApp().find((item) => item.id === grupoId);
+    if (!grupo) return;
+    this.rascunhoDestino.update((atual) =>
+      atual ? { ...atual, nome: grupo.nome, identificadorExterno: grupo.id } : atual,
+    );
+    this.aviso.set(`Grupo "${grupo.nome}" selecionado. Clique em "Salvar destino" para confirmar.`);
+  }
+
   protected async alternarPausa(): Promise<void> {
     const atual = this.painel()?.estado;
     if (!atual) return;
@@ -355,6 +461,7 @@ export class Automacoes {
           ativo: rascunho.ativo,
         }),
       );
+      this.gruposRecemCarregados.set(false);
       this.aviso.set('Destino salvo.');
       this.painelRecurso.reload();
     });

@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuditoriaModule } from '../auditoria/auditoria.module.js';
+import type { Env } from '../config/env.schema.js';
 import { ItemPedido } from '../pedidos/itens/item-pedido.entity.js';
 import { Pedido } from '../pedidos/pedido.entity.js';
 import { Produto } from '../produtos/produto.entity.js';
 import { AutomacoesController } from './automacoes.controller.js';
-import { CONECTOR_WHATSAPP } from './conector/conector-whatsapp.js';
+import { CONECTOR_WHATSAPP, type ConectorWhatsApp } from './conector/conector-whatsapp.js';
+import { GowaConector } from './conector/gowa.conector.js';
 import { TransporteSimuladoConector } from './conector/transporte-simulado.conector.js';
 import { DestinoNotificacao } from './entities/destino-notificacao.entity.js';
 import { EstadoConectorNotificacao } from './entities/estado-conector-notificacao.entity.js';
@@ -42,7 +45,31 @@ import { WebhookNotificacoesService } from './servicos/webhook-notificacoes.serv
   controllers: [AutomacoesController],
   providers: [
     TransporteSimuladoConector,
-    { provide: CONECTOR_WHATSAPP, useExisting: TransporteSimuladoConector },
+    {
+      provide: CONECTOR_WHATSAPP,
+      inject: [ConfigService, TransporteSimuladoConector],
+      useFactory: (
+        config: ConfigService<Env, true>,
+        simulado: TransporteSimuladoConector,
+      ): ConectorWhatsApp => {
+        const modo = config.get('NOTIFICACOES_MODO', { infer: true });
+        if (modo === 'GOWA') {
+          const baseUrl = config.get('NOTIFICACOES_CONECTOR_URL', { infer: true });
+          const token = config.get('NOTIFICACOES_CONECTOR_TOKEN', { infer: true });
+          if (!baseUrl || !token) {
+            throw new Error(
+              'NOTIFICACOES_CONECTOR_URL e NOTIFICACOES_CONECTOR_TOKEN são obrigatórios no modo GOWA.',
+            );
+          }
+          return new GowaConector({
+            baseUrl,
+            token,
+            deviceId: config.get('NOTIFICACOES_CONECTOR_DEVICE_ID', { infer: true }),
+          });
+        }
+        return simulado;
+      },
+    },
     ConfiguracaoNotificacoesService,
     EnfileiradorNotificacoesService,
     AgendadorResumosService,

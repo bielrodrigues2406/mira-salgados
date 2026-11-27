@@ -20,6 +20,18 @@ export type ModoConectorNotificacao = 'DESLIGADO' | 'SIMULADO' | 'GOWA' | 'WAHA'
 export type EstadoConexaoNotificacao =
   'DESLIGADO' | 'SIMULADO' | 'CONECTADO' | 'DESCONECTADO' | 'PAUSADO';
 export type AcaoReconciliacaoNotificacao = 'MARCAR_ENTREGUE' | 'REENVIAR';
+export type MetodoPareamento = 'QR' | 'CODIGO';
+
+export interface GrupoWhatsApp {
+  id: string;
+  nome: string;
+}
+
+export interface ResultadoPareamento {
+  qrCode?: string;
+  codigo?: string;
+  mensagem: string;
+}
 
 export interface EstadoConexao {
   canal: CanalNotificacao;

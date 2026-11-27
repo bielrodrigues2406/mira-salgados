@@ -60,9 +60,54 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:-1}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no arquivo .env}
       COOKIE_SECURE: 'true'
+      NOTIFICACOES_MODO: ${NOTIFICACOES_MODO:-SIMULADO}
+      NOTIFICACOES_CONECTOR_URL: ${NOTIFICACOES_CONECTOR_URL:-}
+      NOTIFICACOES_CONECTOR_TOKEN: ${NOTIFICACOES_CONECTOR_TOKEN:-}
+      NOTIFICACOES_CONECTOR_DEVICE_ID: ${NOTIFICACOES_CONECTOR_DEVICE_ID:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
+
+  worker:
+    image: mira-salgados-api
+    profiles: ['notificacoes']
+    command: ['node', 'dist/worker.js']
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: *database-url
+      CORS_ORIGINS: ${WEB_ORIGIN:-http://localhost:8080}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no arquivo .env}
+      NOTIFICACOES_MODO: ${NOTIFICACOES_MODO:-GOWA}
+      NOTIFICACOES_CONECTOR_URL: ${NOTIFICACOES_CONECTOR_URL:-http://gowa:3000}
+      # Obrigatórios quando o perfil notificacoes está ativo (validados no boot pelo env.schema.ts).
+      NOTIFICACOES_CONECTOR_TOKEN: ${NOTIFICACOES_CONECTOR_TOKEN:-}
+      NOTIFICACOES_CONECTOR_DEVICE_ID: ${NOTIFICACOES_CONECTOR_DEVICE_ID:-}
+      NOTIFICACOES_WEBHOOK_HOST: 0.0.0.0
+      NOTIFICACOES_WEBHOOK_PORT: 3001
+      NOTIFICACOES_WEBHOOK_SECRET: ${NOTIFICACOES_WEBHOOK_SECRET:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  gowa:
+    image: ghcr.io/aldinokemal/go-whatsapp-web-multidevice:v9.11.0
+    profiles: ['notificacoes']
+    restart: unless-stopped
+    command: ['rest']
+    environment:
+      APP_PORT: 3000
+      APP_OS: MiraSalgados
+      APP_BASIC_AUTH: ${NOTIFICACOES_CONECTOR_TOKEN:-}
+      WHATSAPP_WEBHOOK: http://worker:3001/webhooks/whatsapp
+      WHATSAPP_WEBHOOK_EVENTS: message.ack,device.logged_out,device.temporary_ban,device.reachout_timelock
+      WHATSAPP_WEBHOOK_SECRET: ${NOTIFICACOES_WEBHOOK_SECRET:-}
+      WHATSAPP_AUTO_REJECT_CALL: 'true'
+    volumes:
+      - gowa_session:/app/storages
 
   web:
     image: mira-salgados-web
@@ -78,3 +123,4 @@ services:
 
 volumes:
   pgdata:
+  gowa_session:

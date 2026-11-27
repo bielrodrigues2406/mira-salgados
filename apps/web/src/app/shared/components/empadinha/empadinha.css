@@ -1,0 +1,31 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+:host(.tamanho-pequena) {
+  width: 48px;
+  height: 41px;
+}
+
+:host(.tamanho-media) {
+  width: 84px;
+  height: 71px;
+}
+
+:host(.tamanho-grande) {
+  width: 128px;
+  height: 108px;
+}
+
+.cena {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  user-select: none;
+  pointer-events: none;
+}

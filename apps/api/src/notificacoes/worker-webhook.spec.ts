@@ -22,10 +22,17 @@ describe('webhook privado de notificações', () => {
     );
   });
 
-  it('extrai eventos suportados (message.ack, logged_out, temporary_ban, connected)', () => {
+  it('extrai eventos suportados (message.ack GoWA v9 e legado, logged_out, temporary_ban, timelock)', () => {
+    expect(
+      extrairEventoWebhook({
+        event: 'message.ack',
+        payload: { ids: ['3EB001', '3EB002'], receipt_type: 'delivered' },
+      }),
+    ).toEqual({ evento: 'message.ack', idsExternos: ['3EB001', '3EB002'], entregue: true });
+
     expect(
       extrairEventoWebhook({ event: 'message.ack', payload: { message_id: 'sim-1', ack: 2 } }),
-    ).toEqual({ evento: 'message.ack', idExterno: 'sim-1', entregue: true });
+    ).toEqual({ evento: 'message.ack', idsExternos: ['sim-1'], entregue: true });
 
     expect(
       extrairEventoWebhook({ event: 'device.logged_out', payload: { reason: 'Sessão encerrada' } }),
@@ -33,6 +40,11 @@ describe('webhook privado de notificações', () => {
 
     expect(extrairEventoWebhook({ event: 'device.temporary_ban' })).toEqual({
       evento: 'device.temporary_ban',
+      motivo: undefined,
+    });
+
+    expect(extrairEventoWebhook({ event: 'device.reachout_timelock' })).toEqual({
+      evento: 'device.reachout_timelock',
       motivo: undefined,
     });
 
