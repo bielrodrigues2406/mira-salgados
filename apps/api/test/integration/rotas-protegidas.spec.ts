@@ -36,13 +36,25 @@ const METODOS: Partial<Record<RequestMethod, Rota['metodo']>> = {
  */
 const PUBLICAS = ['GET /health', 'POST /auth/login', 'POST /auth/refresh', 'POST /auth/logout'];
 
-/** Só administradores: contas e histórico de alterações. */
+/** Só administradores: contas, histórico de alterações e automações. */
 const SOMENTE_ADMIN = [
   'GET /usuarios',
   'POST /usuarios',
   'PATCH /usuarios/:id',
   'POST /usuarios/:id/senha',
   'GET /auditoria',
+  'GET /automacoes',
+  'POST /automacoes/destinos',
+  'PATCH /automacoes/destinos/:id',
+  'PATCH /automacoes/regras/:id',
+  'POST /automacoes/regras/:id/previa',
+  'POST /automacoes/regras/:id/simular',
+  'POST /automacoes/regras/:id/testar-envio',
+  'POST /automacoes/conexao/pausar',
+  'POST /automacoes/conexao/retomar',
+  'GET /automacoes/historico',
+  'POST /automacoes/historico/:id/reconciliar',
+  'POST /automacoes/historico/:id/copiado',
 ];
 
 const ID_QUALQUER = '00000000-0000-4000-8000-000000000000';

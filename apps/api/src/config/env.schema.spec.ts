@@ -29,7 +29,22 @@ describe('validateEnv', () => {
       JWT_ACCESS_TTL_SECONDS: 900,
       REFRESH_TOKEN_TTL_DAYS: 14,
       COOKIE_SECURE: true,
+      NOTIFICACOES_MODO: 'SIMULADO',
+      NOTIFICACOES_WEBHOOK_PORT: 0,
     });
+  });
+
+  it('exige NOTIFICACOES_WEBHOOK_SECRET quando a porta de webhook está ativa', () => {
+    expect(mensagemDeErro({ ...ambienteValido, NOTIFICACOES_WEBHOOK_PORT: '3001' })).toContain(
+      'NOTIFICACOES_WEBHOOK_SECRET',
+    );
+    expect(() =>
+      validateEnv({
+        ...ambienteValido,
+        NOTIFICACOES_WEBHOOK_PORT: '3001',
+        NOTIFICACOES_WEBHOOK_SECRET: 'y'.repeat(32),
+      }),
+    ).not.toThrow();
   });
 
   it('converte a lista de origens separada por vírgula', () => {

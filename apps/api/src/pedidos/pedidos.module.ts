@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuditoriaModule } from '../auditoria/auditoria.module.js';
 import { Cliente } from '../clientes/cliente.entity.js';
+import { NotificacoesModule } from '../notificacoes/notificacoes.module.js';
 import { PrecoProduto } from '../produtos/preco-produto.entity.js';
 import { Produto } from '../produtos/produto.entity.js';
 import { Produtor } from '../produtores/produtor.entity.js';
@@ -35,6 +36,7 @@ import { SaldoDevedorService } from './saldo-devedor.service.js';
       Produtor,
     ]),
     AuditoriaModule,
+    NotificacoesModule,
   ],
   controllers: [PedidosController, ItensController, PagamentosController],
   providers: [

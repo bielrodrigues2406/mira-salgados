@@ -4,6 +4,7 @@ import { map, type Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import type { ApiEnvelope, Pagina } from '../models/api';
+import type { MensagemEquipe } from '../models/automacoes';
 import type {
   AlteracaoItem,
   AlteracaoPedido,
@@ -50,6 +51,12 @@ export class PedidosService {
       },
       { parse: (corpo) => (corpo as ApiEnvelope<PedidoDetalhe>).data },
     );
+  }
+
+  mensagemEquipe(id: string): Observable<MensagemEquipe> {
+    return this.http
+      .get<ApiEnvelope<MensagemEquipe>>(`${pedido(id)}/mensagem-equipe`)
+      .pipe(map(({ data }) => data));
   }
 
   criar(dados: DadosPedido): Observable<PedidoDetalhe> {

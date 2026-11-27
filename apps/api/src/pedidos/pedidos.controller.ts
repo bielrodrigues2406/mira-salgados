@@ -12,6 +12,8 @@ import {
 
 import { CurrentUser, type UsuarioAutenticado } from '../common/auth/usuario-autenticado.js';
 import type { Paginated } from '../common/pagination/pagination.js';
+import type { MensagemEquipeResposta } from '../notificacoes/dto/automacoes-resposta.dto.js';
+import { AutomacoesService } from '../notificacoes/servicos/automacoes.service.js';
 import { AlterarStatusDto } from './dto/alterar-status.dto.js';
 import { AtualizarPedidoDto } from './dto/atualizar-pedido.dto.js';
 import { CriarPedidoConfirmadoDto } from './dto/criar-pedido-confirmado.dto.js';
@@ -27,6 +29,7 @@ export class PedidosController {
   constructor(
     private readonly pedidos: PedidosService,
     private readonly consulta: PedidosConsultaService,
+    private readonly automacoes: AutomacoesService,
   ) {}
 
   @Get()
@@ -39,6 +42,12 @@ export class PedidosController {
   @Get(':id')
   async detalhar(@Param('id', ParseUUIDPipe) id: string): Promise<PedidoDetalheDto> {
     return PedidoDetalheDto.de(await this.consulta.detalhar(id));
+  }
+
+  /** Mensagem operacional pronta para copiar e colar no grupo da equipe (sem PII/valores). */
+  @Get(':id/mensagem-equipe')
+  mensagemEquipe(@Param('id', ParseUUIDPipe) id: string): Promise<MensagemEquipeResposta> {
+    return this.automacoes.mensagemParaEquipe(id);
   }
 
   @Post()

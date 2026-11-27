@@ -16,6 +16,7 @@ import { createValidationPipe } from './common/validation/validation.js';
 import { type Env, validateEnv } from './config/env.schema.js';
 import { typeOrmOptions } from './database/typeorm.options.js';
 import { HealthModule } from './health/health.module.js';
+import { NotificacoesModule } from './notificacoes/notificacoes.module.js';
 import { PedidosModule } from './pedidos/pedidos.module.js';
 import { ProdutoresModule } from './produtores/produtores.module.js';
 import { ProdutosModule } from './produtos/produtos.module.js';
@@ -53,6 +54,7 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     ProdutoresModule,
     ClientesModule,
     ProdutosModule,
+    NotificacoesModule,
     PedidosModule,
     RelatoriosModule,
   ],

@@ -36,6 +36,25 @@ describe('buildRedactPaths', () => {
     expect(texto).toContain('[REDACTED]');
     expect(texto).toContain('ana@exemplo.com');
   });
+
+  it('oculta segredos do conector e texto renderizado de notificações', () => {
+    const registro = capturarLog((logger) => {
+      logger.info(
+        {
+          apiKey: 'chave-api-secreta',
+          webhookSecret: 'segredo-hmac',
+          outbox: { textoRenderizado: '*Nova encomenda #1043*', qrCode: 'dados-qr' },
+        },
+        'notificacao',
+      );
+    });
+    const texto = JSON.stringify(registro);
+
+    expect(texto).not.toContain('chave-api-secreta');
+    expect(texto).not.toContain('segredo-hmac');
+    expect(texto).not.toContain('Nova encomenda');
+    expect(texto).not.toContain('dados-qr');
+  });
 });
 
 describe('stripQueryString', () => {

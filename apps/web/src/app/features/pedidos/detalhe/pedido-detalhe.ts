@@ -84,6 +84,7 @@ export class PedidoDetalhe {
   protected readonly editando = signal(false);
   protected readonly confirmandoCancelamento = signal(false);
   protected readonly mudandoStatus = signal(false);
+  protected readonly copiandoEquipe = signal(false);
 
   protected readonly avanco = computed(() => {
     const permitidas = this.pedido()?.transicoesPermitidas ?? [];
@@ -188,5 +189,20 @@ export class PedidoDetalhe {
   /** Resumo do pedido para o cliente; sem celular cadastrado, a pessoa escolhe o contato. */
   protected resumoNoWhatsApp(pedido: Pedido): string {
     return linkDoWhatsApp(mensagemDeConfirmacao(pedido), pedido.cliente.telefone);
+  }
+
+  /** Contingência: copia o aviso operacional da equipe (sem dados do cliente nem valores). */
+  protected async copiarAvisoEquipe(pedido: Pedido): Promise<void> {
+    this.erroDeStatus.set(null);
+    this.copiandoEquipe.set(true);
+    try {
+      const resposta = await firstValueFrom(this.pedidos.mensagemEquipe(pedido.id));
+      await navigator.clipboard.writeText(resposta.texto);
+      this.aviso.set('Aviso da equipe copiado.');
+    } catch (falha) {
+      this.erroDeStatus.set(mensagemDeErro(falha));
+    } finally {
+      this.copiandoEquipe.set(false);
+    }
   }
 }

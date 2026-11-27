@@ -11,6 +11,7 @@ import { EnderecoDeEntregaNoPedido1791200000000 } from './1791200000000-endereco
 import { VariasContasPorProdutor1791300000000 } from './1791300000000-varias-contas-por-produtor.js';
 import { QuantidadesFracionadas1791400000000 } from './1791400000000-quantidades-fracionadas.js';
 import { CriarChavesIdempotencia1791500000000 } from './1791500000000-criar-chaves-idempotencia.js';
+import { CriarNotificacoesEOutbox1791600000000 } from './1791600000000-criar-notificacoes-e-outbox.js';
 
 // Lista explícita em vez de glob: funciona igual no build, na CLI do TypeORM e
 // nos testes, sem depender de resolução de caminhos em tempo de execução.
@@ -26,4 +27,5 @@ export const migrations: (new () => MigrationInterface)[] = [
   VariasContasPorProdutor1791300000000,
   QuantidadesFracionadas1791400000000,
   CriarChavesIdempotencia1791500000000,
+  CriarNotificacoesEOutbox1791600000000,
 ];
