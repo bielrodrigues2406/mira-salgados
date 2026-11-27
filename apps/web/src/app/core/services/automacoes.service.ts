@@ -82,6 +82,18 @@ export class AutomacoesService {
       .pipe(map(({ data }) => data));
   }
 
+  testarEnvioReal(
+    id: string,
+    dados: { destinoId: string; identificadorExterno: string; data?: string },
+  ): Observable<ItemHistoricoNotificacao> {
+    return this.http
+      .post<ApiEnvelope<ItemHistoricoNotificacao>>(
+        `${AUTOMACOES}/regras/${encodeURIComponent(id)}/testar-envio`,
+        dados,
+      )
+      .pipe(map(({ data }) => data));
+  }
+
   pausarConexao(motivo?: string | null): Observable<EstadoConexao> {
     return this.http
       .post<ApiEnvelope<EstadoConexao>>(`${AUTOMACOES}/conexao/pausar`, {

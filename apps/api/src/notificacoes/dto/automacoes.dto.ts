@@ -179,6 +179,21 @@ export class PreviaRegraDto {
   usarExemplo?: boolean;
 }
 
+export class TestarEnvioRealDto {
+  @IsUUID()
+  destinoId: string;
+
+  @Aparar()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(160)
+  identificadorExterno: string;
+
+  @Opcional()
+  @DataDoCalendario()
+  data?: string;
+}
+
 export class PausarConexaoDto {
   @IsOptional()
   @ApararOuNulo()

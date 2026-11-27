@@ -16,6 +16,7 @@ import {
   mudancaIncrementaRevisao,
   preparosDestacadosDaRegra,
 } from '../dominio/regras.js';
+import { ExecucaoResumoDiario } from '../entities/execucao-resumo-diario.entity.js';
 import { OutboxNotificacao } from '../entities/outbox-notificacao.entity.js';
 import { RegraNotificacao } from '../entities/regra-notificacao.entity.js';
 import { ResumoEnviadoPedido } from '../entities/resumo-enviado-pedido.entity.js';
@@ -131,6 +132,15 @@ export class EnfileiradorNotificacoesService {
           status: ['PENDENTE', 'ACEITO', 'ENTREGUE', 'INCERTO'],
         })
         .getMany();
+      const execucoesDaDataDepois = await manager
+        .getRepository(ExecucaoResumoDiario)
+        .createQueryBuilder('execucao')
+        .select(['execucao.regraId', 'execucao.destinoId'])
+        .where('execucao.dataReferencia = :data', { data: depois.dataEntrega })
+        .andWhere('execucao.desfecho IN (:...desfechos)', {
+          desfechos: ['AGENDADO', 'OMITIDO'],
+        })
+        .getMany();
 
       for (const regra of regrasResumo) {
         if (porDestino.has(regra.destinoId)) continue;
@@ -141,16 +151,20 @@ export class EnfileiradorNotificacoesService {
         const jaTemOutboxResumo = resumosDaDataDepois.some(
           (item) => item.regraId === regra.id && item.destinoId === regra.destinoId,
         );
-        // Se o resumo do próprio dia já passou do horário (inclusive omitido por vazio),
-        // novas encomendas do mesmo dia também entram como complemento.
+        const jaTeveExecucaoResumo = execucoesDaDataDepois.some(
+          (item) => item.regraId === regra.id && item.destinoId === regra.destinoId,
+        );
+        // Só trata a data de hoje como já resumida quando o agendador já executou
+        // (agendado ou omitido por dia vazio) ou quando a janela de recuperação já
+        // expirou. Se ainda estamos na janela antes de o agendador rodar, o próprio
+        // resumo incluirá a encomenda sem duplicar com complemento.
         const janela = avaliarJanelaResumo(agora, regra);
-        const diaDeHojeJaPassouHorario =
-          janela.local.data === depois.dataEntrega &&
-          (janela.situacao === 'NA_JANELA' || janela.situacao === 'EXPIRADO');
+        const janelaDeHojeExpirou =
+          janela.local.data === depois.dataEntrega && janela.situacao === 'EXPIRADO';
 
         const evento = classificarEventoComplemento(antes, depois, regra, {
           estavaNoResumo,
-          dataDepoisJaResumida: jaTemOutboxResumo || diaDeHojeJaPassouHorario,
+          dataDepoisJaResumida: jaTemOutboxResumo || jaTeveExecucaoResumo || janelaDeHojeExpirou,
         });
         if (evento) {
           porDestino.set(regra.destinoId, { destinoId: regra.destinoId, regra, evento });
@@ -184,6 +198,7 @@ export class EnfileiradorNotificacoesService {
       .where('pedido_id = :pedidoId', { pedidoId: pedido.id })
       .andWhere('destino_id = :destinoId', { destinoId })
       .andWhere('status = :status', { status: 'PENDENTE' })
+      .andWhere('envio_iniciado_em IS NULL')
       .andWhere('pedido_revisao < :revisao', { revisao: pedido.notificacaoRevisao })
       .execute();
 
@@ -212,11 +227,14 @@ export class EnfileiradorNotificacoesService {
         status: 'PENDENTE',
         regraId: regra.id,
         destinoId,
+        destinoIdentificadorExterno: regra.destino?.identificadorExterno ?? null,
         pedidoId: pedido.id,
         pedidoRevisao: pedido.notificacaoRevisao,
         dataReferencia: depois.dataEntrega,
         textoRenderizado,
         disponivelEm,
+        expiraEm: null,
+        envioIniciadoEm: null,
         reservadoAte: null,
         reservadoPor: null,
         tentativas: 0,

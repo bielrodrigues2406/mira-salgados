@@ -126,9 +126,82 @@
                 >
                   Salvar destino
                 </button>
+                <button type="button" class="botao botao-terciario" (click)="alternarTesteReal()">
+                  {{ testeRealAberto() ? 'Ocultar teste real' : 'Enviar teste real' }}
+                </button>
               </div>
             </div>
           }
+        }
+
+        @if (testeRealAberto()) {
+          <div class="teste-real-bloco nao-imprimir" aria-label="Envio real de teste">
+            <div>
+              <h3 class="texto-subtitulo">Enviar teste real ao grupo</h3>
+              <p class="texto-legenda">
+                Publica uma mensagem de exemplo fictício pelo conector ativo no grupo salvo
+                selecionado abaixo. A ação "Simular envio" nas regras continua local e nunca envia
+                ao WhatsApp.
+              </p>
+            </div>
+            <div class="campos-grade">
+              <div class="campo">
+                <label class="texto-rotulo" for="teste-real-regra">Formato da regra</label>
+                <select
+                  id="teste-real-regra"
+                  class="campo-entrada campo-selecao"
+                  [value]="regraTesteRealId()"
+                  (change)="regraTesteRealId.set(campoRegraTeste.value)"
+                  #campoRegraTeste
+                >
+                  @for (regra of dados.regras; track regra.id) {
+                    <option [value]="regra.id">{{ regra.nome }}</option>
+                  }
+                </select>
+              </div>
+              <div class="campo">
+                <label class="texto-rotulo" for="teste-real-destino">Destino salvo</label>
+                <select
+                  id="teste-real-destino"
+                  class="campo-entrada campo-selecao"
+                  [value]="destinoTesteRealId()"
+                  (change)="destinoTesteRealId.set(campoDestinoTeste.value)"
+                  #campoDestinoTeste
+                >
+                  @for (dest of dados.destinos; track dest.id) {
+                    <option [value]="dest.id">
+                      {{ dest.nome }} ({{ dest.identificadorExterno ?? 'sem JID' }})
+                    </option>
+                  }
+                </select>
+              </div>
+            </div>
+            @if (destinoTesteReal(); as alvo) {
+              <p class="texto-legenda">
+                Destino confirmado: <strong>{{ alvo.nome }}</strong>
+                @if (alvo.identificadorExterno; as jid) {
+                  · <span class="numerico">{{ jid }}</span>
+                }
+              </p>
+            }
+            <div class="acoes-linha">
+              <button
+                type="button"
+                class="botao botao-primario"
+                [disabled]="!podeEnviarTesteReal() || ocupacao() === 'teste-real'"
+                (click)="enviarTesteReal()"
+              >
+                Confirmar envio real
+              </button>
+              <button
+                type="button"
+                class="botao botao-terciario"
+                (click)="testeRealAberto.set(false)"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         }
       </section>
 
@@ -561,7 +634,7 @@
                 >
                   Marcar entregue
                 </button>
-                @if (item.textoRenderizado) {
+                @if (podeReenviar(item)) {
                   <button
                     type="button"
                     class="botao botao-primario"

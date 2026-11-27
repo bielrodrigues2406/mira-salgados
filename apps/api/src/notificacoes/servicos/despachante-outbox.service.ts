@@ -1,11 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DataSource, type EntityManager } from 'typeorm';
+import { DataSource, type EntityManager, IsNull } from 'typeorm';
 
-import { Pedido } from '../../pedidos/pedido.entity.js';
 import { CONECTOR_WHATSAPP, type ConectorWhatsApp } from '../conector/conector-whatsapp.js';
+import { avaliarJanelaResumo } from '../dominio/calendario.js';
 import { EstadoConectorNotificacao } from '../entities/estado-conector-notificacao.entity.js';
+import { ExecucaoResumoDiario } from '../entities/execucao-resumo-diario.entity.js';
 import { OutboxNotificacao } from '../entities/outbox-notificacao.entity.js';
+import { ResumoEnviadoPedido } from '../entities/resumo-enviado-pedido.entity.js';
 import { ConfiguracaoNotificacoesService } from './configuracao-notificacoes.service.js';
+import { consumirReciboAntecipado } from './webhook-notificacoes.service.js';
 
 const LEASE_PADRAO_MS = 60_000;
 const LIMITE_LOTE_PADRAO = 10;
@@ -39,7 +42,8 @@ function calcularBackoffSegundos(tentativa: number): number {
 
 /**
  * Despacha notificações pendentes da tabela `outbox_notificacoes` usando
- * reivindicação atômica com `FOR UPDATE SKIP LOCKED` e lease com expiração.
+ * reivindicação atômica com `FOR UPDATE SKIP LOCKED`, marcação atômica de envio
+ * em andamento (`envio_iniciado_em`) e consumo de recibos antecipados.
  * Nunca mantém transação de banco aberta durante a chamada ao conector externo.
  */
 @Injectable()
@@ -65,6 +69,10 @@ export class DespachanteOutboxService {
       pausado: false,
     };
 
+    // Envios que já haviam iniciado chamada externa e tiveram o lease expirado
+    // nunca podem ser reenviados automaticamente: passam para INCERTO.
+    resultado.incertos += await this.expirarEnviosEmAndamento(agora);
+
     const estado = await this.carregarEstado();
     if (estado.pausado || estado.modo === 'DESLIGADO' || estado.estado === 'DESCONECTADO') {
       resultado.pausado = true;
@@ -73,7 +81,7 @@ export class DespachanteOutboxService {
 
     const idsReivindicados = await this.reivindicarLote(limite, workerId, agora, leaseMs);
     for (const id of idsReivindicados) {
-      const interromper = await this.processarItem(id, workerId, agora, resultado);
+      const interromper = await this.processarItem(id, workerId, agora, leaseMs, resultado);
       if (interromper) {
         resultado.pausado = true;
         break;
@@ -94,6 +102,24 @@ export class DespachanteOutboxService {
     return padroes.estado;
   }
 
+  private async expirarEnviosEmAndamento(agora: Date): Promise<number> {
+    const resultado = await this.dataSource
+      .createQueryBuilder()
+      .update(OutboxNotificacao)
+      .set({
+        status: 'INCERTO',
+        ultimoErro: 'Reserva expirou com envio em andamento. Confirme no grupo antes de reenviar.',
+        reservadoAte: null,
+        reservadoPor: null,
+      })
+      .where('status = :status', { status: 'PENDENTE' })
+      .andWhere('envio_iniciado_em IS NOT NULL')
+      .andWhere('reservado_ate IS NOT NULL')
+      .andWhere('reservado_ate < :agora', { agora })
+      .execute();
+    return resultado.affected ?? 0;
+  }
+
   private async reivindicarLote(
     limite: number,
     workerId: string,
@@ -107,6 +133,7 @@ export class DespachanteOutboxService {
         SELECT id
         FROM outbox_notificacoes
         WHERE status = 'PENDENTE'
+          AND envio_iniciado_em IS NULL
           AND disponivel_em <= $1
           AND (reservado_ate IS NULL OR reservado_ate < $1)
         ORDER BY disponivel_em ASC, criado_em ASC
@@ -134,6 +161,7 @@ export class DespachanteOutboxService {
     id: string,
     workerId: string,
     agora: Date,
+    leaseMs: number,
     resultado: ResultadoDespacho,
   ): Promise<boolean> {
     const estadoAtual = await this.carregarEstado();
@@ -150,20 +178,26 @@ export class DespachanteOutboxService {
       where: { id },
       relations: { destino: true, regra: true },
     });
-    if (item?.status !== 'PENDENTE' || item.reservadoPor !== workerId) {
+    if (item?.status !== 'PENDENTE' || item.reservadoPor !== workerId || item.envioIniciadoEm) {
       return false;
     }
 
     resultado.processados += 1;
 
-    // Revalidação antes do disparo: revisão antiga, regra desativada ou destino inativo.
+    // Revalidação 1: só considera substituído se já houver outra revisão mais
+    // nova enfileirada para o mesmo (pedido, destino). Assim, edições fora do
+    // escopo da regra (ex.: só frito na regra de assados) não derrubam o aviso.
     if (item.pedidoId && item.pedidoRevisao !== null) {
-      const pedido = await this.dataSource.getRepository(Pedido).findOne({
-        select: { id: true, notificacaoRevisao: true },
-        where: { id: item.pedidoId },
-      });
-      if (pedido && pedido.notificacaoRevisao > item.pedidoRevisao) {
-        await this.atualizarFinal(id, {
+      const existeMaisNova = await this.dataSource
+        .getRepository(OutboxNotificacao)
+        .createQueryBuilder('outbox')
+        .where('outbox.pedidoId = :pedidoId', { pedidoId: item.pedidoId })
+        .andWhere('outbox.destinoId = :destinoId', { destinoId: item.destinoId })
+        .andWhere('outbox.pedidoRevisao > :revisao', { revisao: item.pedidoRevisao })
+        .andWhere('outbox.status <> :cancelado', { cancelado: 'CANCELADO' })
+        .getExists();
+      if (existeMaisNova) {
+        await this.atualizarPreEnvio(id, workerId, {
           status: 'SUBSTITUIDO',
           reservadoAte: null,
           reservadoPor: null,
@@ -173,8 +207,9 @@ export class DespachanteOutboxService {
       }
     }
 
+    // Revalidação 2: regra desativada antes do envio.
     if (item.regra?.ativa === false && item.tipoEvento !== 'TESTE') {
-      await this.atualizarFinal(id, {
+      await this.atualizarPreEnvio(id, workerId, {
         status: 'CANCELADO',
         ultimoErro: 'Regra desativada antes do envio.',
         reservadoAte: null,
@@ -184,9 +219,34 @@ export class DespachanteOutboxService {
       return false;
     }
 
+    // Revalidação 3: janela de tolerância do resumo diário (quando não houve
+    // liberação explícita via reenvio manual, que limpa `expiraEm`).
+    if (item.tipoEvento === 'RESUMO_DIARIO' && item.expiraEm !== null) {
+      const passouLimite = agora.getTime() > item.expiraEm.getTime();
+      const foraDaJanelaDaRegra =
+        item.regra && item.dataReferencia
+          ? (() => {
+              const avaliacao = avaliarJanelaResumo(agora, item.regra);
+              return (
+                avaliacao.local.data !== item.dataReferencia ||
+                avaliacao.situacao === 'EXPIRADO' ||
+                avaliacao.situacao === 'FORA_DO_DIA'
+              );
+            })()
+          : false;
+
+      if (passouLimite || foraDaJanelaDaRegra) {
+        await this.expirarResumoAntesDoEnvio(id, workerId);
+        resultado.ignorados += 1;
+        return false;
+      }
+    }
+
+    // Revalidação 4: destino ativo e vinculado ao mesmo identificador externo
+    // registrado no momento do enfileiramento (nunca redireciona para grupo novo).
     const destino = item.destino;
     if (!destino?.ativo || !destino.identificadorExterno) {
-      await this.atualizarFinal(id, {
+      await this.atualizarPreEnvio(id, workerId, {
         status: 'FALHA',
         ultimoErro: 'Destino inativo ou sem identificador configurado.',
         reservadoAte: null,
@@ -196,8 +256,23 @@ export class DespachanteOutboxService {
       return false;
     }
 
+    if (
+      !item.destinoIdentificadorExterno ||
+      item.destinoIdentificadorExterno !== destino.identificadorExterno
+    ) {
+      await this.atualizarPreEnvio(id, workerId, {
+        status: 'CANCELADO',
+        ultimoErro:
+          'Grupo do destino alterado após o enfileiramento. Envio cancelado para evitar redirecionamento.',
+        reservadoAte: null,
+        reservadoPor: null,
+      });
+      resultado.ignorados += 1;
+      return false;
+    }
+
     if (!item.textoRenderizado) {
-      await this.atualizarFinal(id, {
+      await this.atualizarPreEnvio(id, workerId, {
         status: 'FALHA',
         ultimoErro: 'Mensagem vazia ou já limpa por retenção.',
         reservadoAte: null,
@@ -207,37 +282,51 @@ export class DespachanteOutboxService {
       return false;
     }
 
+    // Marca atomicamente o início da chamada externa ANTES de sair para a rede.
+    // Se outra operação cancelou/substituiu o registro nesse instante, aborta.
+    const envioIniciadoEm = agora;
+    const reservadoAte = new Date(agora.getTime() + leaseMs);
+    const novasTentativas = await this.marcarEnvioIniciado(
+      id,
+      workerId,
+      envioIniciadoEm,
+      reservadoAte,
+    );
+    if (novasTentativas === null) {
+      return false;
+    }
+
     // Chamada externa fora de qualquer transação de banco.
     const retorno = await this.enviarSeguro(
-      destino.identificadorExterno,
+      item.destinoIdentificadorExterno,
       item.textoRenderizado,
       item.chaveDeduplicacao,
     );
 
-    if (retorno.tipo === 'ACEITO') {
-      await this.atualizarFinal(id, {
-        status: 'ACEITO',
-        idExterno: truncar(retorno.idExterno, 160),
-        enviadoEm: agora,
-        tentativas: item.tentativas + 1,
-        ultimoErro: null,
-        reservadoAte: null,
-        reservadoPor: null,
-      });
-      resultado.enviados += 1;
-      return false;
-    }
+    if (retorno.tipo === 'ACEITO' || retorno.tipo === 'ENTREGUE') {
+      const idExterno = truncar(retorno.idExterno, 160);
+      await this.dataSource.transaction(async (manager) => {
+        const reciboAntecipado = await consumirReciboAntecipado(manager, idExterno);
+        const entregueEm = retorno.tipo === 'ENTREGUE' ? agora : reciboAntecipado;
+        const statusFinal = entregueEm ? 'ENTREGUE' : 'ACEITO';
 
-    if (retorno.tipo === 'ENTREGUE') {
-      await this.atualizarFinal(id, {
-        status: 'ENTREGUE',
-        idExterno: truncar(retorno.idExterno, 160),
-        enviadoEm: agora,
-        entregueEm: agora,
-        tentativas: item.tentativas + 1,
-        ultimoErro: null,
-        reservadoAte: null,
-        reservadoPor: null,
+        await manager.query(
+          `
+          UPDATE outbox_notificacoes
+          SET status = $1,
+              id_externo = $2,
+              enviado_em = $3,
+              entregue_em = $4,
+              ultimo_erro = NULL,
+              reservado_ate = NULL,
+              reservado_por = NULL,
+              atualizado_em = now()
+          WHERE id = $5
+            AND envio_iniciado_em = $6
+            AND status IN ('PENDENTE', 'INCERTO')
+          `,
+          [statusFinal, idExterno, agora, entregueEm, id, envioIniciadoEm],
+        );
       });
       resultado.enviados += 1;
       return false;
@@ -245,27 +334,32 @@ export class DespachanteOutboxService {
 
     if (retorno.tipo === 'INCERTO') {
       // Nunca reenviar automaticamente um envio incerto (risco de duplicar no grupo).
-      await this.atualizarFinal(id, {
+      await this.atualizarPosEnvio(id, envioIniciadoEm, {
         status: 'INCERTO',
-        tentativas: item.tentativas + 1,
         ultimoErro: truncar(retorno.mensagem, 500),
-        reservadoAte: null,
-        reservadoPor: null,
       });
       resultado.incertos += 1;
       return false;
     }
 
     if (retorno.tipo === 'DESCONECTADO') {
-      // Não queima tentativas: mantém PENDENTE, libera lease e pausa canal.
+      // Não queima tentativas: mantém PENDENTE, limpa envio_iniciado_em e pausa canal.
       await this.dataSource.transaction(async (manager) => {
-        await manager.getRepository(OutboxNotificacao).update(
-          { id, status: 'PENDENTE' },
-          {
-            ultimoErro: truncar(retorno.mensagem, 500),
-            reservadoAte: null,
-            reservadoPor: null,
-          },
+        await manager.query(
+          `
+          UPDATE outbox_notificacoes
+          SET status = 'PENDENTE',
+              envio_iniciado_em = NULL,
+              tentativas = GREATEST(tentativas - 1, 0),
+              ultimo_erro = $1,
+              reservado_ate = NULL,
+              reservado_por = NULL,
+              atualizado_em = now()
+          WHERE id = $2
+            AND envio_iniciado_em = $3
+            AND status IN ('PENDENTE', 'INCERTO')
+          `,
+          [truncar(retorno.mensagem, 500), id, envioIniciadoEm],
         );
         await this.marcarDesconectado(manager, retorno.mensagem, agora);
       });
@@ -273,33 +367,83 @@ export class DespachanteOutboxService {
     }
 
     if (retorno.tipo === 'FALHA_PERMANENTE') {
-      await this.atualizarFinal(id, {
+      await this.atualizarPosEnvio(id, envioIniciadoEm, {
         status: 'FALHA',
-        tentativas: item.tentativas + 1,
         ultimoErro: truncar(retorno.mensagem, 500),
-        reservadoAte: null,
-        reservadoPor: null,
       });
       resultado.falhas += 1;
       return false;
     }
 
-    // FALHA_TRANSITORIA: aplica backoff exponencial até maxTentativas.
-    const novasTentativas = item.tentativas + 1;
+    // FALHA_TRANSITORIA: só reagenda se o lease ainda pertencer a este worker
+    // (se outro ciclo já promoveu o item a INCERTO por expiração de lease, mantém INCERTO).
     const esgotou = novasTentativas >= item.maxTentativas;
     const proximoDisparo = new Date(
       agora.getTime() + calcularBackoffSegundos(novasTentativas) * 1000,
     );
-    await this.atualizarFinal(id, {
-      status: esgotou ? 'FALHA' : 'PENDENTE',
-      tentativas: novasTentativas,
-      disponivelEm: esgotou ? item.disponivelEm : proximoDisparo,
-      ultimoErro: truncar(retorno.mensagem, 500),
-      reservadoAte: null,
-      reservadoPor: null,
-    });
-    if (esgotou) resultado.falhas += 1;
+    const atualizado = await this.dataSource
+      .createQueryBuilder()
+      .update(OutboxNotificacao)
+      .set({
+        status: esgotou ? 'FALHA' : 'PENDENTE',
+        envioIniciadoEm: esgotou ? envioIniciadoEm : null,
+        disponivelEm: esgotou ? item.disponivelEm : proximoDisparo,
+        ultimoErro: truncar(retorno.mensagem, 500),
+        reservadoAte: null,
+        reservadoPor: null,
+      })
+      .where('id = :id', { id })
+      .andWhere('status = :status', { status: 'PENDENTE' })
+      .andWhere('reservado_por = :workerId', { workerId })
+      .andWhere('envio_iniciado_em = :envioIniciadoEm', { envioIniciadoEm })
+      .execute();
+    if (esgotou && (atualizado.affected ?? 0) > 0) resultado.falhas += 1;
     return false;
+  }
+
+  private async marcarEnvioIniciado(
+    id: string,
+    workerId: string,
+    envioIniciadoEm: Date,
+    reservadoAte: Date,
+  ): Promise<number | null> {
+    const resultado = await this.dataSource
+      .createQueryBuilder()
+      .update(OutboxNotificacao)
+      .set({
+        envioIniciadoEm,
+        reservadoAte,
+        tentativas: () => 'tentativas + 1',
+      })
+      .where('id = :id', { id })
+      .andWhere('status = :status', { status: 'PENDENTE' })
+      .andWhere('reservado_por = :workerId', { workerId })
+      .andWhere('envio_iniciado_em IS NULL')
+      .returning('tentativas')
+      .execute();
+    const linhas = resultado.raw as { tentativas?: number }[];
+    return linhas[0]?.tentativas ?? null;
+  }
+
+  private async expirarResumoAntesDoEnvio(id: string, workerId: string): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const resultado = await manager.getRepository(OutboxNotificacao).update(
+        { id, status: 'PENDENTE', reservadoPor: workerId, envioIniciadoEm: IsNull() },
+        {
+          status: 'EXPIRADO',
+          ultimoErro:
+            'Janela de envio do resumo diário expirada antes do despacho. Use reenviar ou copiar manualmente.',
+          reservadoAte: null,
+          reservadoPor: null,
+        },
+      );
+      if ((resultado.affected ?? 0) === 0) return;
+
+      await manager.getRepository(ResumoEnviadoPedido).delete({ outboxId: id });
+      await manager
+        .getRepository(ExecucaoResumoDiario)
+        .update({ outboxId: id }, { desfecho: 'EXPIRADO' });
+    });
   }
 
   private async enviarSeguro(destinoExterno: string, texto: string, chaveDeduplicacao: string) {
@@ -315,15 +459,40 @@ export class DespachanteOutboxService {
     await this.dataSource
       .getRepository(OutboxNotificacao)
       .update(
-        { id, status: 'PENDENTE', reservadoPor: workerId },
+        { id, status: 'PENDENTE', reservadoPor: workerId, envioIniciadoEm: IsNull() },
         { reservadoAte: null, reservadoPor: null },
       );
   }
 
-  private async atualizarFinal(id: string, dados: Partial<OutboxNotificacao>): Promise<void> {
+  private async atualizarPreEnvio(
+    id: string,
+    workerId: string,
+    dados: Partial<OutboxNotificacao>,
+  ): Promise<void> {
     await this.dataSource
       .getRepository(OutboxNotificacao)
-      .update({ id, status: 'PENDENTE' }, dados);
+      .update({ id, status: 'PENDENTE', reservadoPor: workerId, envioIniciadoEm: IsNull() }, dados);
+  }
+
+  private async atualizarPosEnvio(
+    id: string,
+    envioIniciadoEm: Date,
+    dados: { status: 'INCERTO' | 'FALHA'; ultimoErro: string },
+  ): Promise<void> {
+    await this.dataSource.query(
+      `
+      UPDATE outbox_notificacoes
+      SET status = $1,
+          ultimo_erro = $2,
+          reservado_ate = NULL,
+          reservado_por = NULL,
+          atualizado_em = now()
+      WHERE id = $3
+        AND envio_iniciado_em = $4
+        AND status IN ('PENDENTE', 'INCERTO')
+      `,
+      [dados.status, dados.ultimoErro, id, envioIniciadoEm],
+    );
   }
 
   private async marcarDesconectado(

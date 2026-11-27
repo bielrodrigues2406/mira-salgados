@@ -139,6 +139,53 @@ describe('regras de notificação', () => {
     ).toBe('CANCELAMENTO');
   });
 
+  it('na regra Com assados (mesmo exibindo o pedido inteiro), alterar apenas fritos não dispara correção; no modo Todas, dispara', () => {
+    const antes = pedido();
+    const mudouSoFrito = pedido({
+      itens: [
+        { produtoId: 'p1', produtoNome: 'Esfiha de carne', preparo: 'ASSADO', unidades: 100 },
+        { produtoId: 'p2', produtoNome: 'Coxinha de frango', preparo: 'FRITO', unidades: 200 },
+      ],
+    });
+    const adicionouFrito = pedido({
+      itens: [
+        { produtoId: 'p1', produtoNome: 'Esfiha de carne', preparo: 'ASSADO', unidades: 100 },
+        { produtoId: 'p2', produtoNome: 'Coxinha de frango', preparo: 'FRITO', unidades: 100 },
+        { produtoId: 'p3', produtoNome: 'Bolinha de queijo', preparo: 'FRITO', unidades: 50 },
+      ],
+    });
+    const mudouAssado = pedido({
+      itens: [
+        { produtoId: 'p1', produtoNome: 'Esfiha de carne', preparo: 'ASSADO', unidades: 150 },
+        { produtoId: 'p2', produtoNome: 'Coxinha de frango', preparo: 'FRITO', unidades: 100 },
+      ],
+    });
+
+    expect(classificarEventoImediato(antes, mudouSoFrito, REGRA_IMEDIATA)).toBeNull();
+    expect(classificarEventoImediato(antes, adicionouFrito, REGRA_IMEDIATA)).toBeNull();
+    expect(classificarEventoImediato(antes, mudouAssado, REGRA_IMEDIATA)).toBe('CORRECAO');
+
+    expect(
+      classificarEventoComplemento(antes, mudouSoFrito, REGRA_RESUMO, {
+        estavaNoResumo: true,
+        dataDepoisJaResumida: true,
+      }),
+    ).toBeNull();
+    expect(
+      classificarEventoComplemento(antes, mudouAssado, REGRA_RESUMO, {
+        estavaNoResumo: true,
+        dataDepoisJaResumida: true,
+      }),
+    ).toBe('CORRECAO');
+
+    const regraTodas: ConfiguracaoRegraNotificacao = {
+      ...REGRA_IMEDIATA,
+      filtroEncomenda: 'TODAS',
+      preparos: [],
+    };
+    expect(classificarEventoImediato(antes, mudouSoFrito, regraTodas)).toBe('CORRECAO');
+  });
+
   it('chave de deduplicação por pedido omite regraId para impedir duplicata entre imediato e complemento', () => {
     expect(chaveDeduplicacaoPedido('dest-1', 'ped-1', 2)).toBe('pedido:ped-1:destino:dest-1:rev:2');
     expect(chaveDeduplicacaoResumo('regra-2', 'dest-1', '2026-10-02')).toBe(

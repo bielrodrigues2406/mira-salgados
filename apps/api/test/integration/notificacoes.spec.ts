@@ -10,9 +10,11 @@ import { LogAuditoria } from '../../src/auditoria/log-auditoria.entity.js';
 import { TransporteSimuladoConector } from '../../src/notificacoes/conector/transporte-simulado.conector.js';
 import { EstadoConectorNotificacao } from '../../src/notificacoes/entities/estado-conector-notificacao.entity.js';
 import { OutboxNotificacao } from '../../src/notificacoes/entities/outbox-notificacao.entity.js';
+import { ReciboNotificacao } from '../../src/notificacoes/entities/recibo-notificacao.entity.js';
 import { ResumoEnviadoPedido } from '../../src/notificacoes/entities/resumo-enviado-pedido.entity.js';
 import { AgendadorResumosService } from '../../src/notificacoes/servicos/agendador-resumos.service.js';
 import { DespachanteOutboxService } from '../../src/notificacoes/servicos/despachante-outbox.service.js';
+import { EnfileiradorNotificacoesService } from '../../src/notificacoes/servicos/enfileirador-notificacoes.service.js';
 import { LimpezaRetencaoService } from '../../src/notificacoes/servicos/limpeza-retencao.service.js';
 import { WebhookNotificacoesService } from '../../src/notificacoes/servicos/webhook-notificacoes.service.js';
 import { criarServidorWebhookPrivado } from '../../src/notificacoes/worker-webhook.js';
@@ -404,9 +406,17 @@ describe('notificações, outbox, worker e automações', () => {
   });
 
   it('valida HMAC no listener privado de webhook, confirma entrega via message.ack e aplica retenção 30/90 dias', async () => {
+    const estadoAtual = await painel();
+    const destino = estadoAtual.destinos[0];
+    if (!destino?.identificadorExterno) throw new Error('Destino padrão ausente');
     const regraId = await ligarRegra('AVISO_IMEDIATO');
     const teste = dadosDe<{ id: string }>(
-      await admin.post(`/automacoes/regras/${regraId}/simular`, {}).expect(200),
+      await admin
+        .post(`/automacoes/regras/${regraId}/testar-envio`, {
+          destinoId: destino.id,
+          identificadorExterno: destino.identificadorExterno,
+        })
+        .expect(200),
     );
     const registro = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
       id: teste.id,
@@ -524,5 +534,349 @@ describe('notificações, outbox, worker e automações', () => {
     expect(
       await dataSource.getRepository(OutboxNotificacao).findOneBy({ id: teste.id }),
     ).toBeNull();
+  });
+
+  it('simulação usa sempre dados fictícios e transporte falso (nunca chama conector); teste real exige ação, canal ativo e destino explícitos', async () => {
+    const atual = await painel();
+    const regra = atual.regras.find((item) => item.tipo === 'AVISO_IMEDIATO');
+    const destino = atual.destinos[0];
+    if (!regra || !destino?.identificadorExterno) throw new Error('Configuração inicial ausente');
+
+    // Cria encomenda real com produto identificável para garantir que a simulação nunca lê dados reais.
+    const quiche = dadosDe<Ref>(
+      await admin
+        .post('/produtos', { nome: 'Quiche real sigilosa', produtorPadraoId: cenario.mira.id })
+        .expect(201),
+    );
+    await admin
+      .post(`/produtos/${quiche.id}/precos`, {
+        preparo: 'ASSADO',
+        unidadeVenda: 'CENTO',
+        precoCentavos: 12_000,
+      })
+      .expect(201);
+    await criarEncomendaConfirmada({
+      itens: [{ produtoId: quiche.id, preparo: 'ASSADO', unidadeVenda: 'CENTO', quantidade: 1 }],
+    });
+
+    // Com regra desligada e canal pausado, simular NÃO pode tocar no conector real.
+    await admin.post('/automacoes/conexao/pausar', { motivo: 'Manutenção' }).expect(200);
+    const simulado = dadosDe<{ id: string; textoRenderizado: string | null }>(
+      await admin
+        .post(`/automacoes/regras/${regra.id}/simular`, { usarExemplo: false })
+        .expect(200),
+    );
+    expect(conector.enviados).toHaveLength(0);
+    expect(simulado.textoRenderizado).toContain('*Nova encomenda #1043*');
+    expect(simulado.textoRenderizado).not.toContain('Quiche real sigilosa');
+
+    // Teste real com canal pausado é recusado.
+    await admin
+      .post(`/automacoes/regras/${regra.id}/testar-envio`, {
+        destinoId: destino.id,
+        identificadorExterno: destino.identificadorExterno,
+      })
+      .expect(422);
+    expect(conector.enviados).toHaveLength(0);
+
+    // Retoma o canal, mas envia identificador externo diferente do salvo -> recusado.
+    await admin.post('/automacoes/conexao/retomar', {}).expect(200);
+    await admin
+      .post(`/automacoes/regras/${regra.id}/testar-envio`, {
+        destinoId: destino.id,
+        identificadorExterno: '99999999@g.us',
+      })
+      .expect(422);
+    expect(conector.enviados).toHaveLength(0);
+
+    // Teste real com destino explícito conferindo com o cadastro envia pelo conector com dados fictícios.
+    const real = dadosDe<{ id: string; textoRenderizado: string | null }>(
+      await admin
+        .post(`/automacoes/regras/${regra.id}/testar-envio`, {
+          destinoId: destino.id,
+          identificadorExterno: destino.identificadorExterno,
+        })
+        .expect(200),
+    );
+    expect(conector.enviados).toHaveLength(1);
+    expect(conector.enviados[0]?.destinoExterno).toBe(destino.identificadorExterno);
+    expect(real.textoRenderizado).toContain('*Nova encomenda #1043*');
+    expect(real.textoRenderizado).not.toContain('Quiche real sigilosa');
+  });
+
+  it('trocar o grupo do destino cancela pendências antigas e impede redirecionamento ou reenvio para o grupo novo', async () => {
+    const atual = await painel();
+    const destino = atual.destinos[0];
+    if (!destino) throw new Error('Destino padrão ausente');
+
+    await admin
+      .patch(`/automacoes/destinos/${destino.id}`, { identificadorExterno: '111111@g.us' })
+      .expect(200);
+    await ligarRegra('AVISO_IMEDIATO');
+
+    await criarEncomendaConfirmada();
+    const pendenteAntes = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+      status: 'PENDENTE',
+    });
+    expect(pendenteAntes.destinoIdentificadorExterno).toBe('111111@g.us');
+
+    // Altera o grupo do destino antes do despacho: a pendência anterior precisa ser cancelada.
+    await admin
+      .patch(`/automacoes/destinos/${destino.id}`, { identificadorExterno: '222222@g.us' })
+      .expect(200);
+
+    const cancelada = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+      id: pendenteAntes.id,
+    });
+    expect(cancelada.status).toBe('CANCELADO');
+
+    const despacho = await despachante.processarPendentes({ agora: new Date(Date.now() + 1000) });
+    expect(despacho.enviados).toBe(0);
+    expect(conector.enviados).toHaveLength(0);
+
+    // Defesa em profundidade: mesmo se uma linha PENDENTE/FALHA ainda apontar para o grupo antigo,
+    // o despachante cancela em vez de redirecionar e a reconciliação bloqueia REENVIAR.
+    await dataSource.getRepository(OutboxNotificacao).update(pendenteAntes.id, {
+      status: 'PENDENTE',
+      ultimoErro: null,
+    });
+    const defesa = await despachante.processarPendentes({ agora: new Date(Date.now() + 2000) });
+    expect(defesa.enviados).toBe(0);
+    expect(defesa.ignorados).toBe(1);
+    expect(conector.enviados).toHaveLength(0);
+
+    await dataSource.getRepository(OutboxNotificacao).update(pendenteAntes.id, { status: 'FALHA' });
+    await admin
+      .post(`/automacoes/historico/${pendenteAntes.id}/reconciliar`, { acao: 'REENVIAR' })
+      .expect(422);
+  });
+
+  it('nunca duplica envio quando lease expira em andamento e preserva recibo message.ack recebido antes de gravar idExterno', async () => {
+    await ligarRegra('AVISO_IMEDIATO');
+    await criarEncomendaConfirmada();
+
+    // 1) Lease vence enquanto primeiro envio ainda está em andamento: segundo worker promove para INCERTO
+    //    e NUNCA chama o conector uma segunda vez.
+    let liberarEnvio!: () => void;
+    let iniciouEnvio!: () => void;
+    const envioIniciado = new Promise<void>((resolve) => {
+      iniciouEnvio = resolve;
+    });
+    const aguardarLiberacao = new Promise<void>((resolve) => {
+      liberarEnvio = resolve;
+    });
+
+    conector.definirComportamento(async () => {
+      iniciouEnvio();
+      await aguardarLiberacao;
+      return { tipo: 'ACEITO', idExterno: 'msg-lenta-1' };
+    });
+
+    const t0 = new Date(Date.now() + 1000);
+    const worker1 = despachante.processarPendentes({ workerId: 'w1', agora: t0, leaseMs: 1000 });
+    await envioIniciado;
+
+    // Reserva venceu (t0 + 5s) com worker1 ainda aguardando resposta do conector.
+    const worker2 = await despachante.processarPendentes({
+      workerId: 'w2',
+      agora: new Date(t0.getTime() + 5000),
+      leaseMs: 1000,
+    });
+    expect(worker2.enviados).toBe(0);
+    expect(worker2.incertos).toBe(1);
+    expect(conector.enviados).toHaveLength(1);
+
+    const durante = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({});
+    expect(durante.status).toBe('INCERTO');
+
+    // Quando worker1 enfim recebe ACEITO com idExterno, reconcilia para ACEITO sem duplicar.
+    liberarEnvio();
+    await worker1;
+    expect(conector.enviados).toHaveLength(1);
+    const aposResposta = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+      id: durante.id,
+    });
+    expect(aposResposta.status).toBe('ACEITO');
+    expect(aposResposta.idExterno).toBe('msg-lenta-1');
+
+    // 2) Recibo message.ack chega ANTES de a resposta do envio gravar id_externo na outbox.
+    const webhooks = app.get(WebhookNotificacoesService);
+    conector.definirComportamento(async () => {
+      const ack = await webhooks.processarEvento({
+        evento: 'message.ack',
+        idExterno: 'msg-ack-antecipado-1',
+        entregue: true,
+      });
+      expect(ack.aplicado).toBe(true);
+      return { tipo: 'ACEITO', idExterno: 'msg-ack-antecipado-1' };
+    });
+
+    await criarEncomendaConfirmada({ horarioEntrega: '20:30' });
+    const resAck = await despachante.processarPendentes({
+      agora: new Date(t0.getTime() + 10_000),
+    });
+    expect(resAck.enviados).toBe(1);
+
+    const entregue = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+      idExterno: 'msg-ack-antecipado-1',
+    });
+    expect(entregue.status).toBe('ENTREGUE');
+    expect(entregue.entregueEm).toBeInstanceOf(Date);
+    expect(await dataSource.getRepository(ReciboNotificacao).count()).toBe(0);
+  });
+
+  it('expira resumo diário pendente fora da tolerância de 2h e impede duplicação após resumo omitido por dia vazio', async () => {
+    await ligarRegra('RESUMO_DIARIO', {
+      diasSemana: [0, 1, 2, 3, 4, 5, 6],
+      horarioResumo: '07:00',
+      toleranciaAtrasoMinutos: 120,
+      omitirDiasVazios: true,
+      incluirConcluidos: true,
+      enviarComplementos: true,
+    });
+
+    // 1) Resumo enfileirado às 07:10 BRT (10:10 UTC) NÃO pode sair às 13:00 BRT (16:00 UTC).
+    await criarEncomendaConfirmada({ dataEntrega: '2026-10-02', horarioEntrega: '11:00' });
+    const agendado = await agendador.processarResumosDoDia(new Date('2026-10-02T10:10:00.000Z'));
+    expect(agendado).toEqual({ agendados: 1, expirados: 0, omitidos: 0 });
+    expect(await dataSource.getRepository(ResumoEnviadoPedido).count()).toBe(1);
+
+    const resumoPendente = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+      tipoEvento: 'RESUMO_DIARIO',
+      dataReferencia: '2026-10-02',
+    });
+    expect(resumoPendente.status).toBe('PENDENTE');
+
+    // Despacho só ocorre às 13:00 BRT (16:00 UTC), após o limite 09:00 BRT: precisa expirar sem enviar.
+    const despachoTardio = await despachante.processarPendentes({
+      agora: new Date('2026-10-02T16:00:00.000Z'),
+    });
+    expect(despachoTardio.enviados).toBe(0);
+    expect(despachoTardio.ignorados).toBe(1);
+    expect(conector.enviados).toHaveLength(0);
+
+    const resumoExpirado = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
+      id: resumoPendente.id,
+    });
+    expect(resumoExpirado.status).toBe('EXPIRADO');
+    expect(await dataSource.getRepository(ResumoEnviadoPedido).count()).toBe(0);
+
+    // Reenvio manual pelo administrador libera explicitamente o disparo fora da janela.
+    await admin
+      .post(`/automacoes/historico/${resumoExpirado.id}/reconciliar`, { acao: 'REENVIAR' })
+      .expect(200);
+    const despachoManual = await despachante.processarPendentes({
+      agora: new Date(Date.now() + 1000),
+    });
+    expect(despachoManual.enviados).toBe(1);
+
+    // 2) Dia vazio omitido às 07:05 BRT (2026-10-04 10:05 UTC): primeiro pedido às 07:30 BRT
+    //    precisa gerar apenas 1 mensagem (COMPLEMENTO), nunca resumo + complemento.
+    const omitido = await agendador.processarResumosDoDia(new Date('2026-10-04T10:05:00.000Z'));
+    expect(omitido).toEqual({ agendados: 0, expirados: 0, omitidos: 1 });
+
+    // Cria encomenda para 2026-10-04 e roda o enfileirador com relógio às 07:30 BRT (10:30 UTC).
+    const pedidoDiaVazio = await criarEncomendaConfirmada({
+      dataEntrega: '2026-10-04',
+      horarioEntrega: '18:00',
+    });
+    // Zera revisão e simula criação exatamente às 07:30 BRT via enfileirador.
+    await dataSource.getRepository(OutboxNotificacao).delete({ pedidoId: pedidoDiaVazio.id });
+    await dataSource.getRepository(Pedido).update(pedidoDiaVazio.id, {
+      notificacaoRevisao: 0,
+      notificacaoHash: null,
+    });
+    const enfileirador = app.get(EnfileiradorNotificacoesService);
+    await dataSource.transaction(async (manager) => {
+      const entidade = await manager.getRepository(Pedido).findOneByOrFail({
+        id: pedidoDiaVazio.id,
+      });
+      const depois = await enfileirador.projetarAtual(manager, entidade);
+      await enfileirador.registrarMudancaDePedido(manager, {
+        pedido: entidade,
+        antes: null,
+        depois,
+        agora: new Date('2026-10-04T10:30:00.000Z'),
+      });
+    });
+
+    // Novo ciclo do agendador às 07:35 BRT NÃO pode criar um RESUMO_DIARIO duplicado.
+    const segundoCiclo = await agendador.processarResumosDoDia(
+      new Date('2026-10-04T10:35:00.000Z'),
+    );
+    expect(segundoCiclo).toEqual({ agendados: 0, expirados: 0, omitidos: 0 });
+
+    const outboxDia04 = await dataSource.getRepository(OutboxNotificacao).findBy({
+      dataReferencia: '2026-10-04',
+    });
+    expect(outboxDia04).toHaveLength(1);
+    expect(outboxDia04[0]?.tipoEvento).toBe('COMPLEMENTO');
+
+    // 3) Pedido criado às 07:01 BRT (dentro da janela) ANTES de o agendador rodar às 07:02 BRT:
+    //    não gera COMPLEMENTO precipitado; sai uma única vez dentro do RESUMO_DIARIO.
+    const pedidoAntesResumo = await criarEncomendaConfirmada({
+      dataEntrega: '2026-10-05',
+      horarioEntrega: '19:00',
+    });
+    await dataSource.getRepository(OutboxNotificacao).delete({ pedidoId: pedidoAntesResumo.id });
+    await dataSource.getRepository(Pedido).update(pedidoAntesResumo.id, {
+      notificacaoRevisao: 0,
+      notificacaoHash: null,
+    });
+    await dataSource.transaction(async (manager) => {
+      const entidade = await manager.getRepository(Pedido).findOneByOrFail({
+        id: pedidoAntesResumo.id,
+      });
+      const depois = await enfileirador.projetarAtual(manager, entidade);
+      await enfileirador.registrarMudancaDePedido(manager, {
+        pedido: entidade,
+        antes: null,
+        depois,
+        agora: new Date('2026-10-05T10:01:00.000Z'),
+      });
+    });
+    const resumoDia05 = await agendador.processarResumosDoDia(new Date('2026-10-05T10:02:00.000Z'));
+    expect(resumoDia05).toEqual({ agendados: 1, expirados: 0, omitidos: 0 });
+    const outboxDia05 = await dataSource.getRepository(OutboxNotificacao).findBy({
+      dataReferencia: '2026-10-05',
+    });
+    expect(outboxDia05).toHaveLength(1);
+    expect(outboxDia05[0]?.tipoEvento).toBe('RESUMO_DIARIO');
+  });
+
+  it('na regra Com assados, alterar apenas frito em pedido misto não gera correção nem derruba aviso pendente', async () => {
+    await ligarRegra('AVISO_IMEDIATO', { debounceSegundos: 0 });
+    const pedido = await criarEncomendaConfirmada();
+    const itemFrito = pedido.itens.find((item) => item.preparo === 'FRITO');
+    const itemAssado = pedido.itens.find((item) => item.preparo === 'ASSADO');
+    if (!itemFrito || !itemAssado) throw new Error('Itens de teste ausentes');
+
+    // Edita apenas o item FRITO enquanto o aviso inicial (rev 1) ainda está PENDENTE:
+    // não pode gerar correção nem fazer o despachante descartar o aviso inicial.
+    await membro
+      .patch(`/pedidos/${pedido.id}/itens/${itemFrito.id}`, { quantidade: 1 })
+      .expect(200);
+    expect(await dataSource.getRepository(OutboxNotificacao).count()).toBe(1);
+
+    const primeiro = await despachante.processarPendentes({ agora: new Date(Date.now() + 1000) });
+    expect(primeiro.enviados).toBe(1);
+
+    // Após o envio inicial, alterar novamente apenas a coxinha (FRITO) não pode disparar correção.
+    await membro
+      .patch(`/pedidos/${pedido.id}/itens/${itemFrito.id}`, { quantidade: 2 })
+      .expect(200);
+    expect(await dataSource.getRepository(OutboxNotificacao).count()).toBe(1);
+
+    // Alterar o item ASSADO dispara correção (mantendo o pedido inteiro na mensagem).
+    await membro
+      .patch(`/pedidos/${pedido.id}/itens/${itemAssado.id}`, { quantidade: 1.5 })
+      .expect(200);
+    const fila = await dataSource.getRepository(OutboxNotificacao).find({
+      order: { criadoEm: 'ASC' },
+    });
+    expect(fila).toHaveLength(2);
+    expect(fila[1]?.tipoEvento).toBe('CORRECAO');
+    expect(fila[1]?.textoRenderizado).toContain('• *150 Esfiha de carne (assado)*');
+    expect(fila[1]?.textoRenderizado).toContain('• 200 Coxinha de frango (frito)');
   });
 });

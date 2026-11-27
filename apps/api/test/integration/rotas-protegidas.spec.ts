@@ -49,6 +49,7 @@ const SOMENTE_ADMIN = [
   'PATCH /automacoes/regras/:id',
   'POST /automacoes/regras/:id/previa',
   'POST /automacoes/regras/:id/simular',
+  'POST /automacoes/regras/:id/testar-envio',
   'POST /automacoes/conexao/pausar',
   'POST /automacoes/conexao/retomar',
   'GET /automacoes/historico',

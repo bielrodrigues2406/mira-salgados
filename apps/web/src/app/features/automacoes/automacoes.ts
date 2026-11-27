@@ -195,9 +195,32 @@ export class Automacoes {
   protected readonly rascunhoDestino = signal<RascunhoDestino | null>(null);
   protected readonly rascunhosRegras = signal<Record<string, RascunhoRegra>>({});
   protected readonly previa = signal<PreviaRegra | null>(null);
+  protected readonly testeRealAberto = signal(false);
+  protected readonly regraTesteRealId = signal('');
+  protected readonly destinoTesteRealId = signal('');
   protected readonly aviso = signal('');
   protected readonly erroAcao = signal<string | null>(null);
   protected readonly ocupacao = signal<string | null>(null);
+
+  protected readonly destinoTesteReal = computed(() => {
+    const destinos = this.painel()?.destinos ?? [];
+    const escolhido = this.destinoTesteRealId();
+    return destinos.find((item) => item.id === escolhido) ?? destinos[0] ?? null;
+  });
+
+  protected readonly podeEnviarTesteReal = computed(() => {
+    const atual = this.painel();
+    const destino = this.destinoTesteReal();
+    if (!atual || !destino) return false;
+    if (
+      atual.estado.pausado ||
+      atual.estado.modo === 'DESLIGADO' ||
+      atual.estado.estado === 'DESCONECTADO'
+    ) {
+      return false;
+    }
+    return Boolean(destino.ativo && destino.identificadorExterno && this.regraTesteRealId());
+  });
 
   constructor() {
     effect(() => {
@@ -206,12 +229,18 @@ export class Automacoes {
       const primeiroDestino = atual.destinos[0];
       if (primeiroDestino) {
         this.rascunhoDestino.set(rascunhoDeDestino(primeiroDestino));
+        if (!this.destinoTesteRealId()) {
+          this.destinoTesteRealId.set(primeiroDestino.id);
+        }
       }
       const mapa: Record<string, RascunhoRegra> = {};
       for (const regra of atual.regras) {
         mapa[regra.id] = rascunhoDeRegra(regra);
       }
       this.rascunhosRegras.set(mapa);
+      if (!this.regraTesteRealId() && atual.regras[0]) {
+        this.regraTesteRealId.set(atual.regras[0].id);
+      }
     });
   }
 
@@ -285,9 +314,19 @@ export class Automacoes {
     return item.status === 'INCERTO' || item.status === 'FALHA' || item.status === 'EXPIRADO';
   }
 
+  protected podeReenviar(item: ItemHistoricoNotificacao): boolean {
+    return (
+      this.podeReconciliar(item) && item.tipoEvento !== 'TESTE' && Boolean(item.textoRenderizado)
+    );
+  }
+
   protected inteiro(valor: string): number {
     const numero = Number(valor);
     return Number.isFinite(numero) ? Math.max(0, Math.round(numero)) : 0;
+  }
+
+  protected alternarTesteReal(): void {
+    this.testeRealAberto.update((aberto) => !aberto);
   }
 
   protected async alternarPausa(): Promise<void> {
@@ -365,12 +404,43 @@ export class Automacoes {
           regraId: regra.id,
           tipo: regra.tipo,
           dataReferencia: registro.dataReferencia ?? '',
-          usouExemplo: false,
+          usouExemplo: true,
           quantidadePedidos: 1,
           texto: registro.textoRenderizado,
         });
       }
-      this.aviso.set('Simulação registrada no histórico.');
+      this.aviso.set(
+        'Simulação registrada localmente com dados fictícios (nenhuma mensagem foi enviada ao grupo).',
+      );
+      this.painelRecurso.reload();
+      this.historicoRecurso.reload();
+    });
+  }
+
+  protected async enviarTesteReal(): Promise<void> {
+    const regraId = this.regraTesteRealId();
+    const destino = this.destinoTesteReal();
+    if (!regraId || !destino?.identificadorExterno) return;
+    const regra = this.painel()?.regras.find((item) => item.id === regraId);
+    await this.executar('teste-real', async () => {
+      const registro = await firstValueFrom(
+        this.servico.testarEnvioReal(regraId, {
+          destinoId: destino.id,
+          identificadorExterno: destino.identificadorExterno ?? '',
+        }),
+      );
+      if (registro.textoRenderizado && regra) {
+        this.previa.set({
+          regraId: regra.id,
+          tipo: regra.tipo,
+          dataReferencia: registro.dataReferencia ?? '',
+          usouExemplo: true,
+          quantidadePedidos: 1,
+          texto: registro.textoRenderizado,
+        });
+      }
+      this.aviso.set(`Teste real enviado para ${destino.nome} (${destino.identificadorExterno}).`);
+      this.testeRealAberto.set(false);
       this.painelRecurso.reload();
       this.historicoRecurso.reload();
     });

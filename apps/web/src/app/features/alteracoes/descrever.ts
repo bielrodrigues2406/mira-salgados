@@ -75,6 +75,7 @@ const ROTULO_DO_CAMPO: Record<string, string> = {
   destinoId: 'Destino',
   regraId: 'Regra',
   identificadorExterno: 'Identificador do grupo',
+  destinoIdentificadorExterno: 'Identificador do grupo',
   filtroEncomenda: 'Filtro',
   preparos: 'Preparos',
   modalidades: 'Modalidades',
@@ -105,6 +106,8 @@ const IGNORADOS = new Set([
   'email',
   'notificacaoRevisao',
   'notificacaoHash',
+  'envioIniciadoEm',
+  'expiraEm',
 ]);
 
 const DINHEIRO = new Set(['desconto', 'taxaEntrega', 'precoUnitario', 'preco', 'valor']);

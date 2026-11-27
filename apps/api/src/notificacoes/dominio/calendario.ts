@@ -96,3 +96,42 @@ export function avaliarJanelaResumo(
   }
   return { local, situacao: 'EXPIRADO' };
 }
+
+function diasDesdeEpoch(data: string): number {
+  const [ano = 1970, mes = 1, dia = 1] = data.split('-').map(Number);
+  return Math.floor(Date.UTC(ano, mes - 1, dia) / 86_400_000);
+}
+
+/**
+ * Calcula o instante UTC limite (fim do último minuto tolerado no mesmo dia
+ * local) até o qual um resumo diário pode ser despachado automaticamente.
+ */
+export function calcularFimJanelaResumo(
+  agora: Date,
+  regra: {
+    horarioResumo: string | null;
+    fusoHorario: string;
+    toleranciaAtrasoMinutos: number;
+  },
+): Date | null {
+  if (!regra.horarioResumo) return null;
+  const local = obterDataHoraLocal(agora, regra.fusoHorario);
+  const [ano = 1970, mes = 1, dia = 1] = local.data.split('-').map(Number);
+  const alvo = minutosDeHorario(regra.horarioResumo);
+  const fimMinutos = Math.min(alvo + regra.toleranciaAtrasoMinutos, 23 * 60 + 59);
+  const fimHora = Math.floor(fimMinutos / 60);
+  const fimMin = fimMinutos % 60;
+
+  let instanteMs = Date.UTC(ano, mes - 1, dia, fimHora, fimMin, 59, 999);
+  const diaAlvo = diasDesdeEpoch(local.data);
+
+  for (let i = 0; i < 2; i += 1) {
+    const atual = obterDataHoraLocal(new Date(instanteMs), regra.fusoHorario);
+    const diffDias = diaAlvo - diasDesdeEpoch(atual.data);
+    const diffMinutos = diffDias * 1440 + (fimMinutos - atual.minutosDoDia);
+    if (diffMinutos === 0) break;
+    instanteMs += diffMinutos * 60_000;
+  }
+
+  return new Date(instanteMs);
+}

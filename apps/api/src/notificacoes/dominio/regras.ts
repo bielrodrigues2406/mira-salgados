@@ -89,6 +89,47 @@ export function mudancaIncrementaRevisao(
   return hashProjecaoPedido(antes) !== hashProjecaoPedido(depois);
 }
 
+function assinaturaItensNoEscopo(
+  itens: readonly ItemProjetado[],
+  regra: Pick<ConfiguracaoRegraNotificacao, 'filtroEncomenda' | 'preparos'>,
+): string {
+  const filtrados =
+    regra.filtroEncomenda === 'POR_PREPARO'
+      ? itens.filter((item) => regra.preparos.includes(item.preparo))
+      : itens;
+  return JSON.stringify(
+    filtrados.map((item) => ({
+      produtoId: item.produtoId,
+      preparo: item.preparo,
+      unidades: item.unidades,
+    })),
+  );
+}
+
+/**
+ * Verifica se a alteração entre `antes` e `depois` afeta algo no escopo da
+ * regra: data, horário, modalidade, status ou itens que correspondem ao filtro
+ * da regra. Assim, numa regra "Com assados" (mesmo exibindo o pedido inteiro),
+ * alterar apenas fritos não dispara correção.
+ */
+export function mudancaRelevanteParaRegra(
+  antes: ProjecaoPedido,
+  depois: ProjecaoPedido,
+  regra: Pick<ConfiguracaoRegraNotificacao, 'filtroEncomenda' | 'preparos'>,
+): boolean {
+  if (
+    antes.status !== depois.status ||
+    antes.dataEntrega !== depois.dataEntrega ||
+    antes.horarioEntrega !== depois.horarioEntrega ||
+    antes.tipoEntrega !== depois.tipoEntrega
+  ) {
+    return true;
+  }
+  return (
+    assinaturaItensNoEscopo(antes.itens, regra) !== assinaturaItensNoEscopo(depois.itens, regra)
+  );
+}
+
 /**
  * Classifica o tipo de evento imediato (ou null quando nada deve ser enviado)
  * para uma regra `AVISO_IMEDIATO`.
@@ -120,7 +161,7 @@ export function classificarEventoImediato(
   }
 
   if (antesElegivel && depoisElegivel) {
-    if (hashProjecaoPedido(antes) === hashProjecaoPedido(depois)) return null;
+    if (!mudancaRelevanteParaRegra(antes, depois, regra)) return null;
     return regra.enviarCorrecoes ? 'CORRECAO' : null;
   }
 
@@ -154,7 +195,13 @@ export function classificarEventoComplemento(
   }
 
   if (contexto.estavaNoResumo) {
-    if (antes && hashProjecaoPedido(antes) === hashProjecaoPedido(depois)) return null;
+    if (
+      antes !== null &&
+      encomendaCorrespondeARegra(depois, regra) &&
+      !mudancaRelevanteParaRegra(antes, depois, regra)
+    ) {
+      return null;
+    }
     return 'CORRECAO';
   }
 

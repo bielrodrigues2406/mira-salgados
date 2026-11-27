@@ -9,6 +9,7 @@ import { Paginated } from '../../common/pagination/pagination.js';
 import { ItemPedido } from '../../pedidos/itens/item-pedido.entity.js';
 import { Pedido } from '../../pedidos/pedido.entity.js';
 import { CONECTOR_WHATSAPP, type ConectorWhatsApp } from '../conector/conector-whatsapp.js';
+import { TransporteSimuladoConector } from '../conector/transporte-simulado.conector.js';
 import { obterDataHoraLocal } from '../dominio/calendario.js';
 import { formatarAvisoPedido, formatarResumoDiario } from '../dominio/formatacao.js';
 import { type ProjecaoPedido, projetarPedido } from '../dominio/projecao.js';
@@ -25,6 +26,7 @@ import type {
   PausarConexaoDto,
   PreviaRegraDto,
   ReconciliarOutboxDto,
+  TestarEnvioRealDto,
 } from '../dto/automacoes.dto.js';
 import {
   DestinoNotificacaoDto,
@@ -41,6 +43,7 @@ import { OutboxNotificacao } from '../entities/outbox-notificacao.entity.js';
 import { RegraNotificacao } from '../entities/regra-notificacao.entity.js';
 import { AgendadorResumosService } from './agendador-resumos.service.js';
 import { ConfiguracaoNotificacoesService } from './configuracao-notificacoes.service.js';
+import { consumirReciboAntecipado } from './webhook-notificacoes.service.js';
 
 function validarFusoHorario(fuso: string): void {
   try {
@@ -162,6 +165,27 @@ export class AutomacoesService {
       }
 
       const salvo = await repo.save(destino);
+
+      const mudouGrupo = antes.identificadorExterno !== salvo.identificadorExterno;
+      const desativouDestino = antes.ativo && !salvo.ativo;
+      if (mudouGrupo || desativouDestino) {
+        await manager
+          .createQueryBuilder()
+          .update(OutboxNotificacao)
+          .set({
+            status: 'CANCELADO',
+            ultimoErro: mudouGrupo
+              ? 'Grupo do destino alterado antes do envio.'
+              : 'Destino desativado antes do envio.',
+            reservadoAte: null,
+            reservadoPor: null,
+          })
+          .where('destino_id = :destinoId', { destinoId: salvo.id })
+          .andWhere('status = :status', { status: 'PENDENTE' })
+          .andWhere('envio_iniciado_em IS NULL')
+          .execute();
+      }
+
       await this.auditoria.registrar(manager, {
         entidade: 'destino_notificacao',
         entidadeId: salvo.id,
@@ -249,6 +273,23 @@ export class AutomacoesService {
       }
 
       const salvo = await repo.save(regra);
+
+      if (antes.destinoId !== salvo.destinoId) {
+        await manager
+          .createQueryBuilder()
+          .update(OutboxNotificacao)
+          .set({
+            status: 'CANCELADO',
+            ultimoErro: 'Destino da regra alterado antes do envio.',
+            reservadoAte: null,
+            reservadoPor: null,
+          })
+          .where('regra_id = :regraId', { regraId: salvo.id })
+          .andWhere('status = :status', { status: 'PENDENTE' })
+          .andWhere('envio_iniciado_em IS NULL')
+          .execute();
+      }
+
       await this.auditoria.registrar(manager, {
         entidade: 'regra_notificacao',
         entidadeId: salvo.id,
@@ -346,6 +387,11 @@ export class AutomacoesService {
     };
   }
 
+  /**
+   * Simulação local estritamente segura: usa sempre dados fictícios e um
+   * transporte simulado isolado, nunca chama o conector externo nem envia
+   * mensagens ao grupo real (independentemente de modo, pausa ou regra ativa).
+   */
   async simularRegra(
     id: string,
     dados: PreviaRegraDto,
@@ -357,10 +403,11 @@ export class AutomacoesService {
     if (!regra) throw new NotFoundError('Regra de notificação');
     if (!regra.destino) throw new NotFoundError('Destino');
 
-    const previa = await this.gerarPrevia(id, dados);
-    const chave = `teste:${regra.id}:${randomUUID()}`;
-    const destinoExterno = regra.destino.identificadorExterno ?? 'simulado:previa';
-    const retorno = await this.conector.enviarTexto(destinoExterno, previa.texto, chave);
+    const previa = await this.gerarPrevia(id, { data: dados.data, usarExemplo: true });
+    const chave = `simulacao:${regra.id}:${randomUUID()}`;
+    const destinoSimulado = 'simulado:previa';
+    const transporteFalso = new TransporteSimuladoConector();
+    const retorno = await transporteFalso.enviarTexto(destinoSimulado, previa.texto, chave);
     const agora = new Date();
 
     const salvo = await this.dataSource.transaction(async (manager) => {
@@ -369,30 +416,25 @@ export class AutomacoesService {
         repo.create({
           chaveDeduplicacao: chave,
           tipoEvento: 'TESTE',
-          status:
-            retorno.tipo === 'ENTREGUE'
-              ? 'ENTREGUE'
-              : retorno.tipo === 'ACEITO'
-                ? 'ACEITO'
-                : retorno.tipo === 'INCERTO'
-                  ? 'INCERTO'
-                  : 'FALHA',
+          status: retorno.tipo === 'ENTREGUE' ? 'ENTREGUE' : 'ACEITO',
           regraId: regra.id,
           destinoId: regra.destinoId,
+          destinoIdentificadorExterno: destinoSimulado,
           pedidoId: null,
           pedidoRevisao: null,
           dataReferencia: previa.dataReferencia,
           textoRenderizado: previa.texto,
           disponivelEm: agora,
+          expiraEm: null,
+          envioIniciadoEm: agora,
           reservadoAte: null,
           reservadoPor: null,
           tentativas: 1,
           maxTentativas: 1,
           idExterno:
             retorno.tipo === 'ACEITO' || retorno.tipo === 'ENTREGUE' ? retorno.idExterno : null,
-          ultimoErro:
-            retorno.tipo === 'ACEITO' || retorno.tipo === 'ENTREGUE' ? null : retorno.mensagem,
-          enviadoEm: retorno.tipo === 'ACEITO' || retorno.tipo === 'ENTREGUE' ? agora : null,
+          ultimoErro: null,
+          enviadoEm: agora,
           entregueEm: retorno.tipo === 'ENTREGUE' ? agora : null,
           copiadoManualmenteEm: null,
         }),
@@ -410,6 +452,131 @@ export class AutomacoesService {
 
     salvo.regra = regra;
     salvo.destino = regra.destino;
+    return ItemHistoricoNotificacaoDto.de(salvo);
+  }
+
+  /**
+   * Teste real pelo conector configurado: exige destino explícito (ID e JID
+   * conferindo com o cadastro salvo), canal ativo/não pausado/conectado e usa
+   * sempre dados fictícios para nunca expor encomendas reais em testes.
+   */
+  async testarEnvioReal(
+    id: string,
+    dados: TestarEnvioRealDto,
+    autorId: string,
+  ): Promise<ItemHistoricoNotificacaoDto> {
+    const regra = await this.dataSource.getRepository(RegraNotificacao).findOneBy({ id });
+    if (!regra) throw new NotFoundError('Regra de notificação');
+
+    const destino = await this.dataSource.getRepository(DestinoNotificacao).findOneBy({
+      id: dados.destinoId,
+    });
+    if (!destino) throw new NotFoundError('Destino');
+    if (!destino.ativo) {
+      throw new BusinessRuleError(
+        'DESTINO_INATIVO',
+        'Ative o destino escolhido antes de enviar um teste real.',
+      );
+    }
+    if (
+      !destino.identificadorExterno ||
+      destino.identificadorExterno !== dados.identificadorExterno
+    ) {
+      throw new BusinessRuleError(
+        'DESTINO_NAO_CONFERE',
+        'O identificador do grupo informado não corresponde ao destino salvo.',
+      );
+    }
+
+    const { estado } = await this.dataSource.transaction((manager) =>
+      this.configuracao.garantirPadroes(manager),
+    );
+    if (estado.modo === 'DESLIGADO') {
+      throw new BusinessRuleError(
+        'CANAL_DESLIGADO',
+        'O canal de notificações está desligado e não aceita envios reais.',
+      );
+    }
+    if (estado.pausado) {
+      throw new BusinessRuleError(
+        'CANAL_PAUSADO',
+        'Retome os envios do canal antes de enviar um teste real.',
+      );
+    }
+    if (estado.estado === 'DESCONECTADO') {
+      throw new BusinessRuleError(
+        'CANAL_DESCONECTADO',
+        'Conecte o WhatsApp antes de enviar um teste real.',
+      );
+    }
+
+    const previa = await this.gerarPrevia(id, { data: dados.data, usarExemplo: true });
+    const chave = `teste-real:${regra.id}:${randomUUID()}`;
+    const destinoExterno = destino.identificadorExterno;
+    const retorno = await this.conector.enviarTexto(destinoExterno, previa.texto, chave);
+    const agora = new Date();
+
+    const salvo = await this.dataSource.transaction(async (manager) => {
+      let idExterno: string | null = null;
+      let status: OutboxNotificacao['status'];
+      let enviadoEm: Date | null = null;
+      let entregueEm: Date | null = null;
+      let ultimoErro: string | null = null;
+
+      if (retorno.tipo === 'ACEITO' || retorno.tipo === 'ENTREGUE') {
+        idExterno = retorno.idExterno.slice(0, 160);
+        const reciboAntecipado = await consumirReciboAntecipado(manager, idExterno);
+        entregueEm = retorno.tipo === 'ENTREGUE' ? agora : reciboAntecipado;
+        status = entregueEm ? 'ENTREGUE' : 'ACEITO';
+        enviadoEm = agora;
+      } else if (retorno.tipo === 'INCERTO') {
+        status = 'INCERTO';
+        ultimoErro = retorno.mensagem.slice(0, 500);
+      } else {
+        status = 'FALHA';
+        ultimoErro = retorno.mensagem.slice(0, 500);
+      }
+
+      const repo = manager.getRepository(OutboxNotificacao);
+      const registro = await repo.save(
+        repo.create({
+          chaveDeduplicacao: chave,
+          tipoEvento: 'TESTE',
+          status,
+          regraId: regra.id,
+          destinoId: destino.id,
+          destinoIdentificadorExterno: destinoExterno,
+          pedidoId: null,
+          pedidoRevisao: null,
+          dataReferencia: previa.dataReferencia,
+          textoRenderizado: previa.texto,
+          disponivelEm: agora,
+          expiraEm: null,
+          envioIniciadoEm: agora,
+          reservadoAte: null,
+          reservadoPor: null,
+          tentativas: 1,
+          maxTentativas: 1,
+          idExterno,
+          ultimoErro,
+          enviadoEm,
+          entregueEm,
+          copiadoManualmenteEm: null,
+        }),
+      );
+      await this.auditoria.registrar(manager, {
+        entidade: 'outbox_notificacao',
+        entidadeId: registro.id,
+        acao: 'CRIACAO',
+        antes: null,
+        depois: registro,
+        usuarioId: autorId,
+      });
+      return registro;
+    });
+
+    salvo.regra = regra;
+    salvo.destino = destino;
     return ItemHistoricoNotificacaoDto.de(salvo);
   }
 
@@ -519,6 +686,12 @@ export class AutomacoesService {
         item.reservadoAte = null;
         item.reservadoPor = null;
       } else {
+        if (item.tipoEvento === 'TESTE') {
+          throw new BusinessRuleError(
+            'REENVIO_NAO_PERMITIDO',
+            'Simulações e testes não podem ser reenviados pela fila; execute um novo teste.',
+          );
+        }
         if (!['INCERTO', 'FALHA', 'EXPIRADO'].includes(item.status)) {
           throw new BusinessRuleError(
             'REENVIO_NAO_PERMITIDO',
@@ -531,8 +704,22 @@ export class AutomacoesService {
             'O texto deste registro já foi removido pela política de retenção.',
           );
         }
+        if (
+          !item.destino?.ativo ||
+          !item.destino.identificadorExterno ||
+          !item.destinoIdentificadorExterno ||
+          item.destinoIdentificadorExterno !== item.destino.identificadorExterno
+        ) {
+          throw new BusinessRuleError(
+            'DESTINO_ALTERADO',
+            'O grupo deste destino foi alterado ou desativado desde o enfileiramento; o registro não pode ser reenviado.',
+          );
+        }
         item.status = 'PENDENTE';
         item.disponivelEm = agora;
+        item.expiraEm = null;
+        item.envioIniciadoEm = null;
+        item.idExterno = null;
         item.tentativas = 0;
         item.ultimoErro = null;
         item.reservadoAte = null;

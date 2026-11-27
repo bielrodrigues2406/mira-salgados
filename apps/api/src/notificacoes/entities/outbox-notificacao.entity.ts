@@ -67,6 +67,13 @@ export class OutboxNotificacao {
   @JoinColumn({ name: 'destino_id', foreignKeyConstraintName: 'fk_outbox_notificacoes_destino' })
   destino?: DestinoNotificacao;
 
+  /**
+   * Identificador externo (JID) do grupo no momento do enfileiramento.
+   * Impede redirecionamento silencioso se o destino for editado depois.
+   */
+  @Column({ type: 'varchar', length: 160, nullable: true })
+  destinoIdentificadorExterno: string | null;
+
   @Column({ type: 'uuid', nullable: true })
   pedidoId: string | null;
 
@@ -87,6 +94,18 @@ export class OutboxNotificacao {
 
   @Column({ type: 'timestamptz' })
   disponivelEm: Date;
+
+  /** Limite da janela de envio automático (usado por RESUMO_DIARIO). */
+  @Column({ type: 'timestamptz', nullable: true })
+  expiraEm: Date | null;
+
+  /**
+   * Preenchido atomicamente imediatamente antes da chamada ao conector externo.
+   * Se o lease expirar com este campo preenchido, o item vira INCERTO e nunca
+   * é reenviado automaticamente por outro worker.
+   */
+  @Column({ type: 'timestamptz', nullable: true })
+  envioIniciadoEm: Date | null;
 
   @Column({ type: 'timestamptz', nullable: true })
   reservadoAte: Date | null;

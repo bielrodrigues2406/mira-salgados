@@ -24,6 +24,7 @@ import {
   PausarConexaoDto,
   PreviaRegraDto,
   ReconciliarOutboxDto,
+  TestarEnvioRealDto,
 } from './dto/automacoes.dto.js';
 import type {
   DestinoNotificacaoDto,
@@ -92,6 +93,16 @@ export class AutomacoesController {
     @CurrentUser() autor: UsuarioAutenticado,
   ): Promise<ItemHistoricoNotificacaoDto> {
     return this.automacoes.simularRegra(id, dados, autor.id);
+  }
+
+  @Post('regras/:id/testar-envio')
+  @HttpCode(200)
+  testarEnvioReal(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dados: TestarEnvioRealDto,
+    @CurrentUser() autor: UsuarioAutenticado,
+  ): Promise<ItemHistoricoNotificacaoDto> {
+    return this.automacoes.testarEnvioReal(id, dados, autor.id);
   }
 
   @Post('conexao/pausar')

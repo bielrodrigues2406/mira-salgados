@@ -215,4 +215,66 @@ describe('Automacoes', () => {
 
     expect(tela.textContent).toContain('Entregue');
   });
+
+  it('separa simulação local do teste real explícito com confirmação de destino', async () => {
+    await montar();
+
+    // Simulação local não exige canal ativo nem envia ao conector real.
+    botao('Simular envio').click();
+    const reqSimular = await aguardar(
+      (url) => url === '/api/v1/automacoes/regras/reg-imediato/simular',
+    );
+    expect(reqSimular.request.method).toBe('POST');
+    reqSimular.flush({
+      data: {
+        ...HISTORICO_INCERTO,
+        id: 'out-sim',
+        tipoEvento: 'TESTE',
+        status: 'ACEITO',
+        pedidoId: null,
+        pedidoNumero: null,
+        pedidoRevisao: null,
+      },
+    });
+    (await aguardar((url) => url === '/api/v1/automacoes')).flush({ data: PAINEL_BASE });
+    (await aguardar((url) => url.startsWith('/api/v1/automacoes/historico'))).flush({
+      data: [],
+      meta: { page: 1, pageSize: 10, total: 0, totalPages: 1 },
+    });
+    await fixture.whenStable();
+    expect(tela.textContent).toContain('nenhuma mensagem foi enviada ao grupo');
+
+    // Teste real exige abrir painel dedicado e confirmar destino salvo explícito.
+    botao('Enviar teste real').click();
+    fixture.detectChanges();
+    expect(tela.textContent).toContain('simulado:equipe-mira@g.us');
+
+    botao('Confirmar envio real').click();
+    const reqTesteReal = await aguardar(
+      (url) => url === '/api/v1/automacoes/regras/reg-imediato/testar-envio',
+    );
+    expect(reqTesteReal.request.method).toBe('POST');
+    expect(reqTesteReal.request.body).toEqual({
+      destinoId: 'dest-1',
+      identificadorExterno: 'simulado:equipe-mira@g.us',
+    });
+    reqTesteReal.flush({
+      data: {
+        ...HISTORICO_INCERTO,
+        id: 'out-real',
+        tipoEvento: 'TESTE',
+        status: 'ACEITO',
+        pedidoId: null,
+        pedidoNumero: null,
+        pedidoRevisao: null,
+      },
+    });
+    (await aguardar((url) => url === '/api/v1/automacoes')).flush({ data: PAINEL_BASE });
+    (await aguardar((url) => url.startsWith('/api/v1/automacoes/historico'))).flush({
+      data: [],
+      meta: { page: 1, pageSize: 10, total: 0, totalPages: 1 },
+    });
+    await fixture.whenStable();
+    expect(tela.textContent).toContain('Teste real enviado para Equipe Mira');
+  });
 });

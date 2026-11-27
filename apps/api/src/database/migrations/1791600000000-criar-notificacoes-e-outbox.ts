@@ -100,11 +100,14 @@ export class CriarNotificacoesEOutbox1791600000000 implements MigrationInterface
         status status_envio_notificacao NOT NULL DEFAULT 'PENDENTE',
         regra_id uuid,
         destino_id uuid NOT NULL,
+        destino_identificador_externo varchar(160),
         pedido_id uuid,
         pedido_revisao integer,
         data_referencia date,
         texto_renderizado text,
         disponivel_em timestamptz NOT NULL,
+        expira_em timestamptz,
+        envio_iniciado_em timestamptz,
         reservado_ate timestamptz,
         reservado_por varchar(80),
         tentativas integer NOT NULL DEFAULT 0,
@@ -136,6 +139,43 @@ export class CriarNotificacoesEOutbox1791600000000 implements MigrationInterface
     );
     await queryRunner.query(
       'CREATE INDEX ix_outbox_notificacoes_criado_em ON outbox_notificacoes (criado_em)',
+    );
+
+    await queryRunner.query(`
+      CREATE TABLE recibos_notificacao (
+        id_externo varchar(160) NOT NULL,
+        recebido_em timestamptz NOT NULL,
+        criado_em timestamptz NOT NULL DEFAULT now(),
+        CONSTRAINT pk_recibos_notificacao PRIMARY KEY (id_externo),
+        CONSTRAINT ck_recibos_notificacao_id_preenchido CHECK (btrim(id_externo) <> '')
+      )
+    `);
+    await queryRunner.query(
+      'CREATE INDEX ix_recibos_notificacao_criado_em ON recibos_notificacao (criado_em)',
+    );
+
+    await queryRunner.query(`
+      CREATE TABLE execucoes_resumo_diario (
+        id uuid NOT NULL DEFAULT gen_random_uuid(),
+        regra_id uuid NOT NULL,
+        destino_id uuid NOT NULL,
+        data_referencia date NOT NULL,
+        desfecho varchar(20) NOT NULL,
+        outbox_id uuid,
+        criado_em timestamptz NOT NULL DEFAULT now(),
+        CONSTRAINT pk_execucoes_resumo_diario PRIMARY KEY (id),
+        CONSTRAINT uq_execucoes_resumo_diario_chave UNIQUE (regra_id, destino_id, data_referencia),
+        CONSTRAINT fk_execucoes_resumo_diario_regra FOREIGN KEY (regra_id) REFERENCES regras_notificacao (id),
+        CONSTRAINT fk_execucoes_resumo_diario_destino FOREIGN KEY (destino_id) REFERENCES destinos_notificacao (id),
+        CONSTRAINT fk_execucoes_resumo_diario_outbox FOREIGN KEY (outbox_id) REFERENCES outbox_notificacoes (id) ON DELETE SET NULL,
+        CONSTRAINT ck_execucoes_resumo_diario_desfecho CHECK (desfecho IN ('AGENDADO', 'OMITIDO', 'EXPIRADO'))
+      )
+    `);
+    await queryRunner.query(
+      'CREATE INDEX ix_execucoes_resumo_diario_data ON execucoes_resumo_diario (data_referencia, regra_id, destino_id)',
+    );
+    await queryRunner.query(
+      'CREATE INDEX ix_execucoes_resumo_diario_criado_em ON execucoes_resumo_diario (criado_em)',
     );
 
     await queryRunner.query(`
@@ -181,6 +221,8 @@ export class CriarNotificacoesEOutbox1791600000000 implements MigrationInterface
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query('DROP TABLE estado_conector_notificacao');
     await queryRunner.query('DROP TABLE resumos_enviados_pedidos');
+    await queryRunner.query('DROP TABLE execucoes_resumo_diario');
+    await queryRunner.query('DROP TABLE recibos_notificacao');
     await queryRunner.query('DROP TABLE outbox_notificacoes');
     await queryRunner.query('DROP TABLE regras_notificacao');
     await queryRunner.query('DROP TABLE destinos_notificacao');

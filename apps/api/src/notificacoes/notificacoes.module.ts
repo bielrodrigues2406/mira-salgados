@@ -10,7 +10,9 @@ import { CONECTOR_WHATSAPP } from './conector/conector-whatsapp.js';
 import { TransporteSimuladoConector } from './conector/transporte-simulado.conector.js';
 import { DestinoNotificacao } from './entities/destino-notificacao.entity.js';
 import { EstadoConectorNotificacao } from './entities/estado-conector-notificacao.entity.js';
+import { ExecucaoResumoDiario } from './entities/execucao-resumo-diario.entity.js';
 import { OutboxNotificacao } from './entities/outbox-notificacao.entity.js';
+import { ReciboNotificacao } from './entities/recibo-notificacao.entity.js';
 import { RegraNotificacao } from './entities/regra-notificacao.entity.js';
 import { ResumoEnviadoPedido } from './entities/resumo-enviado-pedido.entity.js';
 import { AgendadorResumosService } from './servicos/agendador-resumos.service.js';
@@ -27,6 +29,8 @@ import { WebhookNotificacoesService } from './servicos/webhook-notificacoes.serv
       DestinoNotificacao,
       RegraNotificacao,
       OutboxNotificacao,
+      ReciboNotificacao,
+      ExecucaoResumoDiario,
       ResumoEnviadoPedido,
       EstadoConectorNotificacao,
       Pedido,

@@ -5,7 +5,7 @@ import { ehViolacaoDeUnicidade } from '../../common/errors/postgres-errors.js';
 import type { StatusPedido } from '../../pedidos/dominio/enums.js';
 import { ItemPedido } from '../../pedidos/itens/item-pedido.entity.js';
 import { Pedido } from '../../pedidos/pedido.entity.js';
-import { avaliarJanelaResumo } from '../dominio/calendario.js';
+import { avaliarJanelaResumo, calcularFimJanelaResumo } from '../dominio/calendario.js';
 import { formatarResumoDiario, type PedidoParaResumo } from '../dominio/formatacao.js';
 import { projetarPedido } from '../dominio/projecao.js';
 import {
@@ -14,6 +14,10 @@ import {
   itensParaMensagem,
   preparosDestacadosDaRegra,
 } from '../dominio/regras.js';
+import {
+  ExecucaoResumoDiario,
+  RESTRICAO_EXECUCAO_RESUMO_UNICA,
+} from '../entities/execucao-resumo-diario.entity.js';
 import {
   OutboxNotificacao,
   RESTRICAO_CHAVE_DEDUPLICACAO,
@@ -124,6 +128,14 @@ export class AgendadorResumosService {
 
       try {
         const desfecho = await this.dataSource.transaction(async (manager) => {
+          const repoExecucao = manager.getRepository(ExecucaoResumoDiario);
+          const execucaoExistente = await repoExecucao.findOneBy({
+            regraId: regra.id,
+            destinoId: regra.destinoId,
+            dataReferencia: local.data,
+          });
+          if (execucaoExistente) return 'JA_EXISTE' as const;
+
           const existente = await manager.getRepository(OutboxNotificacao).findOneBy({
             chaveDeduplicacao: chave,
           });
@@ -131,6 +143,17 @@ export class AgendadorResumosService {
 
           const elegiveis = await this.carregarPedidosParaResumo(manager, local.data, regra);
           if (elegiveis.length === 0 && regra.omitirDiasVazios) {
+            // Registra que o dia vazio já foi avaliado e omitido para impedir que
+            // um pedido criado depois saia duplicado (resumo tardio + complemento).
+            await repoExecucao.save(
+              repoExecucao.create({
+                regraId: regra.id,
+                destinoId: regra.destinoId,
+                dataReferencia: local.data,
+                desfecho: 'OMITIDO',
+                outboxId: null,
+              }),
+            );
             return 'OMITIDO' as const;
           }
 
@@ -141,6 +164,7 @@ export class AgendadorResumosService {
           );
 
           const expirado = situacao === 'EXPIRADO';
+          const expiraEm = expirado ? null : calcularFimJanelaResumo(agora, regra);
           const repoOutbox = manager.getRepository(OutboxNotificacao);
           const outbox = await repoOutbox.save(
             repoOutbox.create({
@@ -149,11 +173,14 @@ export class AgendadorResumosService {
               status: expirado ? 'EXPIRADO' : 'PENDENTE',
               regraId: regra.id,
               destinoId: regra.destinoId,
+              destinoIdentificadorExterno: regra.destino?.identificadorExterno ?? null,
               pedidoId: null,
               pedidoRevisao: null,
               dataReferencia: local.data,
               textoRenderizado,
               disponivelEm: agora,
+              expiraEm,
+              envioIniciadoEm: null,
               reservadoAte: null,
               reservadoPor: null,
               tentativas: 0,
@@ -165,6 +192,16 @@ export class AgendadorResumosService {
               enviadoEm: null,
               entregueEm: null,
               copiadoManualmenteEm: null,
+            }),
+          );
+
+          await repoExecucao.save(
+            repoExecucao.create({
+              regraId: regra.id,
+              destinoId: regra.destinoId,
+              dataReferencia: local.data,
+              desfecho: expirado ? 'EXPIRADO' : 'AGENDADO',
+              outboxId: outbox.id,
             }),
           );
 
@@ -191,8 +228,13 @@ export class AgendadorResumosService {
         else if (desfecho === 'EXPIRADO') resultado.expirados += 1;
         else if (desfecho === 'OMITIDO') resultado.omitidos += 1;
       } catch (erro) {
-        // Corrida entre dois workers: a chave única impede resumo duplicado.
-        if (ehViolacaoDeUnicidade(erro, RESTRICAO_CHAVE_DEDUPLICACAO)) continue;
+        // Corrida entre dois workers: as chaves únicas impedem resumo duplicado.
+        if (
+          ehViolacaoDeUnicidade(erro, RESTRICAO_CHAVE_DEDUPLICACAO) ||
+          ehViolacaoDeUnicidade(erro, RESTRICAO_EXECUCAO_RESUMO_UNICA)
+        ) {
+          continue;
+        }
         throw erro;
       }
     }
