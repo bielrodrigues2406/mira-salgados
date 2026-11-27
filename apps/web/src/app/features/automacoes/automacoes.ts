@@ -206,6 +206,7 @@ export class Automacoes {
   protected readonly telefonePareamento = signal('');
   protected readonly pareamento = signal<ResultadoPareamento | null>(null);
   protected readonly gruposWhatsApp = signal<GrupoWhatsApp[]>([]);
+  protected readonly gruposRecemCarregados = signal(false);
   protected readonly aviso = signal('');
   protected readonly erroAcao = signal<string | null>(null);
   protected readonly ocupacao = signal<string | null>(null);
@@ -232,12 +233,20 @@ export class Automacoes {
 
   protected readonly poseEmpadinha = computed<PoseEmpadinha>(() => {
     const emCurso = this.ocupacao();
-    if (emCurso === 'verificar' || emCurso === 'parear' || emCurso === 'grupos') {
-      return 'conferindo';
+    if (emCurso === 'grupos' || emCurso?.startsWith('previa:')) {
+      return 'folhear';
     }
-    if (this.pareamento()) return 'marcando';
+    if (emCurso === 'verificar' || emCurso === 'parear') {
+      return 'conferir';
+    }
+    if (emCurso?.startsWith('simular:') || emCurso === 'teste-real' || this.pareamento()) {
+      return 'marcar';
+    }
+    if (this.previa() !== null || this.gruposRecemCarregados()) {
+      return 'folhear';
+    }
     const atual = this.painel();
-    if (!atual) return 'ola';
+    if (!atual || atual.estado.estado === 'DESLIGADO') return 'pronta';
     if (
       atual.estado.estado === 'DESCONECTADO' ||
       atual.estado.estado === 'PAUSADO' ||
@@ -246,8 +255,8 @@ export class Automacoes {
     ) {
       return 'revisar';
     }
-    if (atual.estado.estado === 'CONECTADO') return 'tudo-certo';
-    return 'ola';
+    if (atual.estado.estado === 'CONECTADO') return 'concluir';
+    return 'acenar';
   });
 
   protected readonly mostrarPareamento = computed(() => {
@@ -376,6 +385,7 @@ export class Automacoes {
   protected async verificarConexao(): Promise<void> {
     await this.executar('verificar', async () => {
       const estado = await firstValueFrom(this.servico.verificarConexao());
+      this.gruposRecemCarregados.set(false);
       if (estado.estado === 'CONECTADO') {
         this.pareamento.set(null);
         this.painelPareamentoAberto.set(false);
@@ -407,6 +417,7 @@ export class Automacoes {
     await this.executar('grupos', async () => {
       const grupos = await firstValueFrom(this.servico.listarGrupos());
       this.gruposWhatsApp.set(grupos);
+      this.gruposRecemCarregados.set(grupos.length > 0);
       this.aviso.set(
         grupos.length > 0
           ? `${String(grupos.length)} grupo(s) carregado(s). Selecione um abaixo e salve o destino.`
@@ -450,6 +461,7 @@ export class Automacoes {
           ativo: rascunho.ativo,
         }),
       );
+      this.gruposRecemCarregados.set(false);
       this.aviso.set('Destino salvo.');
       this.painelRecurso.reload();
     });

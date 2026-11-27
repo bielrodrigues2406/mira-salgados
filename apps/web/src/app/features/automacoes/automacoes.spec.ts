@@ -174,6 +174,7 @@ describe('Automacoes', () => {
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(tela.querySelector('.previa-texto')?.textContent).toContain('*Nova encomenda #1043*');
+      expect(tela.querySelector('ms-empadinha')?.classList).toContain('pose-folhear');
     });
   });
 
@@ -281,10 +282,11 @@ describe('Automacoes', () => {
   it('pareia WhatsApp por QR ou código de 8 dígitos, verifica conexão, seleciona grupo e atualiza pose da Empadinha', async () => {
     await montar();
 
-    // Com 1 envio incerto na fila, a Empadinha aparece em modo revisar.
-    expect(tela.querySelector('ms-empadinha img')?.getAttribute('src')).toBe(
-      '/empadinha/revisar.webp',
-    );
+    // Com 1 envio incerto na fila, a Empadinha aparece em SVG articulado na pose revisar.
+    const empadinha = tela.querySelector('ms-empadinha');
+    expect(empadinha?.querySelector('svg.cena')).not.toBeNull();
+    expect(empadinha?.querySelector('[data-parte="luva-livre"]')).not.toBeNull();
+    expect(empadinha?.classList).toContain('pose-revisar');
 
     // Abre painel de pareamento e solicita QR Code.
     botao('Conectar WhatsApp').click();
@@ -305,9 +307,7 @@ describe('Automacoes', () => {
       expect(tela.querySelector('.qr-imagem')?.getAttribute('src')).toBe(
         'data:image/png;base64,iVBORw0KGgo=',
       );
-      expect(tela.querySelector('ms-empadinha img')?.getAttribute('src')).toBe(
-        '/empadinha/marcando.webp',
-      );
+      expect(tela.querySelector('ms-empadinha')?.classList).toContain('pose-marcar');
     });
 
     // Gera código de 8 dígitos informando o número do chip.
@@ -331,7 +331,7 @@ describe('Automacoes', () => {
       expect(tela.querySelector('.codigo-pareamento')?.textContent.trim()).toBe('ABCD-1234');
     });
 
-    // Verifica conexão: ao ficar CONECTADO e sem pendências, fecha pareamento e muda pose para tudo-certo.
+    // Verifica conexão: ao ficar CONECTADO e sem pendências, fecha pareamento e muda pose para concluir.
     botao('Verificar conexão').click();
     const reqVerificar = await aguardar((url) => url === '/api/v1/automacoes/conexao/verificar');
     expect(reqVerificar.request.method).toBe('POST');
@@ -348,12 +348,10 @@ describe('Automacoes', () => {
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(tela.querySelector('.pareamento-bloco')).toBeNull();
-      expect(tela.querySelector('ms-empadinha img')?.getAttribute('src')).toBe(
-        '/empadinha/tudo-certo.webp',
-      );
+      expect(tela.querySelector('ms-empadinha')?.classList).toContain('pose-concluir');
     });
 
-    // Carrega grupos do WhatsApp e preenche destino ao selecionar um grupo.
+    // Carrega grupos do WhatsApp (gesto folhear) e preenche destino ao selecionar um grupo.
     botao('Carregar grupos').click();
     const reqGrupos = await aguardar((url) => url === '/api/v1/automacoes/grupos');
     expect(reqGrupos.request.method).toBe('GET');
@@ -366,6 +364,7 @@ describe('Automacoes', () => {
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(tela.querySelector('#destino-grupo-lista')).not.toBeNull();
+      expect(tela.querySelector('ms-empadinha')?.classList).toContain('pose-folhear');
     });
 
     const seletorGrupo = tela.querySelector<HTMLSelectElement>('#destino-grupo-lista');

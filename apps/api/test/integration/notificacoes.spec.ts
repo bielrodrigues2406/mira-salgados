@@ -8,6 +8,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { AuditoriaService } from '../../src/auditoria/auditoria.service.js';
 import { LogAuditoria } from '../../src/auditoria/log-auditoria.entity.js';
 import { TransporteSimuladoConector } from '../../src/notificacoes/conector/transporte-simulado.conector.js';
+import { DestinoNotificacao } from '../../src/notificacoes/entities/destino-notificacao.entity.js';
 import { EstadoConectorNotificacao } from '../../src/notificacoes/entities/estado-conector-notificacao.entity.js';
 import { OutboxNotificacao } from '../../src/notificacoes/entities/outbox-notificacao.entity.js';
 import { ReciboNotificacao } from '../../src/notificacoes/entities/recibo-notificacao.entity.js';
@@ -917,13 +918,33 @@ describe('notificações, outbox, worker e automações', () => {
     expect(ultimoLog?.dadosDepois?.['qrCode']).toBeUndefined();
     expect(ultimoLog?.dadosDepois?.['codigo']).toBeUndefined();
 
-    // Testa payload exato do GoWA v9.11 (ids[] + receipt_type + device.reachout_timelock).
+    // Em modo GOWA conectado, /simular continua isolado (nunca chama o conector real),
+    // enquanto /testar-envio publica pelo conector no destino explícito e recebe ack GoWA v9.11.
     const regraId = await ligarRegra('AVISO_IMEDIATO');
-    const simulacao = dadosDe<{ id: string }>(
-      await admin.post(`/automacoes/regras/${regraId}/simular`, {}).expect(200),
+    await dataSource
+      .getRepository(EstadoConectorNotificacao)
+      .update({ canal: 'WHATSAPP' }, { modo: 'GOWA', estado: 'CONECTADO', pausado: false });
+    const destinoAtual = await dataSource
+      .getRepository(DestinoNotificacao)
+      .findOneByOrFail({ canal: 'WHATSAPP' });
+
+    const spyEnviar = vi.spyOn(conector, 'enviarTexto');
+    await admin.post(`/automacoes/regras/${regraId}/simular`, {}).expect(200);
+    expect(spyEnviar).not.toHaveBeenCalled();
+
+    const testeReal = dadosDe<{ id: string }>(
+      await admin
+        .post(`/automacoes/regras/${regraId}/testar-envio`, {
+          destinoId: destinoAtual.id,
+          identificadorExterno: destinoAtual.identificadorExterno,
+        })
+        .expect(200),
     );
+    expect(spyEnviar).toHaveBeenCalledTimes(1);
+    spyEnviar.mockRestore();
+
     const registro = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
-      id: simulacao.id,
+      id: testeReal.id,
     });
 
     const segredo = 'segredo-webhook-gowa-v9-integracao-0123456789';
@@ -954,7 +975,7 @@ describe('notificações, outbox, worker e automações', () => {
       expect(resAck.status).toBe(200);
 
       const entregue = await dataSource.getRepository(OutboxNotificacao).findOneByOrFail({
-        id: simulacao.id,
+        id: testeReal.id,
       });
       expect(entregue.status).toBe('ENTREGUE');
 

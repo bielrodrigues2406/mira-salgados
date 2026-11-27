@@ -7,111 +7,25 @@
 }
 
 :host(.tamanho-pequena) {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 41px;
 }
 
 :host(.tamanho-media) {
-  width: 76px;
-  height: 76px;
+  width: 84px;
+  height: 71px;
 }
 
 :host(.tamanho-grande) {
-  width: 108px;
+  width: 128px;
   height: 108px;
 }
 
-.sprite {
+.cena {
   width: 100%;
   height: 100%;
-  object-fit: contain;
   display: block;
+  overflow: visible;
   user-select: none;
   pointer-events: none;
-  transform-origin: 50% 85%;
-  animation: empadinha-respirar 3.6s ease-in-out infinite;
-}
-
-:host(.pose-marcando) .sprite {
-  animation: empadinha-marcar 2.2s ease-in-out infinite;
-}
-
-:host(.pose-tudo-certo) .sprite {
-  animation: empadinha-confirmar 2.8s ease-in-out infinite;
-}
-
-:host(.pose-ola) .sprite {
-  animation: empadinha-acenar 2.8s ease-in-out infinite;
-}
-
-:host(.pose-revisar) .sprite {
-  animation: empadinha-revisar 3.4s ease-in-out infinite;
-}
-
-@keyframes empadinha-respirar {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-2px) scale(1.015);
-  }
-}
-
-@keyframes empadinha-marcar {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  40% {
-    transform: translateY(-2px) rotate(-1.5deg);
-  }
-  70% {
-    transform: translateY(-1px) rotate(1deg);
-  }
-}
-
-@keyframes empadinha-confirmar {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  35% {
-    transform: translateY(-3px) scale(1.025);
-  }
-  65% {
-    transform: translateY(0) scale(0.99);
-  }
-}
-
-@keyframes empadinha-acenar {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(2.5deg);
-  }
-  55% {
-    transform: rotate(-2deg);
-  }
-  80% {
-    transform: rotate(1.5deg);
-  }
-}
-
-@keyframes empadinha-revisar {
-  0%,
-  100% {
-    transform: rotate(0deg) translateY(0);
-  }
-  50% {
-    transform: rotate(-2.5deg) translateY(-1.5px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sprite {
-    animation: none;
-  }
 }

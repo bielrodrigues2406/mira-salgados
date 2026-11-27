@@ -1,9 +1,295 @@
-<img
-  class="sprite"
-  [src]="caminhoImagem()"
-  [alt]="rotulo()"
-  width="384"
-  height="384"
-  decoding="async"
-  draggable="false"
-/>
+@let g = geometria();
+<svg
+  class="cena"
+  viewBox="70 36 416 352"
+  [attr.role]="rotulo() ? 'img' : null"
+  [attr.aria-label]="rotulo() || null"
+  [attr.aria-hidden]="rotulo() ? null : 'true'"
+  focusable="false"
+>
+  <defs>
+    <linearGradient
+      [id]="idPrefixo + '-massa'"
+      gradientUnits="userSpaceOnUse"
+      x1="127"
+      y1="158"
+      x2="385"
+      y2="309"
+    >
+      <stop offset="0%" stop-color="#d46b2e" />
+      <stop offset="28%" stop-color="#f5a247" />
+      <stop offset="57%" stop-color="#ffbc5c" />
+      <stop offset="100%" stop-color="#e57c32" />
+    </linearGradient>
+    <linearGradient
+      [id]="idPrefixo + '-tampa'"
+      gradientUnits="userSpaceOnUse"
+      x1="260"
+      y1="51"
+      x2="282"
+      y2="176"
+    >
+      <stop offset="0%" stop-color="#ffcc76" />
+      <stop offset="38%" stop-color="#ffb653" />
+      <stop offset="73%" stop-color="#ed912f" />
+      <stop offset="100%" stop-color="#bd5423" />
+    </linearGradient>
+    <clipPath [id]="idPrefixo + '-clip-corpo'">
+      <path
+        d="M122 158C140 199 168 241 192 289C202 311 221 321 274 322Q331 321 349 308C372 292 396 226 419 151Z"
+      />
+    </clipPath>
+    <clipPath [id]="idPrefixo + '-clip-tampa'">
+      <path
+        d="M102 134Q97 116 116 97C153 61 218 43 287 49Q338 49 371 60Q403 50 429 70Q454 89 455 111Q458 132 443 142Q431 150 416 138Q404 126 389 143Q371 163 350 162Q331 161 318 154Q297 149 280 166Q262 186 237 185Q215 184 201 174Q183 163 165 173Q147 183 133 174Q125 170 123 155Q108 153 102 134Z"
+      />
+    </clipPath>
+  </defs>
+
+  <g stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="279" cy="368" rx="144" ry="13" fill="rgba(126, 65, 34, 0.12)" />
+    <path
+      d="M222 305L244 309L243 351Q235 366 205 363Q184 363 185 355Q187 345 216 341Z"
+      fill="#0f2440"
+    />
+    <path
+      d="M304 305L327 300L336 343Q358 342 367 354Q370 365 347 365Q323 365 315 355Z"
+      fill="#0f2440"
+    />
+
+    <g data-parte="corpo" [attr.transform]="g.corpoTransform">
+      <!-- Braço de apoio da prancheta -->
+      <path [attr.d]="g.bracoApoioPath" fill="none" stroke="#0f2440" stroke-width="26" />
+      <path [attr.d]="g.bracoApoioPath" fill="none" stroke="#ffb451" stroke-width="17" />
+
+      <!-- Base da empadinha -->
+      <path
+        d="M122 158C140 199 168 241 192 289C202 311 221 321 274 322Q331 321 349 308C372 292 396 226 419 151Z"
+        [attr.fill]="'url(#' + idPrefixo + '-massa)'"
+        stroke="#0f2440"
+        stroke-width="6.8"
+      />
+      <g [attr.clip-path]="'url(#' + idPrefixo + '-clip-corpo)'">
+        <path d="M139 158L193 158Q210 244 238 302L207 316Q169 240 139 158Z" fill="#e78837" />
+        <path d="M353 151L414 151Q383 251 343 302L313 308Q335 251 353 151Z" fill="#ed913c" />
+        <path d="M179 179Q263 136 373 166L328 290Q287 314 231 294Z" fill="#ffb856" />
+        <path
+          d="M166 270Q268 323 365 276Q360 334 265 331Q186 330 166 270Z"
+          fill="rgba(190, 82, 29, 0.21)"
+        />
+        <path
+          [attr.d]="texturaCorpo.claros"
+          fill="none"
+          stroke="rgba(255, 220, 150, 0.3)"
+          stroke-width="1.6"
+        />
+        <path
+          [attr.d]="texturaCorpo.escuros"
+          fill="none"
+          stroke="rgba(155, 62, 23, 0.12)"
+          stroke-width="1.4"
+        />
+      </g>
+
+      <!-- Borda ondulada e tampa dourada -->
+      <g data-parte="tampa" [attr.transform]="g.tampaTransform">
+        <path
+          d="M102 134Q97 116 116 97C153 61 218 43 287 49Q338 49 371 60Q403 50 429 70Q454 89 455 111Q458 132 443 142Q431 150 416 138Q404 126 389 143Q371 163 350 162Q331 161 318 154Q297 149 280 166Q262 186 237 185Q215 184 201 174Q183 163 165 173Q147 183 133 174Q125 170 123 155Q108 153 102 134Z"
+          [attr.fill]="'url(#' + idPrefixo + '-tampa)'"
+          stroke="#0f2440"
+          stroke-width="7"
+        />
+        <g [attr.clip-path]="'url(#' + idPrefixo + '-clip-tampa)'">
+          <path
+            d="M109 129Q132 150 157 142Q182 128 203 147Q232 175 258 151Q283 126 310 135Q339 145 360 131Q384 107 410 117Q429 131 447 115L449 153Q332 191 195 188L114 176Z"
+            fill="#b35421"
+          />
+          <path
+            d="M111 122Q119 139 145 137Q156 136 165 131Q181 123 201 136Q232 160 253 141Q280 115 305 125Q334 139 355 122Q383 100 407 110Q428 119 448 110"
+            fill="none"
+            stroke="#ffc771"
+            stroke-width="10"
+          />
+          <path
+            d="M141 108Q175 70 238 65Q282 58 324 68M351 71Q361 73 370 76M387 70Q415 66 432 88"
+            fill="none"
+            stroke="#ffda91"
+            stroke-width="5.5"
+          />
+          <path
+            [attr.d]="texturaTampa.claros"
+            fill="none"
+            stroke="rgba(255, 224, 154, 0.42)"
+            stroke-width="2"
+          />
+          <path
+            [attr.d]="texturaTampa.escuros"
+            fill="none"
+            stroke="rgba(174, 79, 28, 0.24)"
+            stroke-width="1.8"
+          />
+        </g>
+      </g>
+
+      <!-- Rosto -->
+      <path [attr.d]="g.sobrancelhaEsquerdaPath" fill="none" stroke="#0f2440" stroke-width="4.2" />
+      <path [attr.d]="g.sobrancelhaDireitaPath" fill="none" stroke="#0f2440" stroke-width="4.2" />
+
+      @if (g.olhosFechados) {
+        <path d="M229 221q8 6 16 0" fill="none" stroke="#0f2440" stroke-width="4" />
+        <path d="M308 215q8 6 16 0" fill="none" stroke="#0f2440" stroke-width="4" />
+      } @else {
+        <ellipse
+          [attr.cx]="g.olhoEsquerdoCx"
+          [attr.cy]="g.olhoEsquerdoCy"
+          rx="8.1"
+          [attr.ry]="g.olhoRy"
+          fill="#0f2440"
+        />
+        <ellipse
+          [attr.cx]="g.olhoDireitoCx"
+          [attr.cy]="g.olhoDireitoCy"
+          rx="8.1"
+          [attr.ry]="g.olhoRy"
+          fill="#0f2440"
+        />
+        @if (g.brilhoOlhoVisivel) {
+          <ellipse
+            [attr.cx]="g.brilhoEsquerdoCx"
+            [attr.cy]="g.brilhoEsquerdoCy"
+            rx="2.5"
+            ry="2.8"
+            fill="#fff5df"
+          />
+          <ellipse
+            [attr.cx]="g.brilhoDireitoCx"
+            [attr.cy]="g.brilhoDireitoCy"
+            rx="2.5"
+            ry="2.8"
+            fill="#fff5df"
+          />
+        }
+      }
+
+      <path [attr.d]="g.bocaPath" fill="none" stroke="#0f2440" stroke-width="4.4" />
+      <ellipse cx="216" cy="237" rx="1.6" ry="1.15" fill="#d57937" />
+      <ellipse cx="207" cy="243" rx="2.6" ry="1.6" fill="#d57937" />
+      <ellipse cx="222" cy="245" rx="1.6" ry="1.15" fill="#d57937" />
+      <ellipse cx="334" cy="228" rx="2.6" ry="1.6" fill="#d57937" />
+      <ellipse cx="344" cy="224" rx="1.6" ry="1.15" fill="#d57937" />
+      <ellipse cx="343" cy="234" rx="2.6" ry="1.6" fill="#d57937" />
+
+      <!-- Prancheta com folha que vira e tique progressivo -->
+      <g data-parte="prancheta" [attr.transform]="g.pranchetaTransform">
+        @if (g.folhaVersoVisivel) {
+          <g data-parte="folha-verso" [attr.transform]="g.folhaVirandoTransform">
+            <path
+              d="M-32-43H32V35Q32 46 22 47H-32Z"
+              [attr.fill]="g.folhaVirandoVerso ? '#e9d2ad' : '#fff0d6'"
+              stroke="#a98b6e"
+              stroke-width="1.65"
+            />
+          </g>
+        }
+
+        <path
+          d="M-43-50Q-43-58-35-58H34Q43-58 43-49V48Q43 58 34 58H-35Q-43 58-43 48Z"
+          fill="#1e3a5f"
+          stroke="#0f2440"
+          stroke-width="5.5"
+        />
+
+        <!-- Folha base -->
+        <path
+          d="M-32-43H32V35Q32 46 22 47H-32Z"
+          fill="#fff0d6"
+          stroke="#a98b6e"
+          stroke-width="1.65"
+        />
+        <path [attr.d]="g.folhaBaseLinhas" fill="none" stroke="#a6856a" stroke-width="3.1" />
+        @if (g.folhaBaseTiquePath; as tique) {
+          <path
+            data-parte="tique"
+            [attr.d]="tique"
+            fill="none"
+            stroke="#345536"
+            stroke-width="5.2"
+          />
+        }
+
+        @if (g.folhaFrenteVisivel) {
+          <g data-parte="folha-frente" [attr.transform]="g.folhaVirandoTransform">
+            <path
+              d="M-32-43H32V35Q32 46 22 47H-32Z"
+              [attr.fill]="g.folhaVirandoVerso ? '#e9d2ad' : '#fff0d6'"
+              stroke="#a98b6e"
+              stroke-width="1.65"
+            />
+            @if (!g.folhaVirandoVerso) {
+              <path d="M-21-24H18M-21-10H10" fill="none" stroke="#a6856a" stroke-width="3.1" />
+              @if (g.folhaFrenteTiquePath; as tiqueFrente) {
+                <path
+                  data-parte="tique-folha"
+                  [attr.d]="tiqueFrente"
+                  fill="none"
+                  stroke="#345536"
+                  stroke-width="5.2"
+                />
+              }
+            }
+          </g>
+        }
+
+        <!-- Prendedor metálico -->
+        <path
+          d="M-17-49Q-18-55-10-55H-6A6 6 0 0 1 6-55H10Q18-55 17-49V-39H-17Z"
+          fill="#d5d1c4"
+          stroke="#0f2440"
+          stroke-width="3.7"
+        />
+      </g>
+
+      <!-- Mão de apoio segurando a borda da prancheta -->
+      <g data-parte="luva-apoio" [attr.transform]="g.luvaApoioTransform">
+        <path [attr.d]="g.luvaApoioPath" fill="#ffc268" stroke="#0f2440" stroke-width="4.6" />
+      </g>
+
+      <!-- Braço livre, lápis e mão articulada -->
+      <g data-parte="braco-livre">
+        <path
+          [attr.d]="g.bracoLivrePath"
+          fill="none"
+          stroke="#0f2440"
+          [attr.stroke-width]="g.bracoLivreLarguraContorno"
+        />
+        <path
+          [attr.d]="g.bracoLivrePath"
+          fill="none"
+          stroke="#ffb451"
+          [attr.stroke-width]="g.bracoLivreLarguraPreenchimento"
+        />
+
+        @if (g.lapisOpacidade > 0) {
+          <g data-parte="lapis" [attr.opacity]="g.lapisOpacidade">
+            <path [attr.d]="g.lapisHastePath" fill="none" stroke="#0f2440" stroke-width="7" />
+            <path [attr.d]="g.lapisHastePath" fill="none" stroke="#e9a348" stroke-width="3.6" />
+            <path [attr.d]="g.lapisPontaPath" fill="#0f2440" />
+          </g>
+        }
+
+        <g data-parte="luva-livre" [attr.transform]="g.luvaLivreTransform">
+          <path [attr.d]="g.luvaLivrePath" fill="#ffc268" stroke="#0f2440" stroke-width="4.6" />
+          @if (g.luvaLivrePalmaVisivel) {
+            <path
+              data-parte="palma"
+              d="M-7 6Q-5 2-1 2"
+              fill="none"
+              stroke="#c26b34"
+              stroke-width="2.2"
+            />
+          }
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

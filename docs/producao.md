@@ -124,13 +124,22 @@ As notificações automáticas rodam de forma opcional atrás do profile
 `notificacoes` (`worker` + `gowa` na rede interna Docker, sem nenhuma porta
 publicada para a internet — veja [ADR 0019](adr/0019-notificacoes-outbox-e-conector-whatsapp.md)):
 
-1. No `.env`, defina:
+1. Gere a senha do GoWA e o segredo dos webhooks no terminal (o arquivo `.env`
+   do Docker Compose **não executa** comandos como `$(...)` — se colar o
+   comando direto no `.env`, ele entra como texto literal):
 
    ```sh
+   openssl rand -hex 16   # senha para colar depois de "mira:"
+   openssl rand -hex 32   # segredo HMAC-SHA-256 dos webhooks
+   ```
+
+   Depois, cole os valores gerados no `.env`:
+
+   ```dotenv
    NOTIFICACOES_MODO=GOWA
    NOTIFICACOES_CONECTOR_URL=http://gowa:3000
-   NOTIFICACOES_CONECTOR_TOKEN=mira:$(openssl rand -hex 16)
-   NOTIFICACOES_WEBHOOK_SECRET=$(openssl rand -hex 32)
+   NOTIFICACOES_CONECTOR_TOKEN=mira:<senha-gerada-com-openssl-rand-hex-16>
+   NOTIFICACOES_WEBHOOK_SECRET=<segredo-gerado-com-openssl-rand-hex-32>
    ```
 
 2. Suba a pilha com o profile `notificacoes`:
@@ -141,8 +150,11 @@ publicada para a internet — veja [ADR 0019](adr/0019-notificacoes-outbox-e-con
 
 3. Entre como administrador em **Automações**, abra **Conectar WhatsApp**, faça
    o pareamento único do chip dedicado (por **QR Code** ou **código de 8
-   dígitos**), clique em **Carregar grupos** para escolher o grupo de destino
-   (comece por um grupo de teste), rode **Simular envio** e só então ative as
+   dígitos**), clique em **Carregar grupos** para escolher e salvar o grupo de
+   destino (comece por um grupo de teste). Use **Simular envio** nas regras
+   para conferir o texto localmente com dados fictícios (sem publicar nada no
+   WhatsApp) e, quando quiser validar a entrega real no grupo de teste salvo,
+   use **Enviar teste real** confirmando o destino explícito. Só depois ative as
    regras desejadas. A sessão fica salva no volume `gowa_session` e reconecta
    sozinha após reinícios.
 
