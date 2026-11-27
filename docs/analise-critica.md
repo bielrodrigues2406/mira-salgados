@@ -61,24 +61,31 @@ Pontos levantados ao implementar pedidos
 
 ## Desempenho e índices
 
-| Tabela           | Índice                                                          | Consulta atendida                       |
-| ---------------- | --------------------------------------------------------------- | --------------------------------------- |
-| `refresh_tokens` | único em `token_hash`                                           | Renovação de sessão                     |
-| `refresh_tokens` | `family_id`                                                     | Revogação da família                    |
-| `logs_auditoria` | `(entidade, entidade_id, criado_em)`                            | Histórico de um registro                |
-| `logs_auditoria` | `criado_em`                                                     | Filtro por intervalo                    |
-| `produtores`     | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa    |
-| `clientes`       | GIN trigram em `lower(immutable_unaccent(nome))`                | Busca por trecho do nome, sem acentos   |
-| `clientes`       | GIN trigram em `telefone`                                       | Busca por trecho do telefone            |
-| `produtos`       | único em `lower(nome)`                                          | Nome repetido sem distinção de caixa    |
-| `produtos`       | `produtor_padrao_id`                                            | Produtos de um produtor, desativação    |
-| `precos_produto` | único parcial em `(produto_id, preparo, unidade_venda)` vigente | Um preço vigente por combinação         |
-| `precos_produto` | `(produto_id, vigente_desde DESC)`                              | Histórico de preços de um produto       |
-| `pedidos`        | `(data_entrega, status)`                                        | Lista por data, produção do dia, acerto |
-| `pedidos`        | `(cliente_id, status)`                                          | Saldo devedor e fiados do cliente       |
-| `itens_pedido`   | `pedido_id`                                                     | Itens do pedido, somas da lista         |
-| `itens_pedido`   | `produtor_id`                                                   | Produção e acerto por produtor          |
-| `pagamentos`     | `pedido_id`                                                     | Pagamentos do pedido, somas da lista    |
+| Tabela                     | Índice                                                                         | Consulta atendida                                    |
+| -------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| `refresh_tokens`           | único em `token_hash`                                                          | Renovação de sessão                                  |
+| `refresh_tokens`           | `family_id`                                                                    | Revogação da família                                 |
+| `logs_auditoria`           | `(entidade, entidade_id, criado_em)`                                           | Histórico de um registro                             |
+| `logs_auditoria`           | `criado_em`                                                                    | Filtro por intervalo                                 |
+| `produtores`               | único em `lower(nome)`                                                         | Nome repetido sem distinção de caixa                 |
+| `clientes`                 | GIN trigram em `lower(immutable_unaccent(nome))`                               | Busca por trecho do nome, sem acentos                |
+| `clientes`                 | GIN trigram em `telefone`                                                      | Busca por trecho do telefone                         |
+| `produtos`                 | único em `lower(nome)`                                                         | Nome repetido sem distinção de caixa                 |
+| `produtos`                 | `produtor_padrao_id`                                                           | Produtos de um produtor, desativação                 |
+| `precos_produto`           | único parcial em `(produto_id, preparo, unidade_venda)` vigente                | Um preço vigente por combinação                      |
+| `precos_produto`           | `(produto_id, vigente_desde DESC)`                                             | Histórico de preços de um produto                    |
+| `pedidos`                  | `(data_entrega, status)`                                                       | Lista por data, produção do dia, acerto              |
+| `pedidos`                  | `(cliente_id, status)`                                                         | Saldo devedor e fiados do cliente                    |
+| `itens_pedido`             | `pedido_id`                                                                    | Itens do pedido, somas da lista                      |
+| `itens_pedido`             | `produtor_id`                                                                  | Produção e acerto por produtor                       |
+| `pagamentos`               | `pedido_id`                                                                    | Pagamentos do pedido, somas da lista                 |
+| `chaves_idempotencia`      | único em `(usuario_id, rota, chave)`                                           | Reenvio seguro e proteção contra duplo clique        |
+| `chaves_idempotencia`      | `expira_em`                                                                    | Purga periódica de chaves vencidas                   |
+| `outbox_notificacoes`      | único em `chave_deduplicacao`                                                  | Deduplicação entre aviso imediato, resumo e ajuste   |
+| `outbox_notificacoes`      | `(status, disponivel_em)`                                                      | Reivindicação de pendentes no worker (`SKIP LOCKED`) |
+| `outbox_notificacoes`      | `(pedido_id, destino_id)`                                                      | Substituição de revisões pendentes de um pedido      |
+| `outbox_notificacoes`      | `criado_em`                                                                    | Histórico paginado e limpeza de retenção (30/90 d)   |
+| `resumos_enviados_pedidos` | único em `(outbox_id, pedido_id)` e `(data_referencia, destino_id, pedido_id)` | Reconciliação de complementos pós-resumo             |
 
 A busca de clientes foi conferida com `EXPLAIN`: nome e telefone usam os dois
 índices trigram num `BitmapOr`. Decisões dos cadastros no
@@ -90,8 +97,15 @@ agrupadas por pedido, em vez de uma por pedido. Os relatórios de intervalo
 
 ## Evolução
 
-- **Níveis de permissão.** O guard global já centraliza a identidade; falta só o
-  metadado de papéis e uma coluna ou tabela de papéis por usuário.
+- **Encomenda confirmada atômica e idempotência ([ADR 0018](adr/0018-encomenda-atomica-e-idempotencia.md)).**
+  `POST /pedidos/confirmados` grava pedido já confirmado, itens e auditoria numa
+  única transação com `Idempotency-Key`. `POST /pedidos` legado fica preservado
+  até o zeramento definitivo de `RASCUNHO` em produção.
+- **Notificações de equipe via WhatsApp ([ADR 0019](adr/0019-notificacoes-outbox-e-conector-whatsapp.md)).**
+  Outbox transacional no PostgreSQL, worker isolado (`dist/worker.js`) com
+  debounce de 30 s em edições, resumo filtrado para assados com concluídos
+  sinalizados e janela de recuperação de 120 min em `America/Sao_Paulo`, e
+  adaptador trocável com GoWA como alvo principal do piloto.
 - **Múltiplos produtores por item.** O modelo prevê um `produtorId` por item.
   Dividir um item entre pessoas hoje significa dividir a quantidade em dois
   itens, o que é suficiente para o acerto, que soma por produtor.
