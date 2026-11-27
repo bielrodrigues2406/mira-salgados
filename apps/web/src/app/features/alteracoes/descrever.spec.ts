@@ -121,4 +121,12 @@ describe('descrever alterações', () => {
       { campo: 'Papel', antes: 'Membro', depois: 'Administrador' },
     ]);
   });
+
+  it('trata ação futura desconhecida sem quebrar a tela', () => {
+    const futuro = registro({
+      entidade: 'regra_notificacao',
+      acao: 'ACAO_FUTURA' as RegistroDeAlteracao['acao'],
+    });
+    expect(titulo(futuro)).toBe('regra_notificacao atualizado');
+  });
 });

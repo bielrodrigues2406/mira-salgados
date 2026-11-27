@@ -48,7 +48,7 @@
             @if (pagamento.estornadoEm === null) {
               <button
                 type="button"
-                class="botao botao-terciario botao-icone estornar"
+                class="botao botao-terciario botao-icone estornar nao-imprimir"
                 [attr.aria-label]="rotuloDoEstorno(pagamento)"
                 (click)="estornando.set(pagamento.id)"
               >
@@ -62,7 +62,11 @@
   }
 
   @if (registrando()) {
-    <form class="formulario" aria-labelledby="titulo-novo-pagamento" [formRoot]="formulario">
+    <form
+      class="formulario nao-imprimir"
+      aria-labelledby="titulo-novo-pagamento"
+      [formRoot]="formulario"
+    >
       <h3 id="titulo-novo-pagamento" class="texto-titulo">Registrar pagamento</h3>
       <fieldset class="grupo">
         <legend class="texto-rotulo">Forma</legend>
@@ -124,7 +128,7 @@
       </div>
     </form>
   } @else if (podeRegistrar()) {
-    <button type="button" class="botao botao-secundario registrar" (click)="abrir()">
+    <button type="button" class="botao botao-secundario registrar nao-imprimir" (click)="abrir()">
       <ms-icone nome="mais" />
       <span>Registrar pagamento</span>
     </button>

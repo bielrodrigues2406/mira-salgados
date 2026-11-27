@@ -40,6 +40,7 @@ const ROTULO_DO_CAMPO: Record<string, string> = {
   nome: 'Nome',
   telefone: 'Telefone',
   endereco: 'Endereço',
+  enderecoEntrega: 'Endereço de entrega',
   ativo: 'Situação',
   status: 'Status',
   tipoEntrega: 'Entrega',
@@ -78,6 +79,8 @@ const IGNORADOS = new Set([
   'registradoPorId',
   'entregadorId',
   'email',
+  'notificacaoRevisao',
+  'notificacaoHash',
 ]);
 
 const DINHEIRO = new Set(['desconto', 'taxaEntrega', 'precoUnitario', 'preco', 'valor']);
@@ -85,6 +88,14 @@ const MOMENTOS = new Set(['vigenteDesde', 'vigenteAte', 'estornadoEm']);
 const FORMAS: Record<string, string> = { DINHEIRO: 'Dinheiro', PIX: 'PIX', FIADO: 'Fiado' };
 const ENTREGAS: Record<string, string> = { ENTREGA: 'Entrega', RETIRADA: 'Retirada' };
 const UNIDADES: Record<string, string> = { CENTO: 'Cento', UNIDADE: 'Unidade' };
+const STATUS_HISTORICO: Record<string, string> = { RASCUNHO: 'Rascunho' };
+const ACAO_FALLBACK: { verbo: [string, string]; icone: NomeIcone } = {
+  verbo: ['atualizado', 'atualizada'],
+  icone: 'historico',
+};
+const ACAO_POR_NOME = new Map<string, { verbo: [string, string]; icone: NomeIcone }>(
+  Object.entries(ACAO),
+);
 
 export interface Mudanca {
   campo: string;
@@ -138,12 +149,12 @@ export function assunto(registro: RegistroDeAlteracao): string {
 }
 
 export function titulo(registro: RegistroDeAlteracao): string {
-  const [masculino, feminino] = ACAO[registro.acao].verbo;
+  const [masculino, feminino] = (ACAO_POR_NOME.get(registro.acao) ?? ACAO_FALLBACK).verbo;
   return `${assunto(registro)} ${FEMININAS.has(registro.entidade) ? feminino : masculino}`;
 }
 
 export function iconeDaAcao(acao: AcaoAuditoria): NomeIcone {
-  return ACAO[acao].icone;
+  return (ACAO_POR_NOME.get(acao) ?? ACAO_FALLBACK).icone;
 }
 
 /** Pedido a que o registro pertence, para abrir o detalhe. */
@@ -169,7 +180,7 @@ export function formatarValor(
     case 'status':
       return valor in APARENCIA_DO_STATUS
         ? APARENCIA_DO_STATUS[valor as keyof typeof APARENCIA_DO_STATUS].rotulo
-        : valor;
+        : (STATUS_HISTORICO[valor] ?? valor);
     case 'preparo':
       return valor in APARENCIA_DO_PREPARO
         ? APARENCIA_DO_PREPARO[valor as keyof typeof APARENCIA_DO_PREPARO].rotulo

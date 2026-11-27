@@ -115,7 +115,7 @@
               <span class="texto-legenda">Padrão do produto: {{ item.produtorPadrao.nome }}</span>
             }
             @if (editavel()) {
-              <span class="item-acoes">
+              <span class="item-acoes nao-imprimir">
                 <button
                   type="button"
                   class="botao botao-terciario botao-icone"
@@ -151,14 +151,20 @@
 
   @if (editavel()) {
     @if (adicionando()) {
-      <ms-item-formulario
-        [produtos]="produtos()"
-        [produtores]="produtores()"
-        [salvar]="adicionar"
-        (cancelar)="adicionando.set(false)"
-      />
+      <div class="nao-imprimir">
+        <ms-item-formulario
+          [produtos]="produtos()"
+          [produtores]="produtores()"
+          [salvar]="adicionar"
+          (cancelar)="adicionando.set(false)"
+        />
+      </div>
     } @else {
-      <button type="button" class="botao botao-secundario adicionar" (click)="abrirNovo()">
+      <button
+        type="button"
+        class="botao botao-secundario adicionar nao-imprimir"
+        (click)="abrirNovo()"
+      >
         <ms-icone nome="mais" />
         <span>Adicionar item</span>
       </button>

@@ -45,11 +45,12 @@ export class PainelService {
       this.producao.porDia(data, ateProximos),
       this.acerto.porDia(de, ate),
       this.fiados.resumo(),
+      // Conta todos os rascunhos legados (inclusive datas antigas) para que
+      // nenhum fique invisível durante a aposentadoria do estado (ADR 0018).
       this.dataSource
         .getRepository(Pedido)
         .createQueryBuilder('pedido')
         .where("pedido.status = 'RASCUNHO'")
-        .andWhere('pedido.dataEntrega BETWEEN :data AND :ateProximos', { data, ateProximos })
         .getCount(),
     ]);
 

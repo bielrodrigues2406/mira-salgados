@@ -14,7 +14,7 @@
 /* No celular as duas colunas se desfazem numa só, na ordem do design:
    identificação e ações, resumo financeiro, itens, pagamentos e cliente. */
 .principal,
-.lateral {
+.coluna-lateral {
   display: contents;
 }
 
@@ -38,6 +38,14 @@ ms-pagamentos-pedido {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.topo-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .identificacao {
@@ -154,7 +162,7 @@ ms-pagamentos-pedido {
   }
 
   .principal,
-  .lateral {
+  .coluna-lateral {
     display: flex;
     flex-direction: column;
     gap: 16px;

@@ -1,9 +1,20 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 import { CurrentUser, type UsuarioAutenticado } from '../common/auth/usuario-autenticado.js';
 import type { Paginated } from '../common/pagination/pagination.js';
 import { AlterarStatusDto } from './dto/alterar-status.dto.js';
 import { AtualizarPedidoDto } from './dto/atualizar-pedido.dto.js';
+import { CriarPedidoConfirmadoDto } from './dto/criar-pedido-confirmado.dto.js';
 import { CriarPedidoDto } from './dto/criar-pedido.dto.js';
 import { FiltroPedidosDto } from './dto/filtro-pedidos.dto.js';
 import { PedidoDetalheDto } from './dto/pedido-resposta.dto.js';
@@ -36,6 +47,18 @@ export class PedidosController {
     @CurrentUser() usuario: UsuarioAutenticado,
   ): Promise<PedidoDetalheDto> {
     return PedidoDetalheDto.de(await this.pedidos.criar(dados, usuario.id));
+  }
+
+  /** Criação atômica de encomenda confirmada com itens; aceita Idempotency-Key. */
+  @Post('confirmados')
+  async criarConfirmado(
+    @Body() dados: CriarPedidoConfirmadoDto,
+    @CurrentUser() usuario: UsuarioAutenticado,
+    @Headers('idempotency-key') chaveIdempotencia?: string,
+  ): Promise<PedidoDetalheDto> {
+    return PedidoDetalheDto.de(
+      await this.pedidos.criarConfirmado(dados, usuario.id, chaveIdempotencia),
+    );
   }
 
   @Patch(':id')

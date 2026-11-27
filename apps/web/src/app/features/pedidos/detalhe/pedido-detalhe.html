@@ -1,4 +1,4 @@
-<a class="link-voltar" routerLink="/pedidos">
+<a class="link-voltar nao-imprimir" routerLink="/pedidos">
   <ms-icone nome="chevronEsquerda" />
   <span>Pedidos</span>
 </a>
@@ -9,9 +9,12 @@
   <div class="colunas">
     <div class="principal">
       <section class="cabecalho" aria-labelledby="titulo-pedido">
-        <div class="identificacao">
-          <h1 id="titulo-pedido" class="texto-display numerico">Pedido #{{ pedido.numero }}</h1>
-          <span class="cliente">{{ pedido.cliente.nome }}</span>
+        <div class="topo-cabecalho">
+          <div class="identificacao">
+            <h1 id="titulo-pedido" class="texto-display numerico">Pedido #{{ pedido.numero }}</h1>
+            <span class="cliente">{{ pedido.cliente.nome }}</span>
+          </div>
+          <ms-compartilhar />
         </div>
         <div class="chips">
           <ms-chip-status [status]="pedido.status" />
@@ -45,7 +48,7 @@
       </section>
 
       @if (pedido.editavel) {
-        <div class="acoes">
+        <div class="acoes nao-imprimir">
           @if (avanco(); as acao) {
             <button
               type="button"
@@ -83,7 +86,7 @@
       }
 
       @if (confirmandoCancelamento()) {
-        <div class="cartao confirmacao" role="group" aria-label="Cancelar pedido">
+        <div class="cartao confirmacao nao-imprimir" role="group" aria-label="Cancelar pedido">
           <p>
             Cancelar o pedido #{{ pedido.numero }}? Ele sai da produção e do acerto, e não pode ser
             reaberto.
@@ -109,7 +112,7 @@
       }
 
       @if (erroDeStatus(); as mensagem) {
-        <div class="alerta alerta-negativo" role="alert">
+        <div class="alerta alerta-negativo nao-imprimir" role="alert">
           <ms-icone nome="alerta" [tamanho]="20" />
           <span>{{ mensagem }}</span>
         </div>
@@ -117,7 +120,7 @@
 
       @if (editando()) {
         @if (dadosAtuais(); as dados) {
-          <section class="cartao" aria-label="Editar dados do pedido">
+          <section class="cartao nao-imprimir" aria-label="Editar dados do pedido">
             <ms-pedido-formulario
               [inicial]="dados"
               [clienteInicial]="pedido.cliente"
@@ -139,7 +142,7 @@
       <ms-pagamentos-pedido [pedido]="pedido" (alterado)="aplicar($event)" />
     </div>
 
-    <div class="lateral">
+    <div class="coluna-lateral">
       <ms-resumo-financeiro [pedido]="pedido" />
 
       <section class="cartao cliente-secao" aria-labelledby="titulo-cliente">
@@ -166,7 +169,7 @@
           </a>
         }
         @for (outro of outrasEncomendas(); track outro.id) {
-          <a class="outra-encomenda" [routerLink]="['/pedidos', outro.id]">
+          <a class="outra-encomenda nao-imprimir" [routerLink]="['/pedidos', outro.id]">
             <ms-icone nome="alerta" />
             <span class="outra-textos">
               <span>Saldo devedor em outra encomenda</span>

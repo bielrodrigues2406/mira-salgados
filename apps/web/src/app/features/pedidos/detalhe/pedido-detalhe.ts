@@ -14,6 +14,7 @@ import { PedidosService } from '../../../core/services/pedidos.service';
 import { ProdutoresService } from '../../../core/services/produtores.service';
 import { ProdutosService } from '../../../core/services/produtos.service';
 import { ChipStatus } from '../../../shared/components/chip-status/chip-status';
+import { Compartilhar } from '../../../shared/components/compartilhar/compartilhar';
 import { EstadoErro } from '../../../shared/components/estado-erro/estado-erro';
 import { Icone } from '../../../shared/components/icone/icone';
 import type { NomeIcone } from '../../../shared/components/icone/icones';
@@ -42,8 +43,7 @@ const AVANCOS: Partial<Record<StatusPedido, AcaoDeStatus>> = {
   CONCLUIDO: { status: 'CONCLUIDO', rotulo: 'Concluir pedido', icone: 'concluido' },
 };
 
-const AVISOS: Record<StatusPedido, string> = {
-  RASCUNHO: 'Pedido voltou a rascunho.',
+const AVISOS: Partial<Record<StatusPedido, string>> = {
   CONFIRMADO: 'Pedido confirmado. Ele entra na produção do dia.',
   CONCLUIDO: 'Pedido concluído.',
   CANCELADO: 'Pedido cancelado.',
@@ -53,6 +53,7 @@ const AVISOS: Record<StatusPedido, string> = {
   selector: 'ms-pedido-detalhe',
   imports: [
     ChipStatus,
+    Compartilhar,
     EstadoErro,
     Icone,
     ItensPedido,
@@ -159,7 +160,7 @@ export class PedidoDetalhe {
     try {
       const pedido = await firstValueFrom(this.pedidos.alterarStatus(atual.id, status));
       this.confirmandoCancelamento.set(false);
-      this.aplicar({ pedido, aviso: AVISOS[status] });
+      this.aplicar({ pedido, aviso: AVISOS[status] ?? 'Status do pedido atualizado.' });
     } catch (falha) {
       this.erroDeStatus.set(mensagemDeErro(falha));
     } finally {

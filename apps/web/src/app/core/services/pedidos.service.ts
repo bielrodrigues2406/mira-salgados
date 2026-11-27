@@ -9,6 +9,7 @@ import type {
   AlteracaoPedido,
   ConsultaPedidos,
   DadosPedido,
+  DadosPedidoConfirmado,
   NovoItem,
   NovoPagamento,
   PedidoDetalhe,
@@ -53,6 +54,16 @@ export class PedidosService {
 
   criar(dados: DadosPedido): Observable<PedidoDetalhe> {
     return this.agregado(this.http.post<ApiEnvelope<PedidoDetalhe>>(PEDIDOS, dados));
+  }
+
+  criarConfirmado(
+    dados: DadosPedidoConfirmado,
+    chaveIdempotencia?: string,
+  ): Observable<PedidoDetalhe> {
+    const headers = chaveIdempotencia ? { 'Idempotency-Key': chaveIdempotencia } : undefined;
+    return this.agregado(
+      this.http.post<ApiEnvelope<PedidoDetalhe>>(`${PEDIDOS}/confirmados`, dados, { headers }),
+    );
   }
 
   atualizar(id: string, alteracao: AlteracaoPedido): Observable<PedidoDetalhe> {
